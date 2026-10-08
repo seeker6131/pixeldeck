@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0c1030">
+</head>
+<body>
+<title>Pixeldeck Battle</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+/* Layout: a landscape stage — a narrow status rail on the left, the working area (board, cards, shop) on the right. */
+:root{
+  color-scheme:dark;
+  --night:#1d2b53; --panel:#2a3a6e; --deep:#121a36; --ink:#fff1e8; --dim:#c2c3c7;
+  --red:#ff004d; --yellow:#ffec27; --green:#00e436; --blue:#29adff; --orange:#ffa300; --plum:#7e2553; --lav:#83769c;
+  --c:#a9adb8; --uc:#3ddc5a; --r:#4aa8ff; --l:#ffd23a; --sl:#ff9d1a;
+  --display:"Pixelify Sans","Chakra Petch",system-ui,sans-serif;
+  --body:"Chakra Petch","Pixelify Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden}
+body{background:var(--night);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.4}
+/* the game is always a landscape stage; on an upright phone the stage is turned 90 degrees */
+#stage{position:fixed;left:0;top:0;transform-origin:top left;padding-block:10px;padding-inline:16px;overflow:hidden}
+#view{height:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+h1{font-family:var(--display);font-size:30px;line-height:1;margin:0;color:var(--yellow);text-shadow:3px 3px 0 var(--red)}
+h2{font-family:var(--display);font-size:20px;line-height:1.1;margin:0;color:var(--yellow)}
+p{margin:0}
+.px{border:3px solid var(--deep);background:var(--panel);box-shadow:0 4px 0 var(--deep)}
+.btn{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.2;padding:7px 12px;border:3px solid var(--deep);background:var(--yellow);color:var(--deep);box-shadow:0 4px 0 var(--deep)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--deep)}
+.btn.alt{background:var(--panel);color:var(--ink)}
+.btn.go{background:var(--red);color:var(--ink)}
+.btn.sm{font-size:14px;padding:4px 8px}
+.btn.on{background:var(--green);color:var(--deep)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cols{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px;height:100%}
+.rail{display:grid;gap:7px;align-content:start;min-height:0;overflow-y:auto;padding-bottom:6px}
+.main{min-height:0;overflow-y:auto;padding:18px 20px}
+.num{font-family:var(--display);font-size:17px;font-variant-numeric:tabular-nums}
+.gold{color:var(--yellow)}.dia{color:var(--blue)}
+.sub{font-size:12px;color:var(--dim)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tile{display:grid;gap:2px;text-align:left;padding:10px 12px;font-family:var(--display);font-size:20px;font-weight:700}
+.tile span{font-family:var(--body);font-size:12px;font-weight:500;color:var(--dim)}
+/* rarity: each tier sets --gl; the frame glow is drawn from it */
+.r-C{--gl:var(--c)}.r-UC{--gl:var(--uc)}.r-R{--gl:var(--r)}.r-L{--gl:var(--l)}.r-SL{--gl:var(--sl)}
+.glow{--ln:color-mix(in srgb,var(--gl) 45%,#fff);box-shadow:0 0 0 2px var(--ln),0 0 7px 3px var(--gl),0 0 18px 6px color-mix(in srgb,var(--gl) 70%,transparent),0 0 34px 10px color-mix(in srgb,var(--gl) 30%,transparent)}
+.r-C.glow{box-shadow:0 0 0 2px var(--c)}
+/* Rare and above move: the halo breathes and stars twinkle on the frame */
+.r-R.glow{animation:pulse 1.6s ease-in-out infinite alternate}
+.r-L.glow{--gb:30px;--gs:10px;animation:pulse 1.2s ease-in-out infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 2px var(--ln),0 0 5px 2px var(--gl),0 0 12px 4px color-mix(in srgb,var(--gl) 55%,transparent),0 0 22px 6px color-mix(in srgb,var(--gl) 20%,transparent)}
+  to{box-shadow:0 0 0 2px var(--ln),0 0 10px 4px var(--gl),0 0 var(--gb,24px) var(--gs,8px) color-mix(in srgb,var(--gl) 80%,transparent),0 0 calc(var(--gb,24px)*1.8) calc(var(--gs,8px)*1.6) color-mix(in srgb,var(--gl) 38%,transparent)}}
+.sp{position:absolute;z-index:3;width:17%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,57% 43%,100% 50%,57% 57%,50% 100%,43% 57%,0 50%,43% 43%);transform:translate(-50%,-50%) scale(0);animation:tw 2.4s ease-in-out infinite}
+@keyframes tw{0%,60%,100%{transform:translate(-50%,-50%) scale(0)}80%{transform:translate(-50%,-50%) scale(1)}}
+/* fire frame: a pixel fire simulation drawn on a canvas that sits behind the card and overhangs every edge */
+.fire{isolation:isolate}
+.firec{position:absolute;z-index:-1;left:-17.5%;top:-13.7%;width:135%;height:127.4%;image-rendering:pixelated;pointer-events:none}
+.fire.glow{animation:none;box-shadow:0 0 0 2px #ffec27,0 0 26px 10px rgba(255,90,0,.55)}
+/* rarity banner drawn over the caption strip of the card art */
+.cnm{position:absolute;left:6.5%;right:6.5%;top:4.2%;height:10.4%;display:grid;place-items:center;background:#000;color:#fff;font-family:var(--display);font-weight:700;font-size:7.6cqw;letter-spacing:.04em;line-height:1;white-space:nowrap;text-transform:uppercase;overflow:hidden}
+.chp{position:absolute;top:15.8%;height:8.2%;min-width:27%;padding:0 2cqw;display:grid;place-items:center;background:rgba(8,10,24,.96);color:#fff;font-family:var(--display);font-weight:700;font-size:5.2cqw;line-height:1;white-space:nowrap}
+.chp.l{left:8.3%}.chp.r{right:8.3%;color:var(--gl)}
+.ban{position:absolute;left:8.3%;right:8.3%;top:66.2%;height:8.4%;display:grid;place-items:center;background:#000;color:var(--gl);font-family:var(--display);font-weight:700;font-size:6.2cqw;letter-spacing:.08em;line-height:1;white-space:nowrap}
+.pan{position:absolute;left:7.4%;right:7.4%;top:75.2%;height:19%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.6cqw;padding:0 2cqw;
+  background:linear-gradient(#3a2a5c,#1a1230);box-shadow:inset 0 0 0 .8cqw #0a0e22,inset 0 0 0 1.5cqw #d9a441;font-family:var(--display);font-weight:700;line-height:1}
+.sb{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:.6cqw 1.2cqw;padding:1.6cqw 1.8cqw 1.3cqw;background:#0a0e22;box-shadow:inset 0 0 0 .5cqw var(--sc);min-width:0}
+.sb.a{--sc:#ff7a4d}.sb.m{--sc:#c98bff}.sb.d{--sc:#5cb8ff}
+.sb img{width:5.6cqw;height:5.6cqw;max-width:none;image-rendering:pixelated}
+.sb b{font-size:5.2cqw;letter-spacing:.06em;color:var(--sc);text-align:left;white-space:nowrap}
+.sb i{grid-column:1/-1;font-style:normal;font-size:10.6cqw;color:#fff;text-align:center;font-variant-numeric:tabular-nums;text-shadow:.6cqw .6cqw 0 #000}
+.amslot{display:grid;place-items:center;width:13.5cqw;height:13.5cqw;border-radius:50%;border:.7cqw dashed #d9a441;color:#d9a441;font-size:8cqw;line-height:1}
+.amslot.has{border:0}
+/* amulets: a round charm in the amulet's colour */
+.amu{display:grid;place-items:center;width:100%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a59a8,#161c44 75%);box-shadow:inset 0 0 0 2px var(--k1),0 0 0 2px #0a0e22,0 0 0 4px #d9a441,0 0 0 6px #0a0e22}
+.amslot .amu{width:12.2cqw;height:12.2cqw;aspect-ratio:auto;box-shadow:inset 0 0 0 .5cqw var(--k1),0 0 0 .6cqw #0a0e22,0 0 0 1.3cqw #d9a441}
+.amu img{width:80%;image-rendering:pixelated}
+.amlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-bottom:18px}
+.amrow{display:grid;grid-template-columns:44px 1fr;gap:4px 14px;align-items:center;text-align:left;padding:10px 12px 10px 14px;border:3px solid var(--deep);background:var(--panel);color:var(--ink)}
+.mkpick{position:relative;width:40px;margin:7px 8px;padding:0;border:0;background:none;color:var(--ink)}.mkpick small{display:block;text-align:center;font-size:11px;margin-top:5px}.mkpick.on{outline:3px solid var(--yellow);outline-offset:5px}
+/* trade room: a walkable plaza; avatars are sorted by depth and tapped to open the trade menu */
+.troom{position:relative;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:4px;padding:5px 10px 8px}
+.tfloor{position:relative;overflow:hidden;border:3px solid var(--deep);background:#35603f}
+/* the plaza is wider than the screen; the camera slides it so the player stays near the middle */
+.tworld{position:absolute;left:0;top:0;height:100%;cursor:pointer;background:
+  linear-gradient(90deg,transparent 0 0),repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 56px),repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 2px,transparent 2px 56px),
+  linear-gradient(#6b5a48 0 40px,#3d6b4a 40px)}
+.tworld::before{content:"";position:absolute;left:0;right:0;top:54%;height:34px;background:repeating-linear-gradient(90deg,#c9b48a 0 28px,#bda67a 28px 56px);box-shadow:0 0 0 3px rgba(0,0,0,.25);pointer-events:none}
+.tworld .deco{position:absolute;pointer-events:none}
+.stall{width:74px;height:46px;background:linear-gradient(#b5793f 0 30%,#7a4a22 30%);box-shadow:0 0 0 3px #0a0e22}
+.stall::before{content:"";position:absolute;left:-6px;right:-6px;top:-20px;height:22px;background:repeating-linear-gradient(90deg,var(--aw,#ff004d) 0 12px,#fff1e8 12px 24px);box-shadow:0 0 0 3px #0a0e22}
+.fount{width:64px;height:64px;border-radius:50%;background:radial-gradient(#bfe9ff 0 30%,#29adff 32% 58%,#c2c3c7 60%);box-shadow:0 0 0 3px #0a0e22}
+.tree{width:44px;height:44px;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 35% 30%,#5fbf5a,#1f6b34);box-shadow:0 0 0 3px #0a0e22;transform-origin:50% 100%;animation:idle 2.4s ease-in-out infinite alternate}
+.tree::after{content:"";position:absolute;left:17px;top:42px;width:10px;height:14px;background:#7a4a22;box-shadow:0 0 0 3px #0a0e22;z-index:-1}
+.lamp{width:8px;height:44px;background:#3b3b46;box-shadow:0 0 0 2px #0a0e22}
+.lamp::before{content:"";position:absolute;left:-6px;top:-14px;width:20px;height:16px;background:#ffec27;box-shadow:0 0 0 2px #0a0e22,0 0 18px 8px rgba(255,236,39,.45);animation:glowp 1.6s ease-in-out infinite alternate}
+/* character sprites: one sheet, a row per character, three columns (stand, step, step) */
+.chs{display:block;width:56px;height:52px;background:url(chars.png) 0 0/168px 2600px;image-rendering:pixelated}
+.av{position:absolute;width:56px;margin:-56px 0 0 -28px;padding:0;border:0;background:none;color:#fff;display:grid;justify-items:center}
+.av .chs{filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
+.av span{font-size:10px;line-height:1.3;padding:0 4px;background:rgba(10,14,34,.8);white-space:nowrap;margin-top:1px}
+.av.me{pointer-events:none}.av.me span{color:var(--yellow)}
+.av.flip .chs{transform:scaleX(-1)}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.roomb{display:grid;gap:4px;text-align:left;padding:10px 12px;color:var(--ink);font-family:var(--display);font-size:20px;font-weight:700}
+.roomb small{font-family:var(--body);font-size:12px;font-weight:500;color:var(--dim)}
+.roomb .bar2{height:8px;background:#000}.roomb .bar2 i{display:block;height:100%;background:var(--green)}
+.roomb:disabled{opacity:.5}
+.chgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:12px}
+.chb{display:grid;justify-items:center;gap:2px;padding:6px 2px 4px;border:3px solid var(--deep);background:var(--panel);color:var(--ink);font-size:10px;line-height:1.2;text-align:center}
+.chb.on{outline:3px solid var(--yellow);outline-offset:1px}
+#tui{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:9999}
+.tmenu{pointer-events:auto;display:grid;gap:6px;max-height:98%;overflow:auto;min-width:230px;max-width:86%;padding:12px 14px;background:var(--panel);border:3px solid var(--deep);box-shadow:0 5px 0 var(--deep)}
+.tmenu .pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tmenu .mkpick{margin:6px 8px;width:32px}
+.looks{display:flex;gap:14px;flex-wrap:wrap;padding:4px}
+.swb{width:34px;height:34px;padding:0;border:3px solid var(--deep);box-shadow:0 3px 0 var(--deep)}.swb.on{outline:3px solid var(--yellow);outline-offset:3px}
+.avbig{width:84px;height:112px;image-rendering:pixelated;justify-self:center;background:var(--panel);border:3px solid var(--deep)}
+.prof{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;padding:6px 8px;text-align:left;color:var(--ink)}
+.prof .chs{grid-row:1/3}.prof b{font-size:15px;overflow-wrap:anywhere}.prof small{font-size:12px;color:var(--yellow)}
+.lookb{padding:4px;border:3px solid var(--deep);background:var(--panel)}.lookb.on{outline:3px solid var(--yellow)}
+.lookb img{display:block;width:42px;height:56px;image-rendering:pixelated}
+#nm{font:inherit;font-size:16px;padding:6px 8px;border:3px solid var(--deep);background:#fff1e8;color:#121a36;width:100%}
+.amrow.on{outline:3px solid var(--yellow);outline-offset:1px}
+.amrow b{font-size:14px}.amrow small{display:block;font-size:12px;color:var(--dim);line-height:1.35}
+.rib{display:block;font-family:var(--display);font-weight:700;font-size:11px;line-height:1.35;text-align:center;background:var(--gl);color:var(--deep);letter-spacing:.04em}
+/* crops the picture window out of a full card image */
+.art{position:relative;aspect-ratio:1.3;overflow:hidden;background:var(--deep);width:100%}
+.art img{position:absolute;width:138%;max-width:none;left:-19%;top:-50.5%}
+.art .nm{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.3;text-align:center;background:rgba(18,26,54,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini{position:relative;display:block;padding:0;border:0;background:var(--deep);color:var(--ink);text-align:center;min-width:0;width:100%}
+.st{display:flex;justify-content:space-between;gap:2px;padding:0 4px;font-family:var(--display);font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums}
+.mini .st{background:var(--deep)}
+.st .a{color:var(--orange)}.st .d{color:var(--blue)}
+.hp{height:7px;background:#000}
+.hp i{display:block;height:100%;background:var(--green);transition:width .2s steps(5)}
+.xp i{background:var(--blue)}
+.tag{display:inline-block;white-space:nowrap;font-size:9px;background:var(--plum);padding:0 4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:24px 22px}
+.mini.sel{outline:3px solid var(--yellow);outline-offset:3px}
+.grid.big{grid-template-columns:repeat(4,minmax(0,1fr));gap:26px 22px}
+.cap{text-align:center;margin-top:8px}
+.cf.sel{outline:4px solid var(--yellow);outline-offset:5px}
+.cf .ord{top:-10px;right:-10px;z-index:4;min-width:28px;font-size:20px;line-height:1.3;box-shadow:0 0 0 3px var(--deep)}
+.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:5px 4px}
+.picks .empty{display:grid;place-items:center;aspect-ratio:.788;border:3px dashed var(--lav);color:var(--lav);font-family:var(--display);font-size:22px}
+.picks .sp{display:none}
+.tab{font-family:var(--display);font-weight:700;font-size:15px;line-height:1.5;padding:1px 8px;text-align:left;border:3px solid var(--deep);background:var(--gl,var(--panel));color:var(--deep);opacity:.55}
+.tab:not([class*="r-"]){color:var(--ink)}.tab.am{background:#d9a441;color:var(--deep)}
+.tab.on{opacity:1;outline:3px solid var(--yellow);outline-offset:1px}
+.ord{position:absolute;z-index:1;top:14px;right:0;min-width:20px;font-family:var(--display);font-weight:700;background:var(--yellow);color:var(--deep)}
+.cf{position:relative;container-type:inline-size;display:block;padding:0;border:0;background:var(--deep);color:var(--ink);text-align:center;min-width:0;width:100%}
+.cf img{display:block;width:100%;aspect-ratio:1370/1740}
+.cf.lock img{filter:grayscale(1) brightness(.45)}
+/* battle: side view, your team stacked on the left, enemies on the right, the middle is the lane attacks cross */
+.arena{position:relative;overflow:hidden;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:2px;padding:5px 10px 6px;background:#121a36}
+.arena>.atop,.arena>.field{position:relative;z-index:1}
+.arena>.atop{background:rgba(10,14,34,.62);margin:-5px -10px 0;padding:4px 10px}
+/* stage backdrop: the painting, a swaying copy of its tree line, drifting fog, a moving glow on lava or crystal ground, and a particle canvas */
+.bgl{position:absolute;inset:0;background-size:100% 100%;pointer-events:none}
+.bgl.lowr{clip-path:inset(25% 0 0 0)}
+.bgl.top{clip-path:inset(0 0 74.6% 0);transform-origin:50% 25%;animation:sway 2.8s ease-in-out infinite alternate}
+@keyframes sway{from{transform:scaleX(1.04) skewX(-3.2deg)}to{transform:scaleX(1.04) skewX(3.2deg)}}
+.bfog{position:absolute;inset:8% -40% 30% -40%;pointer-events:none;opacity:.55;animation:fogm 16s ease-in-out infinite alternate;
+  background:radial-gradient(ellipse 22% 42% at 15% 45%,var(--fc,#fff),transparent 70%),radial-gradient(ellipse 26% 36% at 48% 60%,var(--fc,#fff),transparent 70%),radial-gradient(ellipse 20% 44% at 80% 40%,var(--fc,#fff),transparent 70%)}
+@keyframes fogm{from{transform:translateX(-18%)}to{transform:translateX(18%)}}
+.bglow{position:absolute;inset:24% 0 0 0;pointer-events:none;mix-blend-mode:screen;background:repeating-linear-gradient(105deg,transparent 0 10%,var(--gc) 17%,transparent 25%);background-size:200% 100%;animation:glowm 6s linear infinite,glowp 2.2s ease-in-out infinite alternate}
+@keyframes glowm{to{background-position:-200% 0}}
+@keyframes glowp{from{opacity:.12}to{opacity:.5}}
+.baur{position:absolute;inset:0 0 70% 0;pointer-events:none;mix-blend-mode:screen;opacity:.5;background:linear-gradient(90deg,#3dffb0,#4aa8ff,#b06cff,#3dffb0,#4aa8ff);background-size:300% 100%;-webkit-mask:linear-gradient(#000 30%,transparent);mask:linear-gradient(#000 30%,transparent);animation:glowm 10s linear infinite}
+#bgfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated}
+.mapth{width:100%;aspect-ratio:2;border:3px solid var(--deep);background-size:cover}
+.atop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.alog{flex:1;min-width:0;text-align:center;font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field{position:relative;display:flex;justify-content:space-between;min-height:0}
+.team{--cw:min(84px,calc((var(--H) - 96px)/4.15));display:grid;grid-template-rows:repeat(3,1fr);align-items:center;justify-items:end;min-height:0;padding:4px 30px 4px 8px}
+.team.en{justify-items:start;padding:4px 8px 4px 30px}
+.team>:nth-child(2){margin-right:-26px}.team.en>:nth-child(2){margin-right:0;margin-left:-26px}
+.team .mini{width:var(--cw);flex:none}
+.team .rib{font-size:9px}.team .st{font-size:11px;padding:0 3px;white-space:nowrap;gap:7px;justify-content:center;background:rgba(10,14,34,.7)}.team .st span{display:flex;align-items:center;gap:2px}.team .st img{width:9px;height:9px;image-rendering:pixelated}.team .art .nm{font-size:8px}.team .mini .stars{bottom:12px}.team .mini .stars svg{width:9px}
+/* fighters: the character cut out of its card stands on the floor; rank shows as a glow around the silhouette */
+.fig{position:relative;isolation:isolate;display:grid;justify-items:center;gap:1px;width:calc(var(--cw)*1.3);padding:0;border:0;background:none;color:var(--ink);flex:none}
+.fig .fhp{width:74%;height:6px;background:#000;box-shadow:0 0 0 1px #0a0e22}.fig .fhp i{display:block;height:100%;background:var(--green);transition:width .2s steps(5)}
+.fig .sw{display:block;width:100%;height:calc(var(--cw)*1.02)}.fig .sw.flip{transform:scaleX(-1)}
+.fig.boss .sw{height:calc(var(--cw)*1.2)}
+/* idle: every fighter breathes and sways from the feet; slime wobbles, flyers hover */
+.fig .spr{display:block;width:100%;height:100%;max-width:none;object-fit:contain;object-position:bottom;transform-origin:50% 100%;
+  animation:var(--idle,idle) 1.7s ease-in-out infinite alternate,var(--aura,none) .5s steps(3) infinite alternate}
+.fig.i-jelly .spr{--idle:jelly;animation-duration:.8s,.5s}.fig.i-hover .spr{--idle:hover}
+.slot:nth-child(2) .spr,.team.en>.fig:nth-child(2) .spr{animation-delay:-.6s}.slot:nth-child(3) .spr,.team.en>.fig:nth-child(3) .spr{animation-delay:-1.1s}
+@keyframes idle{from{transform:rotate(-1.8deg) scale(1,1)}to{transform:rotate(1.8deg) scale(1.02,1.045)}}
+@keyframes jelly{from{transform:scale(1.08,.92)}to{transform:scale(.94,1.07)}}
+@keyframes hover{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-8px) rotate(2deg)}}
+.fig.r-UC .spr{filter:drop-shadow(0 0 3px var(--gl))}
+.fig.r-R .spr{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 6px var(--gl))}
+.fig.r-L .spr{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 8px var(--gl))}
+.fig.r-SL .spr{--aura:blaze;filter:drop-shadow(0 0 2px #ffec27) drop-shadow(0 -3px 7px #ff5a00)}
+@keyframes blaze{to{filter:drop-shadow(0 0 3px #fff3b0) drop-shadow(0 -6px 11px #ff2a00)}}
+/* attack effects: slash arc and ground slam on the target, projectiles crossing the lane */
+.arc{position:absolute;z-index:5;left:5%;top:0;width:90%;aspect-ratio:1;border-radius:50%;border:0 solid transparent;border-right:8px solid #fff;filter:drop-shadow(0 0 5px #9fd8ff);pointer-events:none;animation:arc .26s ease-out forwards}
+.arc.rv{border-right:0;border-left:8px solid #fff;animation-name:arcR}
+@keyframes arc{from{transform:rotate(-80deg);opacity:1}to{transform:rotate(70deg);opacity:0}}
+@keyframes arcR{from{transform:rotate(80deg);opacity:1}to{transform:rotate(-70deg);opacity:0}}
+.slam{position:absolute;z-index:5;left:-25%;right:-25%;bottom:10px;height:20px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 10px 3px #ffd98a;pointer-events:none;animation:slam .32s ease-out forwards}
+@keyframes slam{from{transform:scale(.15);opacity:1}to{transform:scale(1.25);opacity:0}}
+.aur{position:absolute;z-index:5;inset:8% 0 12%;border-radius:50%;border:3px solid var(--green);box-shadow:0 0 12px 4px var(--green),inset 0 0 12px 2px var(--green);pointer-events:none;animation:slam .5s ease-out forwards}
+.pj{position:absolute;z-index:9;pointer-events:none;width:0;height:0}
+.pj i{position:absolute;display:block;left:0;top:0;transform:translate(-50%,-50%)}
+.pj.arrow i{width:38px;height:4px;background:linear-gradient(90deg,#f1f5f9 0 14%,#8b5a2b 14% 78%,#dfe7ef 78%);box-shadow:0 0 0 1px #0a0e22,0 0 6px #fff}
+.pj.fire i,.pj.moon i,.pj.light i,.pj.soul i{width:24px;height:24px;border-radius:50%;background:radial-gradient(#fff 0 18%,var(--p1) 45%,var(--p2) 72%,transparent 74%);box-shadow:0 0 14px 6px var(--p2),-18px 0 14px 2px var(--p2),-34px 0 12px 0 color-mix(in srgb,var(--p2) 55%,transparent)}
+.pj.fire{--p1:#ffd23a;--p2:#ff4a00}.pj.moon{--p1:#cfe9ff;--p2:#4aa8ff}.pj.light{--p1:#fff6c2;--p2:#ffd23a}.pj.soul{--p1:#b6ffd9;--p2:#19c37d}
+.fig .tagb{position:absolute;top:-11px;font-family:var(--display);font-weight:700;font-size:10px;background:var(--red);padding:0 5px;line-height:1.2}
+.fig.act::before{content:"";position:absolute;z-index:3;top:-9px;left:50%;margin-left:-7px;border:7px solid transparent;border-top:9px solid var(--yellow);animation:bob .5s steps(2) infinite alternate}
+.fig.dead .spr{animation:none;filter:grayscale(1) brightness(.45);opacity:.4;transform:rotate(-78deg) translate(-12%,22%)}
+.fig.dead .fhp,.fig.dead .st{opacity:.25}
+.slot{display:flex;align-items:center;gap:15px}
+.sks{display:flex;gap:14px;flex:none}
+.sks .sk{width:28px;height:28px}.sks .sk img{width:19px;height:19px}.sks .sk .cd{font-size:18px}
+.order{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);display:flex;gap:5px;align-items:flex-end}
+.op{display:block;width:24px;border:2px solid var(--blue)}.op.en{border-color:var(--red)}.op.now{width:36px;outline:2px solid var(--yellow);outline-offset:1px}
+.op .art,.vp .art{aspect-ratio:1}.op .art img,.vp .art img{width:180%;left:-40%;top:-52%}
+.arena .fl{font-size:30px;z-index:7}
+.imp{position:absolute;z-index:4;left:50%;top:45%;width:80%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,60% 35%,100% 20%,70% 50%,100% 80%,60% 65%,50% 100%,40% 65%,0 80%,30% 50%,0 20%,40% 35%);animation:imp .35s steps(5) forwards}
+@keyframes imp{from{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}to{transform:translate(-50%,-50%) scale(1.5) rotate(25deg);opacity:0}}
+/* overlays: VS intro, START / FINISH banners, skill cut-ins */
+#ov{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
+.bn{position:absolute;left:0;right:0;top:50%;height:84px;transform:translateY(-50%);display:grid;place-items:center;background:linear-gradient(90deg,transparent,rgba(10,14,34,.92) 18% 82%,transparent);animation:bn .85s both}
+.bn span{font-family:var(--display);font-weight:700;font-style:italic;font-size:58px;letter-spacing:.08em;color:var(--yellow);text-shadow:4px 4px 0 var(--red),0 0 20px #ff8a00;animation:pop .3s both}
+.bn.lose span{color:var(--dim);text-shadow:4px 4px 0 #0a0e22}
+@keyframes bn{0%{clip-path:inset(50% 0)}16%,82%{clip-path:inset(0)}100%{clip-path:inset(50% 0)}}
+@keyframes pop{from{transform:scale(3);opacity:0}}
+@keyframes slideL{from{transform:translateX(-140%)}}
+@keyframes slideR{from{transform:translateX(140%)}}
+.vs{position:absolute;inset:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;background:linear-gradient(100deg,#16307a 0 49.4%,#fff1e8 49.4% 50.6%,#7a1630 50.6%)}
+.vl,.vr{display:flex;gap:12px;justify-content:center}
+.vp{width:min(92px,11vmax);border:3px solid #0a0e22;box-shadow:0 5px 0 #0a0e22;animation:slideL .4s both}.vr .vp{animation-name:slideR}
+.vs b{font-family:var(--display);font-style:italic;font-size:76px;line-height:1;color:var(--yellow);text-shadow:5px 5px 0 var(--red),0 0 22px #ff8a00;animation:pop .35s .25s both}
+.dim{position:absolute;inset:0;background:rgba(10,14,34,.6)}
+.cut{--k1:#ff7a6b;--k2:#b3122f;position:absolute;left:-6%;right:-6%;top:50%;height:46%;transform:translateY(-50%) rotate(-4deg);display:flex;align-items:center;gap:26px;padding-left:14%;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 3px,transparent 3px 46px),linear-gradient(90deg,var(--k2),var(--k1));box-shadow:0 0 0 4px #0a0e22,0 0 0 9px var(--k1),0 0 0 13px #0a0e22;animation:cut .75s both}
+.cut.t-aoe{--k1:#ffc04d;--k2:#d9480f}.cut.t-exec{--k1:#d59bff;--k2:#6a1fb5}.cut.t-drain{--k1:#ff7ab8;--k2:#8a1158}
+.cut.t-heal,.cut.t-healall{--k1:#8dffa0;--k2:#118a3c}.cut.t-guard{--k1:#8fd3ff;--k2:#1f58b5}.cut.t-buff{--k1:#ffe98a;--k2:#c98a00}
+.cut.ult{height:74%;animation-duration:1s;box-shadow:0 0 0 4px #0a0e22,0 0 0 9px #ffd23a,0 0 0 13px #0a0e22,0 0 40px 18px rgba(255,210,58,.6)}
+.cutart{width:min(200px,24vmax);flex:none;border:4px solid #0a0e22;box-shadow:6px 6px 0 rgba(10,14,34,.6);animation:slideL .28s both}
+.cutname{font-family:var(--display);font-weight:700;font-style:italic;font-size:42px;line-height:1.1;color:#fff;text-shadow:3px 3px 0 #0a0e22,-2px -2px 0 #0a0e22;animation:slideR .28s both}
+.cutname small{display:block;font-size:15px;font-style:normal;letter-spacing:.06em}
+@keyframes cut{0%{clip-path:inset(50% 0)}14%,84%{clip-path:inset(-20% 0)}100%{clip-path:inset(-20% 0 -20% 100%)}}
+/* hollow star slots */
+.stars{position:absolute;z-index:2;left:0;right:0;display:flex;justify-content:center;gap:1.5%;pointer-events:none}
+.cf .stars{top:58.2%}.cf .stars svg{width:9.5%}
+.mini .stars{bottom:15px}.mini .stars svg{width:11px}
+.stars svg{display:block;aspect-ratio:1;fill:rgba(10,14,34,.7);stroke:#ffd98a;stroke-width:2.2;stroke-linejoin:round;paint-order:stroke}
+.stars svg.on{fill:var(--yellow)}
+/* skill buttons: a bevelled gem in the skill's colour inside a dark pixel frame */
+.sk{--k1:#ff7a6b;--k2:#b3122f;position:relative;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;flex:none;
+  background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.55),transparent 42%),linear-gradient(160deg,var(--k1),var(--k2));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),inset 0 -5px 0 rgba(0,0,0,.28),0 0 0 2px #0a0e22,0 0 0 4px var(--k2),0 0 0 6px #0a0e22}
+.sk img{width:24px;height:24px;image-rendering:pixelated;filter:drop-shadow(1px 2px 0 rgba(10,14,34,.75))}
+.sk.t-aoe{--k1:#ffc04d;--k2:#d9480f}.sk.t-exec{--k1:#d59bff;--k2:#6a1fb5}.sk.t-drain{--k1:#ff7ab8;--k2:#8a1158}
+.sk.t-heal,.sk.t-healall{--k1:#8dffa0;--k2:#118a3c}.sk.t-guard{--k1:#8fd3ff;--k2:#1f58b5}.sk.t-buff{--k1:#ffe98a;--k2:#c98a00}
+.sk.ult{box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),inset 0 -5px 0 rgba(0,0,0,.28),0 0 0 2px #0a0e22,0 0 0 4px #ffd23a,0 0 0 6px #0a0e22,0 0 12px 5px rgba(255,210,58,.65);animation:ult 1.2s ease-in-out infinite alternate}
+@keyframes ult{to{box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),inset 0 -5px 0 rgba(0,0,0,.28),0 0 0 2px #0a0e22,0 0 0 4px #fff3b0,0 0 0 6px #0a0e22,0 0 20px 9px rgba(255,210,58,.85)}}
+.sk.pick{outline:3px solid var(--yellow);outline-offset:6px}
+.sk:disabled{cursor:default}
+.sk.off{filter:saturate(.25) brightness(.6);animation:none}
+.sk .cd{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:22px;color:#fff;text-shadow:2px 2px 0 #0a0e22;background:rgba(10,14,34,.55)}
+.skl{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;align-items:center;margin-top:6px}
+.skl p{font-size:12px;line-height:1.3;color:var(--dim)}.skl b{color:var(--ink);font-size:13px}
+.mini.act{outline:3px solid var(--yellow);outline-offset:3px}
+.mini.dead{box-shadow:none!important;animation:none;background:transparent}.mini.dead>:not(.fl):not(.imp){opacity:.22}
+.mini.boss .rib{background:var(--red);color:var(--ink)}
+.fl{position:absolute;left:50%;top:30%;z-index:2;transform:translateX(-50%);font-family:var(--display);font-weight:700;font-size:24px;white-space:nowrap;text-shadow:2px 2px 0 var(--deep),-2px -2px 0 var(--deep);animation:up .7s steps(7) forwards;pointer-events:none}
+.fl.d{color:var(--yellow)}.fl.g{color:var(--green)}
+@keyframes up{to{top:0;opacity:0}}
+.pack{display:grid;place-items:center;height:74px;font-family:var(--display);font-weight:700;font-size:16px;text-align:center;line-height:1.1;background:repeating-linear-gradient(45deg,var(--plum) 0 8px,var(--panel) 8px 16px)}
+.pull{display:grid;grid-template-columns:repeat(3,minmax(0,150px));gap:16px;justify-content:center;padding-top:6px}
+.pull>div{display:grid;gap:5px;text-align:center;animation:pop .35s steps(5) backwards}
+.pull>div:nth-child(2){animation-delay:.35s}.pull>div:nth-child(3){animation-delay:.7s}
+@keyframes pop{from{transform:scale(.2) rotate(-12deg);opacity:0}}
+.odds{display:grid;grid-template-columns:1fr auto;gap:0 8px;font-size:12px}
+.res{display:grid;grid-template-columns:64px 1fr;gap:18px 16px;align-items:center;max-width:440px;padding:6px 8px}
+/* result rows: a tight coloured frame only — the big halo and fire belong on full cards and would spill over the neighbouring rows here */
+.res .mini.glow{animation:none;box-shadow:0 0 0 2px var(--ln,var(--c)),0 0 5px 1px var(--gl)}
+.res .mini.r-C.glow{box-shadow:0 0 0 2px var(--c)}
+.res .mini.fire.glow{box-shadow:0 0 0 2px #ffec27,0 0 6px 2px #ff5a00}
+.res .firec,.res .sp{display:none}
+.res .rib{font-size:8px;letter-spacing:0;overflow:hidden;white-space:nowrap}
+#zoom{position:absolute;inset:0;z-index:9;background:rgba(18,26,54,.94);display:flex;gap:70px;align-items:center;justify-content:center;padding:16px;border:0;width:100%;text-align:left}
+#zoom .cf{width:calc((var(--H) - 110px)*.788);flex:none}
+#zoom .inf{display:grid;gap:5px;max-width:330px}
+.stb{display:grid;gap:3px;padding:7px 9px;background:#141a33;border:2px solid #3b4a7a;box-shadow:0 0 0 2px #0a0e22,inset 0 0 0 1px rgba(255,255,255,.06)}
+.stb span{display:grid;grid-template-columns:14px 52px 62px 1fr;align-items:center;gap:6px;font-size:13px;line-height:1.25}
+.stb img{width:12px;height:12px;image-rendering:pixelated}.stb b{font-weight:700;color:var(--ink)}.stb b.k{grid-column:1/3;color:var(--dim)}
+.stb i{font-style:normal;font-family:var(--display);font-weight:700;color:#fff;font-size:15px}.stb u{text-decoration:none;color:#5fe36a;font-size:12px;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){.fl,.pull>div{animation-timing-function:linear}.glow{animation:none!important}.sp{animation:none;transform:translate(-50%,-50%) scale(.8)}.sk.ult{animation:none}.bn,.bn span,.cut,.cutart,.cutname,.vp,.vs b,.fig .spr,.fig.act::before,.bgl.top,.bfog,.bglow,.baur{animation:none!important}.hp i{transition:none}}
+
+/* ---------- arcade UI kit: every control is a glossy candy block with a dark outline; colour says what it does ----------
+   blue = navigate, green = go, yellow = buy / confirm, magenta = switched on, red = destructive */
+body{background:radial-gradient(circle at 50% 0,#31449f,#161d4d 70%)}
+#stage{background:radial-gradient(rgba(255,255,255,.07) 1.5px,transparent 2px) 0 0/22px 22px}
+.btn,.tile,.tab,.roomb{--b1:#ffe27a;--b2:#ffb81f;--tx:#1a1436;border:3px solid #10142c;border-radius:11px;color:var(--tx);
+  background:linear-gradient(var(--b1) 0 46%,var(--b2) 46%);box-shadow:inset 0 3px 0 rgba(255,255,255,.6),inset 0 -4px 0 rgba(0,0,0,.2),0 4px 0 #10142c;text-shadow:0 1px 0 rgba(255,255,255,.35)}
+.btn:active,.tile:active,.tab:active,.roomb:active{transform:translateY(3px);box-shadow:inset 0 3px 0 rgba(255,255,255,.6),inset 0 -4px 0 rgba(0,0,0,.2),0 1px 0 #10142c}
+.btn.alt{--b1:#8fe3ff;--b2:#29adff;color:var(--tx)}
+.btn.go{--b1:#9dff8a;--b2:#2fd24a;color:var(--tx)}
+.btn.on{--b1:#ff9df0;--b2:#f03ad0;color:var(--tx);background:linear-gradient(var(--b1) 0 46%,var(--b2) 46%)}
+.btn.red{--b1:#ff9a9a;--b2:#f0324a}
+.btn:disabled,.tile:disabled,.roomb:disabled{--b1:#b9bdd0;--b2:#8a8fa8;opacity:.75}
+.btn.sm{border-radius:9px}
+.tile{font-size:21px;padding:10px 12px}
+.tile span{color:#1a1436;opacity:.78;text-shadow:none}
+.tiles .tile:nth-child(1){--b1:#9dff8a;--b2:#2fd24a}.tiles .tile:nth-child(2){--b1:#ffe27a;--b2:#ffb81f}.tiles .tile:nth-child(3){--b1:#8fe3ff;--b2:#29adff}
+.tiles .tile:nth-child(4){--b1:#ff9df0;--b2:#f03ad0}.tiles .tile:nth-child(5){--b1:#ffc08a;--b2:#ff7a1f}.tiles .tile:nth-child(6){--b1:#c9a8ff;--b2:#8a4dff}
+.tab{--b1:color-mix(in srgb,var(--gl,#8fe3ff) 55%,#fff);--b2:var(--gl,#29adff);opacity:.6;font-size:14px}
+.tab:not([class*="r-"]){--b1:#8fe3ff;--b2:#29adff;color:var(--tx)}.tab.am{--b1:#ffe27a;--b2:#ffb81f;background:linear-gradient(var(--b1) 0 46%,var(--b2) 46%)}
+.tab.on{opacity:1;outline:3px solid #fff;outline-offset:1px}
+.roomb{--b1:#8fe3ff;--b2:#29adff}.roomb small{color:#1a1436;opacity:.8}
+.px,.amrow,.chb,.tmenu,.lookb{border:3px solid #10142c;border-radius:11px;background:#243074;box-shadow:inset 0 2px 0 rgba(255,255,255,.12),0 4px 0 #10142c}
+.prof{background:linear-gradient(#3a4aa8,#243074)}
+.btn.alt,.btn.go,.btn.on,.btn.red,.btn:disabled,.tile.px,.roomb.px{background:linear-gradient(var(--b1) 0 46%,var(--b2) 46%);box-shadow:inset 0 3px 0 rgba(255,255,255,.6),inset 0 -4px 0 rgba(0,0,0,.2),0 4px 0 #10142c}
+.tile.px:disabled{--b1:#b9bdd0;--b2:#8a8fa8}
+.tile.px{background:linear-gradient(var(--b1) 0 12px,var(--b2) 12px)}
+.arena,.troom{border-radius:11px}
+.chb.on,.amrow.on{outline:3px solid var(--yellow);outline-offset:1px;background:#33429a}
+#nm{border-radius:9px;border:3px solid #10142c}
+/* bars: outlined capsule with a glossy fill */
+.hp,.fig .fhp,.roomb .bar2{height:9px;border:2px solid #10142c;border-radius:6px;background:#f4f1ff;overflow:hidden;box-shadow:none}
+.fig .fhp{height:9px;width:78%}
+.hp i,.fig .fhp i,.roomb .bar2 i{background:linear-gradient(#8dff7a 0 45%,#2fd24a 45%)}
+.xp i{background:linear-gradient(#8fe3ff 0 45%,#29adff 45%)}
+h1{color:#ffe14a;text-shadow:3px 3px 0 #f0324a,5px 5px 0 #10142c}
+h2{color:#ffe14a;text-shadow:2px 2px 0 #10142c}
+.top button,.mkpick{text-shadow:none}
+
+/* ---------- skin v2: modern pixel — soft gradients on pixel-notched blocks; dark glass for secondary actions so the one main action glows ---------- */
+body{background:#0c1030}
+#stage{background:radial-gradient(120% 90% at 50% -10%,#3a4fc0 0,#1a2260 45%,#0c1030 100%)}
+#stage::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px) 0 0/100% 4px;z-index:0}
+#view{position:relative;z-index:1}
+.btn,.btn.alt,.btn.go,.btn.on,.btn.red,.btn:disabled,.tab,.tab.am,.roomb,.roomb.px,.play,.dk,.ibtn{
+  --n:3px;border:3px solid #080b1f;border-radius:0;color:var(--tx);text-shadow:none;
+  background:linear-gradient(180deg,var(--b1),var(--b2));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.28);
+  clip-path:polygon(0 var(--n),var(--n) var(--n),var(--n) 0,calc(100% - var(--n)) 0,calc(100% - var(--n)) var(--n),100% var(--n),100% calc(100% - var(--n)),calc(100% - var(--n)) calc(100% - var(--n)),calc(100% - var(--n)) 100%,var(--n) 100%,var(--n) calc(100% - var(--n)),0 calc(100% - var(--n)));
+  transition:filter .12s,transform .08s}
+.btn:active,.tab:active,.roomb:active,.play:active,.dk:active,.ibtn:active{transform:translateY(2px);filter:brightness(.88);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(0,0,0,.28)}
+.btn{--b1:#ffe36e;--b2:#f5a11a;--tx:#2a1600;padding-bottom:9px}
+.btn.sm{padding-bottom:6px}
+.btn.alt,.roomb,.roomb.px,.dk,.ibtn{--b1:#414fa6;--b2:#252f6e;--tx:#eef2ff;box-shadow:inset 0 2px 0 rgba(150,200,255,.5),inset 0 -4px 0 rgba(0,0,0,.3)}
+.btn.go{--b1:#6cf586;--b2:#14a440;--tx:#04260e}
+.btn.on{--b1:#ff93e8;--b2:#cf30bb;--tx:#2b0626}
+.btn.red{--b1:#ff8492;--b2:#d42148;--tx:#fff}
+.btn:disabled,.dk:disabled{--b1:#5a6082;--b2:#3d4260;--tx:#aab0cc;opacity:.8}
+.roomb small{color:#c8d2ff;opacity:1}
+.tab{--b1:color-mix(in srgb,var(--gl,#6f86ff) 70%,#fff);--b2:color-mix(in srgb,var(--gl,#6f86ff) 80%,#000);--tx:#0b0f24;opacity:.72}
+.tab:not([class*="r-"]){--b1:#414fa6;--b2:#252f6e;--tx:#eef2ff;color:var(--tx)}.tab.am{--b1:#ffe36e;--b2:#f5a11a;--tx:#2a1600}
+.tab.on{opacity:1;outline:0;box-shadow:inset 0 0 0 2px #fff,inset 0 -4px 0 rgba(0,0,0,.28)}
+.px,.amrow,.chb,.tmenu,.lookb{border:3px solid #080b1f;border-radius:0;background:linear-gradient(180deg,#2c3884,#1d2560);box-shadow:inset 0 2px 0 rgba(150,200,255,.25),0 4px 0 #080b1f}
+.arena,.troom{border-radius:0}
+h1{font-size:28px;letter-spacing:.02em;color:#ffe45c;text-shadow:0 3px 0 #e2413e,0 6px 0 #080b1f}
+h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
+/* lobby */
+.lobby{position:relative;height:calc(100% + 20px);margin:-10px -16px;padding:8px 16px 10px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:6px;overflow:hidden}
+.lbg{position:absolute;inset:0;z-index:0;background:var(--bg) center 62%/cover;image-rendering:pixelated}
+.lbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,11,31,.78) 0,rgba(8,11,31,.12) 34%,rgba(8,11,31,.2) 62%,rgba(8,11,31,.92) 100%),radial-gradient(90% 80% at 50% 50%,transparent 40%,rgba(8,11,31,.6))}
+.lobby>*:not(.lbg){position:relative;z-index:1}
+.hud{display:flex;align-items:center;gap:8px}
+.pchip{display:flex;align-items:center;gap:8px;padding:2px 12px 2px 4px;border:3px solid #080b1f;background:linear-gradient(180deg,rgba(60,76,160,.92),rgba(30,38,96,.92));color:var(--ink);text-align:left;box-shadow:inset 0 2px 0 rgba(150,200,255,.35)}
+.pchip .chs{flex:none;transform:scale(.75);margin:-6px -7px}
+.pchip b{display:block;font-family:var(--display);font-size:15px;line-height:1.1;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pchip small{font-size:11px;color:#ffe45c}
+.pill{display:flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 4px;border:3px solid #080b1f;background:rgba(8,11,31,.78);font-family:var(--display);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.pill img,.dk img,.ibtn img,.play img{image-rendering:pixelated}.pill img{width:18px;height:18px}
+.pill.gold{color:#ffd84a}.pill.dia{color:#6fd8ff}
+.hud .hgap{flex:1}
+.ibtn{width:36px;height:34px;display:grid;place-items:center;padding:0 0 3px}.ibtn img{width:18px;height:18px}
+.mid{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:14px;align-items:end;min-height:0}
+.heroz{display:grid;justify-items:center;align-content:end;gap:2px;min-height:0;height:100%}
+.logo{font-family:var(--display);font-weight:700;font-size:calc(var(--H)*.105);line-height:.86;text-align:center;letter-spacing:.04em;color:#fff;text-shadow:0 3px 0 #3d6bff,0 6px 0 #080b1f,0 0 22px rgba(90,140,255,.7);margin:0}
+.logo b{display:block;font-size:1.28em;color:#ffe45c;text-shadow:0 3px 0 #ff5a36,0 6px 0 #080b1f,0 0 26px rgba(255,150,40,.75)}
+.squad{display:flex;align-items:flex-end;justify-content:center;gap:calc(var(--H)*.03);height:calc(var(--H)*.3);min-height:0;margin-top:calc(var(--H)*.03)}
+.squad img{height:100%;width:auto;max-width:none;object-fit:contain;transform-origin:50% 100%;animation:sq 1.5s steps(4) infinite alternate;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
+.squad img:nth-child(2){animation-delay:-.5s}.squad img:nth-child(3){animation-delay:-1s}
+@keyframes sq{from{transform:scaleY(1)}to{transform:scaleY(1.045)}}
+.side{display:grid;gap:8px;align-content:end}
+.play{--b1:#7dfb8e;--b2:#0f9f3c;--tx:#04260e;--n:4px;display:grid;justify-items:center;gap:0;padding:8px 10px 13px;font-family:var(--display);font-weight:700;border-width:4px;
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.6),inset 0 -6px 0 rgba(0,0,0,.28);animation:playp 1.6s ease-in-out infinite}
+.play small{font-family:var(--body);font-size:12px;font-weight:600;opacity:.85}.play b{font-size:30px;line-height:1}.play span{font-size:15px;display:flex;align-items:center;gap:6px}
+@keyframes playp{50%{filter:brightness(1.14) saturate(1.1)}}
+.pgl{display:grid;gap:3px;font-size:11px;color:#dfe6ff;padding:5px 8px;border:3px solid #080b1f;background:rgba(8,11,31,.72)}
+.pgl .hp{height:8px}
+.dock{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.dk{display:grid;justify-items:center;gap:1px;padding:5px 4px 8px;text-align:center;font-family:var(--display);font-weight:700;font-size:14px;line-height:1.1}
+.dk img{width:24px;height:24px}.dk small{display:none;font-family:var(--body);font-weight:500;font-size:10px;color:#aeb9ee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk>span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dk.c1{box-shadow:inset 0 3px 0 #6fd8ff,inset 0 -4px 0 rgba(0,0,0,.3)}.dk.c2{box-shadow:inset 0 3px 0 #ffd84a,inset 0 -4px 0 rgba(0,0,0,.3)}.dk.c3{box-shadow:inset 0 3px 0 #ff8be6,inset 0 -4px 0 rgba(0,0,0,.3)}
+.dk.c4{box-shadow:inset 0 3px 0 #ff9a4a,inset 0 -4px 0 rgba(0,0,0,.3)}.dk.c5{box-shadow:inset 0 3px 0 #b48cff,inset 0 -4px 0 rgba(0,0,0,.3)}
+.cred{position:absolute!important;right:16px;top:50px;font-size:10px;color:rgba(255,255,255,.55)}
+@media (prefers-reduced-motion:reduce){.squad img,.play{animation:none}}
+
+/* ---------- cover / login / loading ---------- */
+.cover{position:relative;height:calc(100% + 20px);margin:-10px -16px;overflow:hidden;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(250px,.9fr);align-items:stretch}
+.cover .cbg{position:absolute;inset:0;background:var(--bg) center 70%/cover;image-rendering:pixelated}
+.cover .cbg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,11,31,.1) 0,rgba(8,11,31,.25) 45%,rgba(8,11,31,.9) 78%),linear-gradient(180deg,rgba(8,11,31,.55) 0,transparent 30%,transparent 62%,rgba(8,11,31,.9) 100%)}
+.cover>*:not(.cbg):not(.emb){position:relative;z-index:2}
+.cast{position:relative;height:100%;min-width:0}
+.cast img{position:absolute;bottom:9%;height:var(--h);width:auto;max-width:none;left:var(--x);transform-origin:50% 100%;animation:sq 1.6s steps(4) infinite alternate;animation-delay:var(--d,0s);filter:drop-shadow(0 5px 0 rgba(0,0,0,.5))}
+.cast img.back{filter:drop-shadow(0 5px 0 rgba(0,0,0,.5)) brightness(.82)}
+.cpanel{display:grid;align-content:center;justify-items:center;gap:9px;padding:14px 22px 14px 6px;text-align:center}
+.cover .logo{font-size:calc(var(--H)*.115)}
+.ctag{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.22em;color:#bfe6ff;text-shadow:0 2px 0 #080b1f}
+.cbtns{display:grid;gap:8px;width:min(100%,250px);margin-top:4px}
+.cbtns .btn{width:100%;font-size:16px}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:6px 12px;border:3px solid #080b1f;background:#fff;color:#1f2a44;font-family:var(--body);font-weight:700;font-size:14px}
+.gbtn:disabled{opacity:.6}
+.gbtn i{font-style:normal;font-family:var(--display);font-weight:700;font-size:18px;color:#3d6bff}
+#gsi{display:grid;justify-items:center;min-height:40px}
+.cnote{font-size:11px;color:#aeb9ee;max-width:250px}
+.cfoot{position:absolute!important;left:16px;bottom:8px;font-size:10px;color:rgba(255,255,255,.6)}
+.clang{position:absolute!important;right:14px;top:10px;display:flex;gap:6px}
+.emb{position:absolute;z-index:1;bottom:-6px;left:var(--x);width:4px;height:4px;background:var(--c,#ffb04a);opacity:0;animation:emb var(--t,5s) linear infinite;animation-delay:var(--d,0s);pointer-events:none}
+@keyframes emb{0%{transform:translate(0,0);opacity:0}12%{opacity:.95}100%{transform:translate(var(--dx,20px),calc(var(--H)*-.9));opacity:0}}
+.loadv{position:relative;height:calc(100% + 20px);margin:-10px -16px;overflow:hidden;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center}
+.loadv .cbg{position:absolute;inset:0;background:var(--bg) center/cover;image-rendering:pixelated;filter:brightness(.4) saturate(.8)}
+.loadv>*:not(.cbg){position:relative;z-index:1}
+.loadv .logo{font-size:calc(var(--H)*.09)}
+.lrun{display:flex;align-items:flex-end;gap:14px;height:calc(var(--H)*.2)}
+.lrun img{height:100%;width:auto;transform-origin:50% 100%;animation:lhop .5s steps(3) infinite alternate;animation-delay:var(--d,0s)}
+@keyframes lhop{from{transform:translateY(0)}to{transform:translateY(-9%)}}
+.lbar{width:min(62vw,360px);height:18px;border:3px solid #080b1f;background:#10142c;box-shadow:inset 0 2px 0 rgba(0,0,0,.5)}
+#stage .lbar{width:calc(var(--H)*1.0);max-width:70%}
+.lbar i{display:block;height:100%;width:0;background:linear-gradient(180deg,#8dffa0,#17a843);box-shadow:inset 0 2px 0 rgba(255,255,255,.55);transition:width .15s steps(4)}
+.lpct{font-family:var(--display);font-weight:700;font-size:15px;color:#ffe45c}
+.ltip{font-size:12px;color:#c8d2ff;max-width:420px;min-height:2.6em}
+@media (prefers-reduced-motion:reduce){.cast img,.emb,.lrun img{animation:none}}
+</style>
+
+<div id="stage"><div id="view"></div><div id="ov"></div><button id="zoom" hidden></button></div>
+
+<script>
+const $=id=>document.getElementById(id);
+// rarity tiers in the order the game ranks them; g = stat growth per level
+// keys are the tier slots from lowest to highest; the lowest (grey) is named Uncommon and the green one Common, as the game ranks them
+// cap = highest level a card of that rank can reach; with the stage curve it walls Uncommon near stage 10, Common 25, Rare 90, Legend 240, and only a full SuperLegend team finishes 500 (checked with a battle simulator)
+const RAR={C:{n:'Uncommon',g:.08,cap:10},UC:{n:'Common',g:.085,cap:18},R:{n:'Rare',g:.09,cap:40,star:1,spk:1},L:{n:'Legend',g:.095,cap:95,star:1,spk:1},SL:{n:'SuperLegend',g:.10,cap:180,star:1,fire:1}};
+// a = ATK, d = DEF at Lv 1, budgeted by rank (ATK+DEF): Uncommon 115, Common 125, Rare 135, Legend 150, SuperLegend 165; tuned with a battle simulator against stages 1-500
+const C={
+ goblin:{n:'Goblin Chief',a:65,d:50,r:'C'},
+ slime:{n:'Slime King',a:60,d:65,r:'UC'},
+ rogue:{n:'Rogue Shadow',a:85,d:50,r:'R',ab:'amb'},
+ archer:{n:'Silver Archer',a:75,d:50,r:'UC',ab:'amb'},
+ assassin:{n:"Assassin's Blade",a:70,d:45,r:'C',ab:'amb'},
+ cleric:{n:"Cleric's Grace",a:55,d:70,r:'UC',ab:'heal'},
+ mage:{n:'Fiery Mage',a:100,d:65,r:'SL',ab:'burn'},
+ luna:{n:'Sorceress Luna',a:80,d:55,r:'R',ab:'burn'},
+ dragon:{fire:1,n:'Dragon Whelp',a:100,d:65,r:'SL',ab:'tr'},
+ barb:{n:'Barbarian Rage',a:75,d:50,r:'UC',ab:'tr'},
+ knight:{n:'Ironclad Knight',a:75,d:75,r:'L'},
+ wraith:{n:'Dark Wraith',a:65,d:50,r:'C'},
+ paladin:{n:'Paladin Hope',a:70,d:80,r:'L'},
+ golem:{n:'Guardian Golem',a:55,d:60,r:'C'},
+ zar:{n:'Necromancer Zar',a:75,d:60,r:'R',ab:'soul'}
+};
+// three skills per card: [name, icon, type, value]; type decides the effect, value is its strength
+const SK={
+ goblin:[['ฟันขวาน','axe','hit',1],['ขวานคลั่ง','axe','hit',1.5],['ศึกเผ่าก๊อบลิน','skull','aoe',.9]],
+ slime:[['พุ่งชน','drop','hit',1],['เมือกหุ้มตัว','shield','guard',.4],['คลื่นเมือก','drop','aoe',.9]],
+ rogue:[['แทงเงา','sword','hit',1],['ลอบแทง','skull','exec',1.5],['ระบำเงา','star','aoe',1.1]],
+ archer:[['ยิงธนู','arrow','hit',1],['ศรเจาะเกราะ','arrow','hit',1.7],['ห่าฝนธนู','arrow','aoe',1]],
+ assassin:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['พันคมดาบ','star','aoe',.9]],
+ cleric:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
+ mage:[['ลูกไฟ','flame','hit',1],['เสาเพลิง','flame','hit',1.8],['อุกกาบาต','flame','aoe',1.4]],
+ luna:[['ลำแสงจันทร์','orb','hit',1],['คำสาปจันทรา','orb','exec',1.5],['จันทร์ดับ','star','aoe',1.2]],
+ dragon:[['ตะปบ','star','hit',1],['ลมหายใจไฟ','flame','aoe',1],['เพลิงล้างโลก','flame','aoe',1.6]],
+ barb:[['ฟาดขวาน','axe','hit',1],['ขวานคลั่ง','axe','hit',1.6],['ขวานกวาด','axe','aoe',1]],
+ knight:[['ฟันดาบ','sword','hit',1],['ตั้งโล่','shield','guard',.4],['บุกทะลวง','sword','hit',2.2]],
+ wraith:[['เคียวเงา','skull','hit',1],['ดูดวิญญาณ','skull','drain',1.3],['เก็บเกี่ยว','skull','aoe',1]],
+ paladin:[['ดาบแสง','sword','hit',1],['โล่ศรัทธา','shield','guard',.45],['พิพากษา','star','hit',2.3]],
+ golem:[['หมัดหิน','star','hit',1],['ผิวศิลา','shield','guard',.5],['แผ่นดินไหว','star','aoe',.9]],
+ zar:[['ศรมรณะ','skull','hit',1],['ดูดชีพ','heart','drain',1.4],['กองทัพกระดูก','skull','aoe',1.2]]
+};
+const CD=[0,2,4],pc=v=>Math.round(v*100)+'%';
+const skDesc=([,,t,v])=>({hit:`โจมตีศัตรู 1 ตัว ${pc(v)} ของ ATK`,aoe:`โจมตีศัตรูทุกตัว ${pc(v)} ของ ATK`,exec:`โจมตี ${pc(v)} ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง`,
+  drain:`โจมตี ${pc(v)} ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ`,heal:`ฟื้น DEF ให้เพื่อนที่เจ็บสุด ${pc(v)} ของ ATK`,healall:`ฟื้น DEF ให้ทั้งทีม ${pc(v)} ของ ATK`,
+  guard:`ฟื้น DEF ตัวเอง ${pc(v)} ของ DEF สูงสุด`,buff:`ATK ของตัวเองเพิ่มเป็น ${pc(v)} จนจบด่าน`})[t];
+const needT=sk=>['hit','exec','drain'].includes(sk[2]);
+const IPAL={w:'#ffffff',e:'#cfd6e6',y:'#ffe66b',k:'#0a0e22'};
+function icon(rows){const c=document.createElement('canvas');c.width=12;c.height=12;const x=c.getContext('2d');
+  rows.forEach((r,y)=>[...(r.length>6?r:r+[...r].reverse().join(''))].forEach((ch,i)=>{if(IPAL[ch]){x.fillStyle=IPAL[ch];x.fillRect(i,y,1,1)}}));return c.toDataURL()}
+const pic=(rows,pal)=>{const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');rows.forEach((r,y)=>[...r].forEach((ch,i)=>{if(pal[ch]){x.fillStyle=pal[ch];x.fillRect(i,y,1,1)}}));return c.toDataURL()};
+const UI={
+ coin:pic(["....yyyy....","..yyYYYYyy..",".yYYWWYYYYy.",".yYWyyyyYYy.","yYYyYYYYyYYy","yYYyYYYYyYYy","yYYyYYYYyYYy","yYYyYYYYyYYy",".yYYyyyyYYy.",".yYYYYYYYYy.","..yyYYYYyy..","....yyyy...."],{y:'#a8650a',Y:'#ffd23a',W:'#fff6c0'}),
+ gem:pic(["............","..bbbbbbbb..",".bWWBBBBBBb.","bWWBBBBBBBBb","bbbbbbbbbbbb",".bBBBBBBDDb.","..bBBBBDDb..","...bBBDDb...","....bBDb....",".....bb.....","............","............"],{b:'#12458f',B:'#4fc3ff',W:'#e8fbff',D:'#2a8fe0'}),
+ gear:pic([".....gg.....","..g.gGGg.g..",".gGgGGGGgGg.","..gGGGGGGg..",".gGGg..gGGg.","gGGG....GGGg","gGGG....GGGg",".gGGg..gGGg.","..gGGGGGGg..",".gGgGGGGgGg.","..g.gGGg.g..",".....gg....."],{g:'#5a6aa0',G:'#e6ecff'}),
+ cards:pic(["...kkkkkkk..","...kWWWWWk..",".kkkkkkkWk..",".kBBBBBkWk..",".kBWWWBkWk..",".kBWYWBkWk..",".kBWWWBkWk..",".kBBBBBkWk..",".kBBBBBkkk..",".kBBBBBk....",".kkkkkkk....","............"],{k:'#080b1f',W:'#e6ecff',B:'#4fa8ff',Y:'#ffd23a'}),
+ pack:pic(["..kkkkkkkk..","..kRRYYRRk..","..kkkkkkkk..",".kRRRYYRRRk.",".kRRRYYRRRk.",".kYYYYYYYYk.",".kYYYYYYYYk.",".kRRRYYRRRk.",".kRRRYYRRRk.",".kRRRYYRRRk.",".kkkkkkkkkk.","............"],{k:'#080b1f',R:'#ff4d6d',Y:'#ffd23a'}),
+ market:pic([".kkkkkkkkkk.","kRWRWRWRWRWk","kRWRWRWRWRWk",".kkkkkkkkkk.","..kOOOOOOk..","..kOkkkkOk..","..kOkYYkOk..","..kOkYYkOk..","..kOkkkkOk..","..kOOOOOOk..",".kkkkkkkkkk.","............"],{k:'#080b1f',R:'#ff7a1f',W:'#fff1e8',O:'#b9773a',Y:'#ffd23a'}),
+ trade:pic(["............",".....k......","....kGk.....","...kGGkkkkk.","..kGGGGGGGk.","...kGGkkkkk.",".kkkkkPPk...",".kPPPPPPPk..",".kkkkkPPk...",".....kPk....","......k.....","............"],{k:'#080b1f',G:'#5fe36a',P:'#b48cff'}),
+ cup:pic([".kkkkkkkkkk.","kYkYYYYYYkYk","kYkYWYYYYkYk","kYkYWYYYYkYk",".kkYYYYYYkk.","..kYYYYYYk..","...kYYYYk...","....kYYk....","....kYYk....","..kkkYYkkk..","..kYYYYYYk..","..kkkkkkkk.."],{k:'#080b1f',Y:'#ffd23a',W:'#fff6c0'})
+};
+const ICON={
+ sword:icon([".....w",".....w",".....w",".....w",".....w",".....w",".....w","..wwww",".....e",".....e","....ee","......"]),
+ flame:icon(["......w.....",".....ww.....",".....www....","....wwww....","...wwwww.w..","..wwwywwww..","..wwyywwww..",".wwwyyywww..",".wwyyyyyww..",".wwyyyyyww..","..wwyyyww...","...wwwww...."]),
+ shield:icon([".wwwww","wweeee","wweeee","wweeee","wweeee","wweeee",".wweee",".wweee","..wwee","...wwe","....ww","......"]),
+ heart:icon(["......",".www..","wwwww.","wwwwww","wwwwww","wwwwww",".wwwww","..wwww","...www","....ww",".....w","......"]),
+ skull:icon(["..wwww",".wwwww","wwwwww","wwkkww","wwkkww","wwwwww",".wwwwk","..wwww","..wkwk","..wkwk","......","......"]),
+ star:icon([".....w",".....w","....ww","....ww","..wwww","wwwwww","..wwww","....ww","....ww",".....w",".....w","......"]),
+ arrow:icon([".....w","....ww","...www","..wwww",".....w",".....w",".....w",".....w",".....w","...eww","..ee.w","......"]),
+ axe:icon(["......",".ww..w","wwww.w","wwwwww","wwwwww","wwww.w",".ww..w",".....e",".....e",".....e",".....e","......"]),
+ orb:icon(["...www","..w...",".w....","w.....","w....y","w...yy","w...yy","w....y","w.....",".w....","..w...","...www"]),
+ drop:icon([".....w",".....w","....ww","....ww","...www","..wwww",".wwwww",".wwwww",".wwwww",".wwwww","..wwww","......"])
+};
+const skBtn=(id,k,o={})=>{const sk=SK[id][k];return `<${o.tag||'button'} class="sk t-${sk[2]} ${k===2?'ult':''} ${o.cls||''}" ${o.attr||''} title="${sk[0]}"><img src="${ICON[sk[1]]}" alt="${sk[0]}">${o.cd?`<span class="cd">${o.cd}</span>`:''}</${o.tag||'button'}>`};
+const STAR='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.3 6.8.8-5 4.7 1.3 6.8-6-3.4-6 3.4 1.3-6.8-5-4.7 6.8-.8z"/></svg>';
+const stars=id=>{const n=(S&&S.cards[id]&&S.cards[id].star)||0;return `<span class="stars">${[0,1,2,3,4].map(i=>i<n?STAR.replace('<svg','<svg class="on"'):STAR).join('')}</span>`};
+const STARTERS=['wraith','assassin','golem'],POOL=['golem','wraith','assassin','cleric','slime','archer','zar','luna','rogue','knight','paladin','goblin','barb','dragon','mage'];
+// paste the Google OAuth Web client ID here once the game is hosted on its own domain; empty = Google sign-in stays off and players enter as guests
+const GOOGLE_CLIENT_ID='';
+const PACK=100,ODDS={C:.60,UC:.32,R:.08},DUP=50,MAXST=500,KEY='bit8save6';
+let S,bt=null,busy=false,fx=[],prepN=1,pull=null,armed=false;
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const img=id=>`cards/${id}.webp`;
+const need=lv=>20+10*lv;
+// amulets: one per card; a = ATK multiplier, d = DEF multiplier
+const AM={
+ tiger:{n:'เขี้ยวเสือ',ic:'am_tiger',k:['#ffb36b','#c2410c'],a:1.05,d:1,t:'ATK +5%'},
+ turtle:{n:'กระดองเต่า',ic:'am_turtle',k:['#8fd3ff','#1f58b5'],a:1,d:1.06,t:'DEF +6%'},
+ hawk:{n:'ตาเหยี่ยว',ic:'am_hawk',k:['#fff3a0','#b98900'],a:1.03,d:1.03,t:'ATK +3% · DEF +3%'},
+ dragon:{n:'หัวใจมังกร',ic:'am_dragon',k:['#ff8a8a','#a3122f'],a:1.08,d:.95,t:'ATK +8% · DEF −5%'},
+ rock:{n:'หินผา',ic:'am_rock',k:['#c9d1dc','#4b5563'],a:.95,d:1.1,t:'DEF +10% · ATK −5%'}
+};
+const MAGIC=['mage','luna','cleric','dragon','zar'],atkName=id=>MAGIC.includes(id)?'MATK':'ATK';
+const amOf=id=>S&&S.cards[id]&&AM[S.cards[id].am]||null;
+const stat=(id,lv)=>{const m=1+RAR[C[id].r].g*(lv-1),am=amOf(id);return{atk:Math.round(C[id].a*m*(am?am.a:1)),hp:Math.round(C[id].d*m*(am?am.d:1))}};
+// amulet icons share one design language so they read as a set: a gold bail on top, a dark outline, three tones and one highlight
+const AMPAL={k:'#10142c',y:'#ffd23a',n:'#b9860c',w:'#fff8e8',e:'#aab2c0',s:'#5d6676',o:'#ff8a2a',g:'#3ddc5a',d:'#168a3c',l:'#b6ffb0',b:'#29adff',r:'#ff3a55',m:'#a3122f',p:'#ffc0cc'};
+const AMART={"tiger": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "....kkkkkkkk....", "....koooooyk....", "....kokookok....", "....kkkkkkkk....", ".....kwwwwek....", ".....kwwwwek....", "......kwwwek....", "......kwwek.....", ".......kwwek....", ".......kwek.....", "........kwk.....", ".........k......"], "turtle": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", ".....kkkkkk.....", "....kgglggdk....", "...kggkggkgdk...", "...kgkglgkgdk...", "...kggkggkgdk...", "...kgkgggkgdk...", "...kggkggkddk...", "....kggggddk....", ".....kddddk.....", "......kkkk......", "................", "................"], "hawk": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", ".....kkkkkk.....", "...kkyyyyyykk...", "..kyywwwwwwynk..", "..kywwbbbbwwnk..", "..kywbbkkbbwnk..", "..kywbbkkbbwnk..", "..kywwbbbbwwnk..", "..kyywwwwwwnnk..", "...kknnnnnnkk...", ".....kkkkkk.....", "................", "................"], "dragon": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "...kkk....kkk...", "..krrrk..krrmk..", ".krprrrkkrrrrmk.", ".krprrrrrrrrrmk.", ".krrrrryyrrrrmk.", "..krrryyyyrrmk..", "...krryyyyrmk...", "....krryyrmk....", ".....krrrmk.....", "......krmk......", ".......kk.......", "................"], "rock": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "....kkkkkkk.....", "...kwweeeeskk...", "..kwweeeeeessk..", "..kweeekeeessk..", ".kweeekkeeeessk.", ".keeeekeeesessk.", ".keeeeeeeskessk.", ".kesseeeeskssk..", "..kssssesssskk..", "...kkkkkkkkk....", "................", "................"]};
+Object.keys(AMART).forEach(k=>{const c=document.createElement('canvas');c.width=16;c.height=16;const x=c.getContext('2d');AMART[k].forEach((r,y)=>[...r].forEach((ch,i)=>{if(AMPAL[ch]){x.fillStyle=AMPAL[ch];x.fillRect(i,y,1,1)}}));ICON['am_'+k]=c.toDataURL()});
+const amu=k=>`<span class="amu" style="--k1:${AM[k].k[0]};--k2:${AM[k].k[1]}" title="${AM[k].n}"><img src="${ICON[AM[k].ic]}" alt="${AM[k].n}"></span>`;
+let amSel=null;
+// amulets are owned in counts: they only come from stage drops (small chance) and the player market
+const DROP=.03,DROP_BOSS=.10,TAX=.05;
+const owned=k=>(S.am&&S.am[k])||0,worn=k=>Object.values(S.cards).filter(c=>c.am===k).length,spare=k=>owned(k)-worn(k);
+const SAMPLE=[['tiger',220],['turtle',200],['hawk',180],['dragon',340],['rock',300],['tiger',260]];
+let mkSel=null,mkPrice=200;
+/* ---------- player avatar + trade room ---------- */
+const TRADE_TAX=10000;
+const CHARS=["Paladin", "Fire Mage", "Ice Mage", "Necromancer", "Druid", "Cleric", "Bard", "Monk", "Samurai", "Pirate Captain", "Fisherman", "Blacksmith", "Dwarf Miner", "Dwarf Guard", "Elf Ranger", "Assassin", "Berserker", "Gladiator", "Hoplite", "Valkyrie", "Witch", "Alchemist", "Thief", "Royal Guard", "King", "Jester", "Gunslinger", "Musketeer", "Chef", "Farmer", "Orc Brute", "Goblin Sneak", "Skeleton", "Zombie", "Vampire", "Mummy", "Ghost", "Slime", "Imp", "Angel", "Lizardman", "Cat Rogue", "Werewolf", "Treant", "Mushroom", "Scarecrow", "Fire Spirit", "Snowman", "Frog Knight", "Cyclops"];
+const chPos=(c,f)=>`background-position:${-f*56}px ${-c*52}px`,chs=(c,f=0)=>`<i class="chs" style="${chPos(c,f)}"></i>`;
+// every player has a profile from the start; a save from before the character sheet falls back to the first character
+function ensureMe(){if(!S.me)S.me={name:'ผู้เล่น',look:0};if(typeof S.me.look!=='number'||!(S.me.look>=0&&S.me.look<CHARS.length))S.me.look=0}
+let room=null,dressBack='home',roomNo=0;
+function charMake(){ensureMe();
+  view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="dressdone">กลับ</button><h2>ตัวละคร</h2></div>
+    <div class="row">${chs(S.me.look)}<b>${CHARS[S.me.look]}</b></div>
+    <label for="nm" class="sub">ชื่อ (ไม่เกิน 12 ตัวอักษร)</label><input id="nm" maxlength="12" value="${S.me.name.replace(/"/g,'')}">
+    <button class="btn go sm" data-act="dressdone">บันทึก</button><p class="sub">ตัวละครทั้ง ${CHARS.length} แบบใช้ได้ฟรี</p></div>
+    <div class="main"><div class="chgrid">${CHARS.map((n,i)=>`<button class="chb ${i===S.me.look?'on':''}" data-act="dress" data-i="${i}">${chs(i)}${n}</button>`).join('')}</div></div></div>`)}
+// trade rooms hold 10 players each; with no server yet the other players are simulated
+const ROOM_CAP=10,ROOM_BOTS=[10,7,4,8,2],WORLD_W=1500;
+const BOTN=['Kai_77','มะม่วง','NoobSlayer','ป้าแดง','xXDragonXx','น้องฟ้า','Mr.Gold','ลุงตู่ขายของ','Luna99','ไก่ทอด','Zed','เจ๊หมวย','ProTrader','ส้มตำ','Ghost_TH','บังหมี','Nami','ต้นกล้า','Rex','พี่เสือ','Mika','หมูกรอบ','Ace','ชาเย็น','Vee','น้าค่อม','Sora','โอเลี้ยง','Jin','ข้าวเหนียว','Max','ปลาทู','Neo','แตงโม','Ray','ขนมจีน','Io','ทุเรียน','Kit','ลำไย','Bo'];
+function roomList(){ensureMe();
+  view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ห้องเทรด</h2></div>
+    <p class="sub">ห้องละ ${ROOM_CAP} คน คนเยอะก็กระจายไปหลายห้อง ห้องเต็มเข้าไม่ได้</p>
+    <p class="sub">ตอนนี้ผู้เล่นในห้องเป็นผู้เล่นจำลอง จำนวนคนเป็นตัวอย่าง</p></div>
+    <div class="main"><div class="rooms">${ROOM_BOTS.map((b,i)=>`<button class="roomb px" data-act="roomgo" data-i="${i}" ${b>=ROOM_CAP?'disabled':''}>ห้อง ${i+1}<small>${b}/${ROOM_CAP} คน${b>=ROOM_CAP?' · เต็ม':''}</small><span class="bar2"><i style="width:${b/ROOM_CAP*100}%"></i></span></button>`).join('')}</div></div></div>`)}
+function enterRoom(){
+  ensureMe();const r=roomNo,nb=Math.min(ROOM_BOTS[r],ROOM_CAP-1);
+  view(`<div class="troom px"><div class="atop"><span class="num">ห้องเทรด ${r+1} · ${nb+1}/${ROOM_CAP} คน</span><span class="alog" id="tlog">แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อเทรด</span>
+    <span class="row"><span class="num gold">Gold ${S.gold}</span><button class="btn alt sm" data-act="charedit">ตัวละคร</button><button class="btn alt sm" data-act="troom">ห้องอื่น</button><button class="btn alt sm" data-act="home">ออก</button></span></div>
+    <div class="tfloor" id="tfloor"><div class="tworld" id="tworld" style="width:${WORLD_W}px">
+      ${[120,430,760,1080,1360].map((x,i)=>`<span class="deco stall" style="left:${x}px;top:30px;--aw:${['#ff004d','#29adff','#ffa300','#00e436','#b06cff'][i]}"></span>`).join('')}
+      ${[300,620,930,1240].map(x=>`<span class="deco tree" style="left:${x}px;top:14px"></span>`).join('')}
+      ${[240,560,1000,1300].map(x=>`<span class="deco lamp" style="left:${x}px;top:calc(54% - 50px)"></span>`).join('')}
+      <span class="deco fount" style="left:${WORLD_W/2-32}px;top:calc(78% - 32px)"></span></div><div id="tui"></div></div></div>`);
+  const fl=$('tfloor'),wd=$('tworld'),W=WORLD_W,H=fl.clientHeight,ks=Object.keys(AM);
+  if(!room||room.no!==r)room={no:r,me:{x:W*.5,y:H*.7},npcs:Array.from({length:nb},(_,i)=>({name:BOTN[(r*9+i)%BOTN.length],look:(r*11+i*7+3)%CHARS.length,x:80+(i+.5)*(W-160)/nb,y:H*(.42+.4*((i*37)%10)/10),wait:i*.5,item:ks[(i*2+r)%ks.length]}))};
+  const R=room;R.W=W;R.H=H;R.target=null;R.menu=null;R.me.tx=R.me.x;R.me.ty=R.me.y;
+  const mk=(c,cls,attr)=>{const b=document.createElement('button');b.className='av '+cls;b.innerHTML=`${chs(c.look)}<span class="nt"></span>`;b.lastChild.textContent=c.name;Object.entries(attr).forEach(([k,v])=>b.setAttribute(k,v));wd.append(b);c.el=b;c.f=0};
+  R.npcs.forEach((n,i)=>{n.tx=n.x;n.ty=n.y;mk(n,'',{'data-act':'tnpc','data-i':i})});mk(Object.assign(R.me,{name:S.me.name,look:S.me.look}),'me',{tabindex:-1});
+  wd.onclick=e=>{if(e.target!==wd||R.menu!=null)return;R.me.tx=e.offsetX;R.me.ty=Math.max(60,e.offsetY);R.target=null};
+  let last=performance.now();
+  (function loop(t){if($('tfloor')!==fl)return;const dt=Math.min(.05,(t-last)/1000);last=t;
+    for(const c of [R.me,...R.npcs]){
+      if(c!==R.me&&R.menu==null){c.wait-=dt;if(c.wait<=0&&Math.hypot(c.tx-c.x,c.ty-c.y)<2){c.tx=Math.max(40,Math.min(W-40,c.x+(Math.random()-.5)*420));c.ty=70+Math.random()*(R.H-80);c.wait=2+Math.random()*5}}
+      if(c===R.me&&R.target!=null){const n=R.npcs[R.target];c.tx=n.x+(c.x<n.x?-40:40);c.ty=n.y;if(Math.hypot(n.x-c.x,n.y-c.y)<54){R.menu=R.target;R.target=null;c.tx=c.x;c.ty=c.y;n.tx=n.x;n.ty=n.y;c.face=n.x<c.x;n.face=c.x<n.x;npcMenu()}}
+      const dx=c.tx-c.x,dy=c.ty-c.y,d=Math.hypot(dx,dy),sp=(c===R.me?150:55)*dt,mv=d>1.5&&!(R.menu!=null&&c!==R.me);
+      if(mv){c.x+=dx/d*Math.min(sp,d);c.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>1)c.face=dx<0}
+      c.el.style.left=c.x+'px';c.el.style.top=(c.y-(mv&&Math.floor(t/160)%2?2:0))+'px';c.el.style.zIndex=Math.round(c.y);c.el.classList.toggle('flip',!!c.face);
+      const f=mv?1+(Math.floor(t/160)%2):0;if(c.f!==f){c.f=f;c.el.firstChild.style.cssText=chPos(c.look,f)}}
+    wd.style.transform=`translateX(${-Math.max(0,Math.min(W-fl.clientWidth,R.me.x-fl.clientWidth/2))}px)`;
+    requestAnimationFrame(loop)})(last);
+}
+let trGive=null;
+// trading is a one-way gift: one player is the sender, the other the receiver, nothing has to come back; every transfer needs an explicit confirmation of the role
+const nm=n=>`<b class="nt">${n.name.replace(/</g,'&lt;')}</b>`;
+function npcMenu(){const n=room.npcs[room.menu];$('tui').innerHTML=`<div class="tmenu"><b class="nt">${n.name}</b><span class="sub">ผู้เล่นจำลอง (ยังไม่มีผู้เล่นจริงจนกว่าจะมีเซิร์ฟเวอร์)</span>
+  <span class="sub">การเทรดคือการให้ของ ไม่ต้องมีของมาแลก</span>
+  <div class="row"><button class="btn sm" data-act="ttrade">ฉันเป็นผู้ส่ง</button><button class="btn go sm" data-act="trecv" ${n.item?'':'disabled'}>ฉันเป็นผู้รับ</button><button class="btn alt sm" data-act="tclose">ปิด</button></div></div>`}
+function tradeMenu(){const n=room.npcs[room.menu],mine=Object.keys(AM).filter(k=>spare(k)>0);if(!mine.includes(trGive))trGive=null;
+  $('tui').innerHTML=`<div class="tmenu"><span>ส่งของให้ ${nm(n)}</span>
+   <span class="sub">เลือกของที่จะส่ง</span><div class="row">${mine.map(k=>`<button class="mkpick ${trGive===k?'on':''}" data-act="tgive" data-k="${k}" aria-label="${AM[k].n}">${amu(k)}<small>x${spare(k)}</small></button>`).join('')||'<span class="sub">ไม่มีเครื่องรางว่าง</span>'}</div>
+   <div class="row"><button class="btn sm" data-act="tsendc" ${trGive?'':'disabled'}>ถัดไป</button><button class="btn alt sm" data-act="tclose">ยกเลิก</button></div></div>`}
+const roleRow=(a,b)=>`<div class="pair"><div><span class="sub">ผู้ส่ง</span><div>${a}</div></div><div><span class="sub">ผู้รับ</span><div>${b}</div></div></div>`;
+const me=()=>`<b class="nt">${S.me.name.replace(/</g,'&lt;')}</b> <span class="gold">(คุณ)</span>`;
+function sendConfirm(){const n=room.npcs[room.menu],ok=S.gold>=TRADE_TAX;
+  $('tui').innerHTML=`<div class="tmenu"><b>ยืนยันการส่งของ</b>${roleRow(me(),nm(n))}
+   <div class="row"><span class="mkpick">${amu(trGive)}</span><span>${AM[trGive].n}<br><span class="sub">${AM[trGive].t}</span></span></div>
+   <span class="sub">คุณเป็นผู้ส่ง ของชิ้นนี้จะออกจากกระเป๋าคุณ และคุณจะไม่ได้อะไรตอบแทน</span>
+   <span class="sub">ภาษีเทรด ${TRADE_TAX.toLocaleString()} Gold ผู้ส่งเป็นคนจ่าย · คุณมี ${S.gold.toLocaleString()}</span>
+   <div class="row"><button class="btn go sm" data-act="tok" ${ok?'':'disabled'}>ยืนยัน ฉันเป็นผู้ส่ง</button><button class="btn alt sm" data-act="tclose">ยกเลิก</button></div>
+   ${ok?'':'<span class="sub">Gold ไม่พอจ่ายภาษี</span>'}</div>`}
+function recvConfirm(){const n=room.npcs[room.menu];
+  $('tui').innerHTML=`<div class="tmenu"><b>ยืนยันการรับของ</b>${roleRow(nm(n),me())}
+   <div class="row"><span class="mkpick">${amu(n.item)}</span><span>${AM[n.item].n}<br><span class="sub">${AM[n.item].t}</span></span></div>
+   <span class="sub">คุณเป็นผู้รับ คุณไม่ต้องให้อะไรตอบแทน ผู้ส่งเป็นคนจ่ายภาษี</span>
+   <div class="row"><button class="btn go sm" data-act="trok">ยืนยัน ฉันเป็นผู้รับ</button><button class="btn alt sm" data-act="tclose">ไม่รับ</button></div></div>`}
+function market(){
+  S.mk=S.mk||[];S.myl=S.myl||[];
+  view(`<div class="cols"><div class="rail">
+    <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ตลาดกลาง</h2></div>
+    <p class="num gold">Gold ${S.gold}</p>
+    <p class="sub">ผู้เล่นตั้งราคาขายกันเอง จ่ายด้วย Gold ผู้ขายเสียภาษี ${TAX*100}% เมื่อขายได้</p>
+    <p class="sub">ตั้งขาย: เลือกเครื่องรางที่ไม่ได้ใส่อยู่</p>
+    <div class="row">${Object.keys(AM).filter(k=>spare(k)>0).map(k=>`<button class="mkpick ${mkSel===k?'on':''}" data-act="mksel" data-k="${k}" aria-label="${AM[k].n}">${amu(k)}<small>x${spare(k)}</small></button>`).join('')||'<span class="sub">ไม่มีเครื่องรางว่าง</span>'}</div>
+    ${mkSel&&spare(mkSel)>0?`<div class="row"><button class="btn alt sm" data-act="mkp" data-d="-20">-20</button><span class="num gold">${mkPrice}</span><button class="btn alt sm" data-act="mkp" data-d="20">+20</button></div>
+    <button class="btn go sm" data-act="mklist">ตั้งขาย ${AM[mkSel].n}</button><p class="sub">ขายได้จะได้รับ ${Math.floor(mkPrice*(1-TAX))} Gold</p>`:''}
+  </div><div class="main">
+    ${S.myl.length?`<p class="sub" style="margin-bottom:10px">รายการที่คุณตั้งขาย</p><div class="amlist">${S.myl.map((l,i)=>`<div class="amrow">${amu(l.k)}<span><b>${AM[l.k].n}</b><small>${AM[l.k].t}</small><small class="gold">${l.p} Gold · รอผู้ซื้อ</small></span><button class="btn alt sm" style="grid-column:1/-1" data-act="mkcancel" data-i="${i}">ยกเลิก</button></div>`).join('')}</div>`:''}
+    <p class="sub" style="margin-bottom:10px">รายการขาย (ตัวอย่าง ยังไม่ใช่ผู้เล่นจริง)</p>
+    <div class="amlist">${SAMPLE.map(([k,p],i)=>S.mk.includes(i)?'':`<div class="amrow">${amu(k)}<span><b>${AM[k].n}</b><small>${AM[k].t}</small><small class="gold">${p} Gold</small></span><button class="btn sm" style="grid-column:1/-1" data-act="mkbuy" data-i="${i}" ${S.gold<p?'disabled':''}>ซื้อ ${p} Gold</button></div>`).join('')||'<p class="sub">ขายหมดแล้ว</p>'}</div>
+    <div class="tiles"><button class="tile px" disabled>ตลาดประมูล<span>เร็ว ๆ นี้ · ต้องมีเซิร์ฟเวอร์</span></button><button class="tile px" disabled>ร้านเพชร<span>เร็ว ๆ นี้ · เติมด้วยเงินจริง</span></button></div>
+  </div></div>`);
+}
+function fresh(){const cards={};STARTERS.forEach(id=>cards[id]={lv:1,exp:0});return{gold:PACK,cleared:0,cards,team:[...STARTERS],auto:false}}
+const TEST=true; // test build: every card of every rank is unlocked
+function unlock(s){s.am=s.am||{};Object.values(s.cards).forEach(c=>{if(c.am&&!AM[c.am])delete c.am});Object.keys(AM).forEach(k=>{const w=Object.values(s.cards).filter(c=>c.am===k).length;if(w>(s.am[k]||0))s.am[k]=w});if(TEST)Object.keys(C).forEach(id=>{if(!s.cards[id])s.cards[id]={lv:1,exp:0}});Object.keys(s.cards).forEach(id=>{if(!C[id])return;const c=s.cards[id],cap=RAR[C[id].r].cap;if(c.lv>=cap){c.lv=cap;c.exp=0}});return s}
+const SESSION='pdb_session';let USER=null;try{USER=JSON.parse(localStorage.getItem(SESSION))}catch(e){}
+// each Google account keeps its own save on this device; guests share the device save
+const saveKey=()=>USER&&USER.sub?KEY+'_'+USER.sub:KEY;
+function load(){try{const s=JSON.parse(localStorage.getItem(saveKey()));if(s&&s.cards)return unlock(s)}catch(e){}return unlock(fresh())}
+function save(){try{localStorage.setItem(saveKey(),JSON.stringify(S))}catch(e){}}
+const capOf=id=>RAR[C[id].r].cap,maxed=id=>S.cards[id]&&S.cards[id].lv>=capOf(id);
+const lvTxt=id=>{const o=S.cards[id];return maxed(id)?`Lv ${o.lv} · MAX`:`Lv ${o.lv} · Exp ${o.exp}/${need(o.lv)}`};
+function addExp(id,x){const c=S.cards[id],cap=capOf(id);if(c.lv>=cap){c.lv=cap;c.exp=0;return 0}c.exp+=x;let up=0;while(c.lv<cap&&c.exp>=need(c.lv)){c.exp-=need(c.lv);c.lv++;up++}if(c.lv>=cap)c.exp=0;return up}
+function view(h){$('view').innerHTML=h;fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[]}
+const q=(el,t,cls)=>fx.push([el,t,cls]);
+const rib=id=>`<span class="rib">${RAR[C[id].r].n}</span>`;
+const fr=id=>RAR[C[id].r].fire?'fire':'';
+const SPK=[[2,3,0],[98,2,.7],[100,56,1.3],[3,97,.4],[96,98,1.8],[0,38,1.1]].map(([x,y,d])=>`<i class="sp" style="left:${x}%;top:${y}%;animation-delay:${d}s"></i>`).join('');
+const fxh=id=>(RAR[C[id].r].fire?'<canvas class="firec" width="108" height="130"></canvas>':'')+(RAR[C[id].r].spk?SPK:'');
+const ban=id=>{const r=RAR[C[id].r],t=r.n.toUpperCase();return `<span class="ban">${r.star?'★ '+t+' ★':t}</span>`};
+function mini(id,lv,attr='',extra=''){const s=stat(id,lv);
+  return `<button class="mini r-${C[id].r} glow ${fr(id)}" ${attr}>${fxh(id)}${rib(id)}<div class="art"><img src="${img(id)}" alt=""><span class="nm">${C[id].n} Lv${lv}</span>${stars(id)}</div><div class="st"><span class="a">ATK ${s.atk}</span><span class="d">DEF ${s.hp}</span></div>${extra}</button>`}
+const pan=id=>{const v=stat(id,S.cards[id]?S.cards[id].lv:1),mg=MAGIC.includes(id),am=S.cards[id]&&AM[S.cards[id].am]?S.cards[id].am:null;
+  return `<span class="pan"><span class="sb ${mg?'m':'a'}"><img src="${ICON[mg?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i></span><span class="amslot ${am?'has':''}">${am?amu(am):'+'}</span><span class="sb d"><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.hp}</i></span></span>`};
+const full=(id,attr='',cls='')=>`<button class="cf r-${C[id].r} ${cls} ${fr(id)}" ${attr}>${fxh(id)}<img src="${img(id)}" alt="${C[id].n}"><span class="cnm nt">${C[id].n}</span><span class="chp l nt">Lv ${S.cards[id]?S.cards[id].lv:1}</span><span class="chp r nt">${RAR[C[id].r].n}</span>${stars(id)}${ban(id)}${pan(id)}</button>`;
+
+/* ---------- stages 1-500 ---------- */
+// enemy strength follows LNAT[n], the level a card reaches by clearing every earlier stage once, measured against a Rare card;
+// the first 30 stages ramp up from half strength so the starter team gets through
+const LNAT=[1];{let lv=1,ex=0;for(let n=1;n<=MAXST;n++){LNAT[n]=lv;ex+=10+2*n;while(ex>=20+10*lv){ex-=20+10*lv;lv++}}}
+function stageDef(n){
+  const ease=Math.min(1,.75+.25*(n-1)/14),bud=135*(1+.09*(LNAT[n]-1))*2.6*ease,cnt=n<=3?1:n<=10?2:3,size=Math.min(POOL.length,3+Math.floor(n/5)),boss=n%10===0;
+  return Array.from({length:cnt},(_,i)=>{const id=POOL[(n*7+i*5+(n>>2))%size],b=boss&&i===(cnt>1?1:0),sh=.35+.3*C[id].a/(C[id].a+C[id].d);
+    return{id,boss:b,atk:Math.round(bud*sh*(b?1.2:1)),hp:Math.round(bud*(1-sh)*(b?2.2:1))}});
+}
+const expOf=n=>10+2*n,goldBase=n=>6+Math.floor(n/3);
+// Gold is a random drop from winning a stage: a first clear always pays (double), a replay drops 70% of the time (bosses always), the amount rolls 50-150% of the stage's base, with a 5% jackpot of x4
+const goldRange=n=>{const b=goldBase(n)*(n>S.cleared?2:1);return[Math.max(1,Math.round(b*.5)),Math.round(b*1.5)]};
+function rollGold(n){const first=n>S.cleared;if(!first&&n%10!==0&&Math.random()>.7)return{g:0};const jp=Math.random()<.05,[lo,hi]=goldRange(n);return{g:(lo+Math.floor(Math.random()*(hi-lo+1)))*(jp?4:1),jp}}
+
+/* ---------- screens ---------- */
+function home(){
+  bt=null;busy=false;ensureMe();const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
+  const dk=(act,ic,c,t,sub,dis)=>`<button class="dk ${c}" ${dis?'disabled':`data-act="${act}"`}><img src="${ic}" alt=""><span>${t}<small>${sub}</small></span></button>`;
+  view(`<div class="lobby" style="--bg:url(${mapImg(next)})"><div class="lbg"></div>
+   <div class="hud">
+    <button class="pchip" data-act="profile">${chs(S.me.look)}<span><b class="nt">${S.me.name.replace(/</g,'&lt;')}</b><small>${CHARS[S.me.look]}</small></span></button>
+    <span class="hgap"></span>
+    <span class="pill gold nt" title="Gold"><img src="${UI.coin}" alt="Gold">${S.gold.toLocaleString('en')}</span>
+    <span class="pill dia nt" title="Diamond"><img src="${UI.gem}" alt="Diamond">${(S.dia||0).toLocaleString('en')}</span>
+    <button class="ibtn" data-act="settings" title="ตั้งค่า"><img src="${UI.gear}" alt="ตั้งค่า"></button>
+   </div>
+   <div class="mid">
+    <div class="heroz"><h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1>
+     <div class="squad">${S.team.map(id=>`<img src="spr/${id}.webp" alt="${C[id].n}">`).join('')}</div></div>
+    <div class="side">
+     <div class="pgl"><span>ผ่านแล้ว ${S.cleared}/${MAXST} ด่าน · มีการ์ด ${own}/${NC} ใบ</span><div class="hp xp"><i style="width:${S.cleared/MAXST*100}%"></i></div></div>
+     <button class="play" data-act="prep"><small>ด่านถัดไป</small><b class="nt">STAGE ${next}</b><span>ตะลุยด่าน <i class="nt" style="font-style:normal">▶</i></span></button>
+    </div>
+   </div>
+   <nav class="dock">
+    ${dk('coll',UI.cards,'c1','การ์ดของฉัน',`<i class="nt" style="font-style:normal">${own}/${NC}</i>`)}
+    ${dk('shop',UI.pack,'c2','ร้านแพ็ค',`<i class="nt" style="font-style:normal">${PACK} Gold</i>`)}
+    ${dk('amtab',ICON.am_tiger,'c3','เครื่องราง','ใบละ 1 ชิ้น')}
+    ${dk('market',UI.market,'c4','ตลาดกลาง','ซื้อขายด้วย Gold')}
+    ${dk('troom',UI.trade,'c5','ห้องเทรด','ห้องละ 10 คน')}
+    ${dk('',UI.cup,'','PvP','เร็ว ๆ นี้',1)}
+   </nav>
+   <p class="cred nt">Toey Seafishingclub</p></div>`);
+}
+const ORD=['SL','L','R','UC','C'],byRank=ids=>[...ids].sort((a,b)=>ORD.indexOf(C[a].r)-ORD.indexOf(C[b].r));
+let collTab='all';
+function prep(){
+  const top=Math.min(MAXST,S.cleared+1);prepN=Math.max(1,Math.min(top,prepN));const en=stageDef(prepN);
+  S.team=S.team.filter(id=>S.cards[id]);
+  view(`<div class="cols"><div class="rail">
+    <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ด่าน ${prepN}</h2></div>
+    <div class="row"><button class="btn alt sm" data-act="stg" data-d="-10">-10</button><button class="btn alt sm" data-act="stg" data-d="-1">-1</button><button class="btn alt sm" data-act="stg" data-d="1">+1</button><button class="btn alt sm" data-act="stg" data-d="10">+10</button></div>
+    <div class="mapth" style="background-image:url(${mapImg(prepN)})" role="img" aria-label="${MAPS[mapOf(prepN)-1]}"></div>
+    <p class="sub">แผนที่: ${MAPS[mapOf(prepN)-1]}</p>
+    <p class="sub">ศัตรู: ${en.map(e=>(e.boss?'บอส ':'')+C[e.id].n).join(', ')}</p>
+    <p class="sub">รางวัล: Gold ${goldRange(prepN).join('–')} (สุ่มดรอป) · Exp ${expOf(prepN)} ต่อใบ${prepN<=S.cleared?' (เล่นซ้ำ)':''}</p>
+    <p class="sub">Lv แนะนำ <b class="nt" style="color:#ffe45c">${LNAT[prepN]}+</b>${S.team.length?` · ทีมคุณ <b class="nt" style="color:${S.team.some(id=>S.cards[id].lv<LNAT[prepN])?'#ff8492':'#6cf586'}">Lv ${S.team.map(id=>S.cards[id].lv).join(' / ')}</b>`:''}</p>
+    ${S.team.some(id=>S.cards[id].lv<LNAT[prepN])?'<p class="sub" style="color:#ff8492">เลเวลทีมต่ำกว่าที่แนะนำ ลองเก็บเลเวลจากด่านก่อนหน้า</p>':''}
+    <p class="sub">ทีมของคุณ (แตะช่องเพื่อเอาออก)</p>
+    <div class="picks">${[0,1,2].map(k=>S.team[k]?full(S.team[k],`data-act="pick" data-id="${S.team[k]}" aria-label="เอา ${C[S.team[k]].n} ออกจากทีม"`,'glow'):`<span class="empty">${k+1}</span>`).join('')}</div>
+    <button class="btn go" data-act="start" ${S.team.length?'':'disabled'}>เข้าสู้ (${S.team.length}/3)</button>
+  </div><div class="main"><p class="sub" style="margin-bottom:14px">แตะการ์ดเพื่อเลือกเข้าทีม สูงสุด 3 ใบ</p><div class="grid big">
+    ${byRank(Object.keys(C).filter(id=>S.cards[id])).map(id=>{const k=S.team.indexOf(id);
+      return `<div>${full(id,`data-act="pick" data-id="${id}" aria-pressed="${k>=0}"`,'glow'+(k>=0?' sel':'')).replace('</button>',(k>=0?`<span class="ord">${k+1}</span>`:'')+'</button>')}<p class="sub cap">Lv ${S.cards[id].lv}</p></div>`}).join('')}
+  </div></div></div>`);
+}
+function coll(){
+  const isAm=collTab==='am',have=Object.keys(AM).filter(k=>owned(k)>0),ids=byRank(Object.keys(C)).filter(id=>isAm?S.cards[id]:(collTab==='all'||C[id].r===collTab)),wearer=k=>Object.keys(S.cards).find(id=>S.cards[id].am===k);
+  view(`<div class="cols"><div class="rail">
+    <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>การ์ดของฉัน</h2></div>
+    <button class="tab ${collTab==='all'?'on':''}" data-act="ctab" data-r="all">ทั้งหมด (${Object.keys(C).length})</button>
+    ${ORD.map(r=>`<button class="tab r-${r} ${collTab===r?'on':''}" data-act="ctab" data-r="${r}">${RAR[r].n} (${Object.keys(C).filter(id=>C[id].r===r).length})</button>`).join('')}
+    <button class="tab am ${isAm?'on':''}" data-act="ctab" data-r="am">เครื่องราง (${have.reduce((n,k)=>n+owned(k),0)})</button>
+    <p class="sub">${isAm?'แตะเครื่องราง แล้วแตะการ์ดที่จะใส่ แตะการ์ดที่ใส่อยู่อีกครั้งเพื่อถอด':'แตะการ์ดเพื่อดูใบใหญ่และสกิล'}</p>
+  </div><div class="main">
+    ${isAm?(have.length?`<div class="amlist">${have.map(k=>`<button class="amrow ${amSel===k?'on':''}" data-act="amsel" data-k="${k}">${amu(k)}<span><b>${AM[k].n} x${owned(k)}</b><small>${AM[k].t}</small><small>ใส่อยู่ ${worn(k)} · ว่าง ${spare(k)}</small></span></button>`).join('')}</div>
+    <p class="sub" style="margin-bottom:14px">${amSel&&owned(amSel)?`เลือก "${AM[amSel].n}" อยู่ แตะการ์ดที่จะใส่`:'เลือกเครื่องรางด้านบนก่อน'}</p>`:`<p style="margin-bottom:14px">ยังไม่มีเครื่องราง เครื่องรางได้จากการดรอปในด่าน (โอกาส ${DROP*100}% ด่านบอส ${DROP_BOSS*100}%) หรือซื้อจากตลาดกลาง</p>`):''}
+    <div class="grid big">
+    ${ids.map(id=>{const o=S.cards[id];return `<div>${full(id,isAm?`data-act="amput" data-id="${id}"`:`data-act="zoom" data-id="${id}"`,o?'glow':'lock')}<p class="sub cap">${o?(isAm?(amOf(id)?amOf(id).n:'ว่าง'):lvTxt(id)):(ODDS[C[id].r]?'ยังไม่มี':'แพ็คในอนาคต')}</p></div>`}).join('')}
+  </div></div></div>`);
+}
+function shop(){
+  view(`<div class="cols"><div class="rail">
+    <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ร้านแพ็ค</h2></div>
+    <p class="num gold">Gold ${S.gold}</p><p class="num dia">เพชร ${S.dia||0}</p>
+    <div class="pack px">STARTER<br>PACK</div>
+    <button class="btn go" data-act="open" ${S.gold<PACK?'disabled':''}>เปิด ${PACK} Gold</button>
+    <div class="odds"><span>Uncommon</span><span>60%</span><span>Common</span><span>32%</span><span>Rare</span><span>8%</span></div>
+    <p class="sub">ต่อใบ · 1 กล่องได้ 3 ใบ · Rare ออกได้ไม่เกิน 1 ใบ · ได้ใบซ้ำเปลี่ยนเป็น Exp ${DUP}</p>
+  </div><div class="main">${pull?`<div class="pull">${pull.map(p=>`<div>${full(p.id,`data-act="zoom" data-id="${p.id}"`,'glow')}<span class="sub">${p.dup?`ซ้ำ → Exp +${DUP}${p.up?' · เลเวลอัป!':''}`:'ใหม่!'}</span></div>`).join('')}</div>`
+    :`<p class="sub">เปิดแพ็คแล้วการ์ด 3 ใบจะขึ้นตรงนี้ ${S.gold<PACK?'ตอนนี้ Gold ไม่พอ ไปตะลุยด่านเก็บ Gold ก่อน':''}</p>`}</div></div>`);
+}
+function openPack(){
+  if(S.gold<PACK)return;S.gold-=PACK;let gotR=false;
+  pull=[0,1,2].map(()=>{const x=Math.random();let r;
+    if(gotR)r=x<.65?'C':'UC';else r=x<ODDS.R?'R':x<ODDS.R+ODDS.UC?'UC':'C';
+    if(r==='R')gotR=true;
+    const ids=Object.keys(C).filter(id=>C[id].r===r),id=ids[Math.floor(Math.random()*ids.length)];
+    if(S.cards[id])return{id,dup:true,up:addExp(id,DUP)};
+    S.cards[id]={lv:1,exp:0};return{id}});
+  save();shop();
+}
+const gr=(b,id)=>+(b*RAR[C[id].r].g).toFixed(1);
+function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),z=$('zoom');
+  z.innerHTML=`${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}<div class="inf"><h2>${C[id].n}</h2><span class="rib r-${C[id].r}">${RAR[C[id].r].n}</span>
+   <div class="stb nt"><span><img src="${ICON[MAGIC.includes(id)?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i><u>▸ +${gr(C[id].a,id)} / Lv</u></span><span><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.hp}</i><u>▸ +${gr(C[id].d,id)} / Lv</u></span>
+    <span><b class="k">LEVEL</b><i>${o?o.lv:1}</i><u>▸ MAX ${capOf(id)}</u></span><span><b class="k">EXP</b><i>${o&&maxed(id)?'MAX':(o?o.exp:0)+'/'+need(o?o.lv:1)}</i><u>▸ MAX ${mx.atk} / ${mx.hp}</u></span></div>
+   <p class="sub">เครื่องราง: ${amOf(id)?amOf(id).n+' ('+amOf(id).t+')':'ยังไม่ได้ใส่'}</p>
+   <div class="skl">${[0,1,2].map(k=>`${skBtn(id,k,{tag:'span'})}<p><b>${SK[id][k][0]}</b>${CD[k]?` · พัก ${CD[k]} ตา`:''}<br>${skDesc(SK[id][k]).replace(/ATK/g,atkName(id))}</p>`).join('')}</div>
+   <p class="sub">แตะเพื่อปิด</p></div>`;z.hidden=false}
+
+/* ---------- battle ---------- */
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* ---------- stage maps: 50 paintings, one per 10 stages, each with its own weather ---------- */
+const MAPS=["Meadow", "Deep Forest", "Old Ruins", "Rainy Woods", "Firefly Night", "Autumn Grove", "Misty Maples", "Harvest Castle", "Autumn Storm", "Withered Dusk", "Murky Swamp", "Glowcap Marsh", "Drowned Woods", "Sunken Temple", "Acid Bog", "Dungeon Gate", "Flooded Sewer", "Castle Hall", "Arcane Prison", "Crimson Throne", "Pyramid Plains", "Dune Sea", "Sunset Tombs", "Cracked Wastes", "Moonlit Sands", "Snowfield", "Aurora Lake", "Blizzard Pass", "Ice Cavern", "Frost Citadel", "Twilight Graves", "Moonlit Cemetery", "Storm Burial", "Bone Crypt", "Blood Moon", "Ashlands", "Lava Fields", "Magma Cavern", "Midnight Caldera", "Inferno Core", "Amethyst Cave", "Azure Grotto", "Starlit Shards", "Emerald Hollow", "Ruby Sanctum", "Sky Palace", "Citadel Court", "Storm Ramparts", "Void Bridge", "Final Gate"];
+// p = particle sets [type,colour?], volc = volcano mouths in % of the picture
+const FX={1:{sway:1,p:[['dust']]},2:{sway:1,fog:1,p:[['spore','#d8ffd0']]},3:{sway:1,p:[['dust','#ffe0a0']]},4:{sway:1,fog:1,p:[['rain']]},5:{sway:1,p:[['fly','#eaff6b']]},
+ 6:{sway:1,p:[['leaf']]},7:{sway:1,fog:1,p:[['leaf']]},8:{p:[['leaf'],['dust','#ffd9a0']]},9:{sway:1,flash:1,p:[['rain'],['leaf']]},10:{fog:'#c9a0e0',p:[['ash','#b89ad0']]},
+ 11:{sway:1,fog:'#b8e0a0',p:[['bubble','#9ad06a']]},12:{glow:'#29adff',p:[['spore','#7ae8ff']]},13:{fog:1,p:[['rain']]},14:{fog:'#d0a0e8',p:[['fly','#e7a8ff']]},15:{glow:'#7dff3a',p:[['bubble','#b6ff5a'],['spore','#c8ff7a']]},
+ 16:{p:[['dust'],['ember','#ffb04a',8]]},17:{glow:'#3ddc5a',p:[['drip','#8fffb0']]},18:{p:[['dust','#ffffff']]},19:{glow:'#b06cff',p:[['spark','#e2b8ff']]},20:{glow:'#ff2a4d',p:[['ember','#ff5a5a']]},
+ 21:{p:[['sand']]},22:{p:[['sand']]},23:{p:[['sand','#ffc98a']]},24:{p:[['sand'],['dust','#e8c890']]},25:{p:[['sand','#cfd8ff',30],['spark','#ffffff']]},
+ 26:{sway:1,p:[['snow']]},27:{aur:1,p:[['snow','#ffffff',35]]},28:{sway:1,fog:1,p:[['bliz']]},29:{p:[['spark','#bff3ff'],['snow','#ffffff',25]]},30:{p:[['snow'],['spark','#bff3ff']]},
+ 31:{fog:'#d8b0e8',p:[['fly','#d8a0ff']]},32:{fog:'#c8d8ff',p:[['dust','#c8d8ff']]},33:{flash:1,p:[['rain']]},34:{glow:'#3ddc5a',p:[['dust','#a0ffb8']]},35:{fog:'#ff8a8a',p:[['ember','#ff4a4a']]},
+ 36:{glow:'#ff7a1a',p:[['ash']]},37:{glow:'#ff7a1a',volc:[[17,6],[52,4],[89,8]],p:[['ember']]},38:{glow:'#ff7a1a',p:[['ember','#ffb04a',60]]},39:{glow:'#ff7a1a',volc:[[17,6],[88,8]],p:[['ember']]},40:{glow:'#ff5a00',volc:[[17,6],[50,5],[88,8]],p:[['ember','#ffd23a',70]]},
+ 41:{glow:'#d86cff',p:[['spark','#f0c0ff']]},42:{glow:'#3de8e0',p:[['spark','#b0fff8'],['spore','#7af0e8']]},43:{glow:'#b06cff',p:[['spark','#ffffff']]},44:{glow:'#3dff8a',p:[['spark','#b8ffd0']]},45:{glow:'#ff3a6a',p:[['spark','#ffc0d0']]},
+ 46:{fog:1,p:[['spark','#ffffff'],['snow','#ffffff',20]]},47:{p:[['dust','#ffd9a0'],['fly','#ffd23a']]},48:{flash:1,p:[['rain']]},49:{glow:'#4aa8ff',p:[['spark','#c0d8ff'],['spore','#b06cff']]},50:{glow:'#ff5a00',flash:'#ff5a00',volc:[[8,12],[96,12]],p:[['ember','#ffd23a',60]]}};
+// every stage gets a different map, mixed across zones; each run of 50 stages uses all 50 maps once in a new order
+const mapOf=n=>{const c=Math.floor((n-1)/50),i=(n-1)%50;return (i*[7,13,17,23,9,11,19,21,27,29][c%10]+c*7)%50+1},mapImg=n=>`bg/${String(mapOf(n)).padStart(2,'0')}.webp`;
+function bgLayers(n){const m=mapOf(n),f=FX[m]||{},u=`style="background-image:url(${mapImg(n)})"`,d=k=>`animation-delay:-${((performance.now()/1000)%k).toFixed(2)}s`;
+  return `<div class="bgl ${f.sway?'lowr':''}" ${u}></div>${f.sway?`<div class="bgl top" style="background-image:url(${mapImg(n)});${d(5.6)}"></div>`:''}
+   ${f.aur?`<div class="baur" style="${d(10)}"></div>`:''}${f.glow?`<div class="bglow" style="--gc:${f.glow};${d(13.2)}"></div>`:''}${f.fog?`<div class="bfog" style="${f.fog===1?'':'--fc:'+f.fog+';'}${d(32)}"></div>`:''}<canvas id="bgfx" data-m="${m}"></canvas>`}
+// particle weather drawn at half resolution; state lives here so re-rendering the arena does not restart it
+const PT={rain:[90,'#bcd8ff'],drip:[10,'#8fffb0'],snow:[70,'#ffffff'],bliz:[170,'#ffffff'],leaf:[26,'#ff8a2a'],ember:[36,'#ff9a2a'],ash:[55,'#9a9a9a'],fly:[20,'#eaff6b'],spore:[30,'#ffffff'],spark:[26,'#ffffff'],sand:[70,'#f0d8a0'],dust:[26,'#ffffff'],bubble:[12,'#9ad06a']};
+let fxM=0,fxP=[],fxB=[],fxNext=0,fxFlash=0,fxFlashAt=0;
+function fxInit(m,W,H){fxM=m;fxP=[];fxB=[];fxFlash=0;fxFlashAt=performance.now()+3000;const f=FX[m]||{};
+  (f.p||[]).forEach(([t,col,cnt])=>{for(let i=0;i<(cnt||PT[t][0]);i++)fxP.push({t,c:col||PT[t][1],x:Math.random()*W,y:Math.random()*H,s:Math.random(),ph:Math.random()*6.28})})}
+function fxStep(c,t){
+  const W=c.width,H=c.height,x=c.getContext('2d'),m=+c.dataset.m,f=FX[m]||{},R=Math.random;if(m!==fxM)fxInit(m,W,H);x.clearRect(0,0,W,H);
+  for(const p of fxP){const s=p.s;x.fillStyle=p.c;x.globalAlpha=1;
+    if(p.t==='rain'||p.t==='drip'){p.y+=7+s*3;p.x-=1.2;if(p.y>H){p.y=-8;p.x=R()*(W+30)}x.globalAlpha=.55;x.fillRect(p.x,p.y,1,p.t==='drip'?3:6)}
+    else if(p.t==='snow'){p.y+=.4+s*.7;p.x+=Math.sin(t/900+p.ph)*.35;if(p.y>H){p.y=-2;p.x=R()*W}x.globalAlpha=.9;x.fillRect(p.x,p.y,s>.7?2:1,s>.7?2:1)}
+    else if(p.t==='bliz'){p.x-=4+s*4;p.y+=1+s*1.5;if(p.x<-4||p.y>H){p.x=W+R()*40;p.y=R()*H-20}x.globalAlpha=.8;x.fillRect(p.x,p.y,2+s*3,1)}
+    else if(p.t==='leaf'){p.y+=.5+s*.6;p.x+=Math.sin(t/600+p.ph)*.9-.4;if(p.y>H||p.x<-4){p.y=-3;p.x=R()*(W+40)}x.fillStyle=s>.6?'#ffd23a':s>.3?p.c:'#d9480f';x.fillRect(p.x,p.y,3,Math.sin(t/200+p.ph)>0?2:1)}
+    else if(p.t==='ember'){p.y-=.5+s*1.1;p.x+=Math.sin(t/500+p.ph)*.4;if(p.y<H*.1){p.y=H+R()*20;p.x=R()*W}x.globalAlpha=.5+.5*Math.sin(t/120+p.ph);x.fillRect(p.x,p.y,s>.6?2:1,s>.6?2:1)}
+    else if(p.t==='ash'){p.y+=.3+s*.4;p.x+=Math.sin(t/1100+p.ph)*.3-.15;if(p.y>H){p.y=-2;p.x=R()*W}x.globalAlpha=.6;x.fillRect(p.x,p.y,s>.7?2:1,1)}
+    else if(p.t==='fly'){p.x+=Math.sin(t/700+p.ph)*.5;p.y+=Math.cos(t/900+p.ph*2)*.35;x.globalAlpha=Math.max(0,Math.sin(t/400+p.ph*3));x.fillRect(p.x,H*.2+p.y%(H*.8),2,2)}
+    else if(p.t==='spore'){p.y-=.2+s*.3;p.x+=Math.sin(t/800+p.ph)*.3;if(p.y<H*.15){p.y=H;p.x=R()*W}x.globalAlpha=.35+.4*Math.sin(t/500+p.ph);x.fillRect(p.x,p.y,s>.5?2:1,s>.5?2:1)}
+    else if(p.t==='spark'){const a=Math.sin(t/300+p.ph*4);if(a>.2){x.globalAlpha=a;x.fillRect(p.x,p.y,1,1);if(a>.8){x.fillRect(p.x-1,p.y,3,1);x.fillRect(p.x,p.y-1,1,3)}}else if(a<-.95){p.x=R()*W;p.y=R()*H}}
+    else if(p.t==='sand'){p.x+=3+s*4;p.y+=Math.sin(t/400+p.ph)*.3;if(p.x>W){p.x=-10;p.y=H*.2+R()*H*.8}x.globalAlpha=.3;x.fillRect(p.x,p.y,4+s*6,1)}
+    else if(p.t==='dust'){p.x+=Math.sin(t/1500+p.ph)*.2+.08;p.y+=Math.cos(t/1300+p.ph)*.15;if(p.x>W)p.x=0;x.globalAlpha=.25+.2*Math.sin(t/700+p.ph);x.fillRect(p.x,p.y,1,1)}
+    else if(p.t==='bubble'){p.s+=.006;if(p.s>1){p.s=0;p.x=R()*W;p.y=H*.4+R()*H*.6}const r=1+p.s*3;x.globalAlpha=1-p.s;x.fillRect(p.x-r,p.y-p.s*8,r*2,1);x.fillRect(p.x-r,p.y-p.s*8+r*2,r*2,1);x.fillRect(p.x-r,p.y-p.s*8,1,r*2);x.fillRect(p.x+r,p.y-p.s*8,1,r*2)}}
+  if(f.volc){ // each mouth smokes all the time and throws up a burst of lava every few seconds
+    if(t>fxNext){fxNext=t+1800+R()*2600;const [vx,vy]=f.volc[Math.floor(R()*f.volc.length)];for(let i=0;i<22;i++)fxB.push({x:vx/100*W,y:vy/100*H,vx:(R()-.5)*2.4,vy:-1.2-R()*2.6,l:1,k:0})}
+    if(R()<.35){const [vx,vy]=f.volc[Math.floor(R()*f.volc.length)];fxB.push({x:vx/100*W+(R()-.5)*6,y:vy/100*H,vx:.15+R()*.2,vy:-.35-R()*.3,l:1,k:1})}
+    fxB=fxB.filter(b=>b.l>0);for(const b of fxB){b.x+=b.vx;b.y+=b.vy;if(b.k){b.l-=.012;x.globalAlpha=b.l*.5;x.fillStyle='#3a3038';const r=2+(1-b.l)*7;x.fillRect(b.x-r/2,b.y-r/2,r,r)}else{b.vy+=.07;b.l-=.016;x.globalAlpha=b.l;x.fillStyle=b.l>.6?'#fff3a0':b.l>.3?'#ff9a2a':'#ff2a00';x.fillRect(b.x,b.y,2,2)}}}
+  if(f.flash){if(t>fxFlashAt){fxFlash=1;fxFlashAt=t+3500+R()*5500}if(fxFlash>0){x.globalAlpha=fxFlash*.55;x.fillStyle=f.flash===1?'#ffffff':f.flash;x.fillRect(0,0,W,H);fxFlash-=.09}}
+  x.globalAlpha=1}
+if(!RM)(function loop(t){const c=$('bgfx');if(c){const w=Math.max(1,c.clientWidth>>1),h=Math.max(1,c.clientHeight>>1);if(c.width!==w||c.height!==h){c.width=w;c.height=h;fxM=0}fxStep(c,t)}requestAnimationFrame(loop)})(0);
+const W=ms=>sleep(ms/(S.spd||1));
+const art=id=>`<div class="art"><img src="${img(id)}" alt=""></div>`;
+const ov=h=>{$('ov').innerHTML=h};
+let ret=null,quake=false;const hits=new Set();
+async function banner(t,cls=''){ov(`<div class="bn ${cls}"><span>${t}</span></div>`);await W(RM?400:850);ov('')}
+async function vsIntro(){const P=u=>`<div class="vp">${art(u.id)}</div>`;
+  ov(`<div class="vs"><div class="vl">${bt.al.map(P).join('')}</div><b>VS</b><div class="vr">${bt.en.map(P).join('')}</div></div>`);await W(RM?500:1150);ov('')}
+async function cutin(a,k){const sk=SK[a.id][k];if(k===2)sfx('ult');
+  ov(`<div class="dim"></div><div class="cut t-${sk[2]} ${k===2?'ult':''}"><div class="cutart">${art(a.id)}</div><div class="cutname">${sk[0]}<small>${C[a.id].n}</small></div></div>`);
+  await W(RM?300:k===2?1000:750);ov('')}
+function off(el){let x=0,y=0;while(el&&el.id!=='stage'){x+=el.offsetLeft;y+=el.offsetTop;el=el.offsetParent}return{x,y}}
+// the attacker dashes across the lane to its target; the hit lands when it arrives, then it slides home
+async function lunge(from,to,dir){const f=$(from);if(!f||RM)return;let dx=dir*140,dy=0;
+  if(to&&$(to)){const A=off(f),B=off($(to));dx=B.x-A.x-dir*f.offsetWidth*.85;dy=B.y-A.y}
+  f.style.transition=`transform ${170/(S.spd||1)}ms cubic-bezier(.5,0,.2,1)`;f.style.zIndex=6;f.style.transform=`translate(${dx}px,${dy}px) scale(1.12)`;ret={id:from,dx,dy};await W(180)}
+async function startBattle(n){
+  bt={n,round:1,sel:0,log:'',
+    al:S.team.map(id=>{const v=stat(id,S.cards[id].lv);return{id,lv:S.cards[id].lv,atk:v.atk,hp:v.hp,max:v.hp,done:false,cds:[0,0,2]}}),
+    en:stageDef(n).map(e=>({...e,max:e.hp}))};
+  const my=bt;busy=true;draw();await vsIntro();if(bt!==my)return;sfx('start');await banner('START');if(bt!==my)return;
+  busy=false;my.log='เลือกสกิล แล้วแตะศัตรู';draw();if(S.auto)autoAct();
+}
+const actor=()=>bt.al.find(a=>a.hp>0&&!a.done);
+function autoT(){let b=-1;bt.en.forEach((e,i)=>{if(e.hp>0&&(b<0||e.hp<bt.en[b].hp))b=i});return b}
+function autoAct(){const a=actor();if(!a)return;const hurtAlly=bt.al.some(x=>x.hp>0&&x.hp<x.max*.6);
+  let k=0;for(const j of[2,1]){const t=SK[a.id][j][2];if(a.cds[j]===0&&(!['heal','healall','guard'].includes(t)||(t==='guard'?a.hp<a.max*.6:hurtAlly))){k=j;break}}
+  bt.sel=k;act(autoT())}
+const FACE_R=['archer','dragon','mage','luna','knight','goblin','rogue','barb'];
+// how each fighter attacks: slash (swing a blade), smash (leap and slam), shoot / cast (stand back and fire a projectile)
+const STYLE={knight:'slash',paladin:'slash',rogue:'slash',assassin:'slash',wraith:'slash',barb:'smash',goblin:'smash',golem:'smash',slime:'smash',archer:'shoot',mage:'cast',luna:'cast',cleric:'cast',dragon:'cast',zar:'cast'};
+const PROJ={archer:'arrow',mage:'fire',dragon:'fire',luna:'moon',cleric:'light',zar:'soul'},IDLE={slime:'jelly',wraith:'hover',dragon:'hover'};
+// recoloured / mirrored variants of the 15 base cards: [name, ATK, DEF, rank, base]; they share the base card's skills and attack style
+const VAR={"goblin2":["Goblin Shaman",65,50,"C","goblin"],"goblin3":["Goblin Raider",65,50,"C","goblin"],"goblin4":["Goblin Warlord",65,50,"C","goblin"],"slime2":["Slime Emperor",60,65,"UC","slime"],"slime3":["Slime Prince",60,65,"UC","slime"],"slime4":["Slime Baron",55,60,"C","slime"],"rogue2":["Rogue Phantom",85,50,"R","rogue"],"rogue3":["Rogue Viper",80,45,"UC","rogue"],"rogue4":["Rogue Ember",70,45,"C","rogue"],"archer2":["Royal Archer",75,50,"UC","archer"],"archer3":["Storm Archer",75,50,"UC","archer"],"archer4":["Night Archer",70,45,"C","archer"],"assassin2":["Assassin's Fang",70,45,"C","assassin"],"assassin3":["Assassin's Veil",70,45,"C","assassin"],"assassin4":["Assassin's Oath",70,45,"C","assassin"],"cleric2":["Cleric's Wrath",55,70,"UC","cleric"],"cleric3":["Cleric's Mercy",50,65,"C","cleric"],"cleric4":["Cleric's Dawn",50,65,"C","cleric"],"mage2":["Frost Mage",90,60,"L","mage"],"mage3":["Venom Mage",75,50,"UC","mage"],"mage4":["Storm Mage",80,55,"R","mage"],"luna2":["Sorceress Sol",90,60,"L","luna"],"luna3":["Sorceress Nova",80,55,"R","luna"],"luna4":["Sorceress Umbra",75,50,"UC","luna"],"dragon2":["Frost Whelp",90,60,"L","dragon"],"dragon3":["Venom Whelp",80,55,"R","dragon"],"dragon4":["Storm Whelp",100,65,"SL","dragon"],"barb2":["Barbarian Fury",75,50,"UC","barb"],"barb3":["Barbarian Storm",75,50,"UC","barb"],"barb4":["Barbarian Brawler",70,45,"C","barb"],"knight2":["Goldclad Knight",80,85,"SL","knight"],"knight3":["Stormclad Knight",70,65,"R","knight"],"knight4":["Bloodclad Knight",60,65,"UC","knight"],"wraith2":["Blood Wraith",75,60,"R","wraith"],"wraith3":["Frost Wraith",65,50,"C","wraith"],"wraith4":["Pale Wraith",65,50,"C","wraith"],"paladin2":["Paladin Dusk",70,80,"L","paladin"],"paladin3":["Paladin Valor",65,70,"R","paladin"],"paladin4":["Paladin Storm",60,65,"UC","paladin"],"golem2":["Magma Golem",65,70,"R","golem"],"golem3":["Crystal Golem",55,60,"C","golem"],"golem4":["Moss Golem",55,60,"C","golem"],"zar2":["Necromancer Vex",85,65,"L","zar"],"zar3":["Necromancer Mor",75,60,"R","zar"],"zar4":["Necromancer Kael",70,55,"UC","zar"]};
+for(const[id,[n,a,d,r,b]]of Object.entries(VAR)){C[id]={n,a,d,r,base:b,ab:C[b].ab};SK[id]=SK[b];STYLE[id]=STYLE[b];if(PROJ[b])PROJ[id]=PROJ[b];if(IDLE[b])IDLE[id]=IDLE[b];if(FACE_R.includes(b))FACE_R.push(id);if(MAGIC.includes(b))MAGIC.push(id)}
+{const o=['C','UC','R','L','SL'],b=POOL.slice();POOL.length=0;POOL.push(...Object.keys(C).sort((x,y)=>o.indexOf(C[x].r)-o.indexOf(C[y].r)||b.indexOf(C[x].base||x)-b.indexOf(C[y].base||y)))}
+const NC=Object.keys(C).length;
+
+const mid=el=>{const o=off(el);return{x:o.x+el.offsetWidth/2,y:o.y+el.offsetHeight/2}};
+function addFx(id,cls){const e=$(id);if(!e)return;const b=document.createElement('span');b.className=cls;e.append(b);setTimeout(()=>b.remove(),520)}
+function shoot(from,to,type){const f=$(from),t=$(to);if(!f||!t)return;const A=mid(f),B=mid(t),d=document.createElement('div'),sp=S.spd||1;
+  d.className='pj '+type;d.style.left=A.x+'px';d.style.top=A.y+'px';d.innerHTML=`<i style="transform:translate(-50%,-50%) rotate(${Math.atan2(B.y-A.y,B.x-A.x)}rad)"></i>`;$('ov').append(d);
+  d.animate([{transform:'translate(0,0)'},{transform:`translate(${B.x-A.x}px,${B.y-A.y}px)`}],{duration:260/sp,easing:'ease-in'}).onfinish=()=>d.remove()}
+// one attack: wind up, then either cross the lane and swing, or stay put and fire; resolves at the moment of impact
+async function strike(from,id,tos,dir){
+  const f=$(from);if(!f||RM)return;const spr=f.querySelector('.spr'),st=STYLE[id]||'slash',sp=S.spd||1,g=(dir===1||f.querySelector('.sw.flip'))?1:-1;
+  if(st==='shoot'||st==='cast'){
+    spr.animate([{transform:'none'},{transform:`rotate(${-9*g}deg) translateX(${-7*g}px) scale(.97,1.03)`,offset:.45},{transform:`rotate(${7*g}deg) translateX(${9*g}px)`,offset:.6},{transform:'none'}],{duration:520/sp});
+    await W(250);sfx(st==='shoot'?'arrow':'magic');tos.forEach(t=>shoot(from,t,PROJ[id]||'fire'));await W(255);return}
+  await lunge(from,tos.length===1?tos[0]:null,dir);
+  if(st==='smash'){spr.animate([{transform:`translateY(-38px) rotate(${-24*g}deg)`},{transform:`translateY(-44px) rotate(${-30*g}deg)`,offset:.45},{transform:`translateY(6px) rotate(${26*g}deg) scale(1.08,.88)`,offset:.8},{transform:'none'}],{duration:330/sp});
+    await W(260);sfx('smash');tos.forEach(t=>addFx(t,'slam'));quake=true}
+  else{spr.animate([{transform:`rotate(${-30*g}deg) translateX(${-6*g}px)`},{transform:`rotate(${-34*g}deg) translateX(${-8*g}px)`,offset:.35},{transform:`rotate(${40*g}deg) translateX(${12*g}px)`,offset:.75},{transform:`rotate(${12*g}deg)`}],{duration:260/sp});
+    await W(180);sfx('slash');tos.forEach(t=>addFx(t,'arc'+(dir===1?'':' rv')))}
+  await W(70)}
+async function pose(from,tos){const f=$(from);if(!f||RM)return;
+  f.querySelector('.spr').animate([{transform:'none'},{transform:'translateY(-14px) scale(1.06)'},{transform:'none'}],{duration:380/(S.spd||1)});await W(200);sfx('heal');tos.forEach(t=>addFx(t,'aur'));await W(150)} // sprites drawn facing right; mirrored when they fight on the enemy side
+function unit(u,el,cls,attr){const p=Math.max(0,u.hp/u.max*100),mon=u.boss!==undefined;
+  return `<button class="fig r-${mon?'C':C[u.id].r} ${IDLE[u.id]?'i-'+IDLE[u.id]:''} ${u.boss?'boss':''} ${u.hp<=0?'dead':''} ${cls}" id="${el}" ${attr} title="${C[u.id].n}">${u.boss?'<span class="tagb">BOSS</span>':''}
+    <span class="fhp"><i style="width:${p}%"></i></span><span class="sw ${mon&&FACE_R.includes(u.id)?'flip':''}"><img class="spr" src="spr/${u.id}.webp" alt="${C[u.id].n}"></span>
+    <div class="st"><span class="a"><img src="${ICON[MAGIC.includes(u.id)?'orb':'sword']}" alt="${atkName(u.id)}">${u.atk}</span><span class="d"><img src="${ICON.shield}" alt="DEF">${Math.max(0,u.hp)}</span></div></button>`}
+function draw(){
+  const ac=busy?null:actor(),ord=[...bt.al.filter(a=>a.hp>0&&!a.done).map(a=>[a,'al']),...bt.en.filter(e=>e.hp>0).map(e=>[e,'en'])];
+  view(`<div class="arena px">${bgLayers(bt.n)}
+    <div class="atop"><span class="num">ด่าน ${bt.n} · ${MAPS[mapOf(bt.n)-1]} · รอบ ${bt.round}</span><span class="alog" aria-live="polite">${bt.log}</span>
+      <span class="row"><button class="btn sm ${S.auto?'on':'alt'}" data-act="auto">ออโต้</button><button class="btn alt sm" data-act="spd">x${S.spd||1}</button><button class="btn red sm" data-act="prep">ถอย</button></span></div>
+    <div class="field">
+      <div class="team">${bt.al.map((a,i)=>`<div class="slot"><div class="sks">${[0,1,2].map(k=>{const on=a===ac&&!S.auto&&a.cds[k]===0;
+        return skBtn(a.id,k,{attr:`data-act="sk" data-k="${k}" ${on?'':'disabled'}`,cls:(a===ac&&bt.sel===k?'pick ':'')+(a.hp<=0||a.cds[k]?'off':''),cd:a.hp>0&&a.cds[k]?a.cds[k]:''})}).join('')}</div>${unit(a,'a'+i,a===ac?'act':'','disabled')}</div>`).join('')}</div>
+      <div class="order">${ord.map(([u,sd],i)=>`<span class="op ${sd} ${i?'':'now'}">${art(u.id)}</span>`).join('')}</div>
+      <div class="team en">${bt.en.map((e,i)=>unit(e,'e'+i,'',`data-act="tgt" data-i="${i}" ${busy||e.hp<=0||S.auto?'disabled':''}`)).join('')}</div>
+    </div></div>`);
+  if(ret){const e=$(ret.id);if(e&&!RM)e.animate([{transform:`translate(${ret.dx}px,${ret.dy}px) scale(1.12)`},{transform:'none'}],{duration:230/(S.spd||1),easing:'ease-out'});ret=null}
+  if(hits.size)sfx('hit');
+  hits.forEach(id=>{const e=$(id);if(!e)return;const b=document.createElement('span');b.className='imp';e.append(b);setTimeout(()=>b.remove(),380);
+    if(!RM)e.animate([{filter:'brightness(3.5)',transform:'translateX(8px)'},{transform:'translateX(-7px)'},{filter:'none',transform:'translateX(4px)'},{transform:'none'}],{duration:280})});hits.clear();
+  if(quake){quake=false;if(!RM)$('view').animate([{transform:'translate(7px,-5px)'},{transform:'translate(-7px,5px)'},{transform:'translate(5px,4px)'},{transform:'none'}],{duration:320})}
+}
+function hurt(list,pre,i,d,cls='d'){const t=list[i];t.hp-=d;q(pre+i,(d<0?'+':'-')+Math.abs(d),cls);if(d>0)hits.add(pre+i)}
+function mend(j,amt){const x=bt.al[j],h=Math.min(Math.round(amt),x.max-x.hp);if(h>0)hurt(bt.al,'a',j,-h,'g')}
+function cast(a,k,ti){
+  const sk=SK[a.id][k],[name,,type,v]=sk,ai=bt.al.indexOf(a),t=bt.en[ti];bt.log=`${C[a.id].n} ใช้ ${name}`;
+  if(type==='hit'||type==='exec'||type==='drain'){
+    const d=Math.round(a.atk*v*(type==='exec'&&t.hp<=t.max/2?2:1));hurt(bt.en,'e',ti,d);
+    if(type==='drain')mend(ai,d/2)}
+  else if(type==='aoe')bt.en.forEach((e,j)=>{if(e.hp>0)hurt(bt.en,'e',j,Math.round(a.atk*v))});
+  else if(type==='heal'){let b=-1;bt.al.forEach((x,j)=>{if(x.hp>0&&(b<0||x.hp/x.max<bt.al[b].hp/bt.al[b].max))b=j});mend(b,a.atk*v)}
+  else if(type==='healall')bt.al.forEach((x,j)=>{if(x.hp>0)mend(j,a.atk*v)});
+  else if(type==='guard')mend(ai,a.max*v);
+  else if(type==='buff'){a.atk=Math.round(a.atk*v);q('a'+ai,'ATK ↑','g')}
+  a.cds=a.cds.map((c,j)=>j===k?CD[k]:Math.max(0,c-1));
+}
+async function act(ti){
+  const my=bt;if(busy||!my)return;const a=actor();if(!a)return;const k=a.cds[my.sel]?0:my.sel,sk=SK[a.id][k],ai=my.al.indexOf(a);
+  if(needT(sk)&&(ti<0||!my.en[ti]||my.en[ti].hp<=0))return;
+  busy=true;my.log=`${C[a.id].n} ใช้ ${sk[0]}`;draw();
+  if(k>0){await cutin(a,k);if(bt!==my)return}
+  if(['hit','exec','drain','aoe'].includes(sk[2]))await strike('a'+ai,a.id,needT(sk)?['e'+ti]:my.en.map((e,j)=>e.hp>0?'e'+j:null).filter(Boolean),1);
+  else await pose('a'+ai,sk[2]==='healall'?my.al.map((x,j)=>x.hp>0?'a'+j:null).filter(Boolean):['a'+ai]);
+  if(bt!==my)return;const big=quake;
+  cast(a,k,ti);a.done=true;my.sel=0;quake=big||k===2;draw();await W(540);if(bt!==my)return;
+  if(my.en.every(e=>e.hp<=0))return finish(true);
+  if(!actor()){
+    for(let i=0;i<my.en.length;i++){const e=my.en[i];if(e.hp<=0)continue;
+      const live=my.al.map((x,j)=>j).filter(j=>my.al[j].hp>0);if(!live.length)break;
+      const j=live[Math.floor(Math.random()*live.length)];my.log=`${C[e.id].n} โจมตี ${C[my.al[j].id].n}`;draw();
+      await strike('e'+i,e.id,['a'+j],-1);if(bt!==my)return;hurt(my.al,'a',j,e.atk);draw();await W(440);if(bt!==my)return}
+    if(my.al.every(x=>x.hp<=0))return finish(false);
+    my.round++;my.al.forEach(x=>x.done=false);
+  }
+  busy=false;if(!S.auto)my.log='เลือกสกิล แล้วแตะศัตรู';draw();if(S.auto)autoAct();
+}
+async function finish(won){
+  const my=bt;busy=true;sfx(won?'win':'lose');await banner(won?'FINISH':'DEFEAT',won?'':'lose');if(bt!==my)return;
+  const n=bt.n,team=bt.al.map(a=>a.id);bt=null;busy=false;let rows='',g=0,drop=null,jp=false;
+  if(won){const rg=rollGold(n);g=rg.g;jp=rg.jp;S.gold+=g;if(Math.random()<(n%10===0?DROP_BOSS:DROP)){const ks=Object.keys(AM);drop=ks[Math.floor(Math.random()*ks.length)];S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}const x=expOf(n);
+    rows=team.map(id=>{const was=S.cards[id].lv,wasMax=maxed(id),up=addExp(id,x),c=S.cards[id];
+      return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${img(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
+    if(n>S.cleared)S.cleared=n;save()}
+  const next=Math.min(MAXST,n+1);
+  view(`<div class="cols"><div class="rail">
+    <h1>${won?'ชนะ!':'แพ้'}</h1><p class="num">ด่าน ${n}</p>
+    ${won?`<p class="num gold">${g?`Gold +${g}${jp?' <b class="nt">JACKPOT x4</b>':''}`:'รอบนี้ Gold ไม่ดรอป'}</p>${drop?`<div class="row"><span style="width:38px">${amu(drop)}</span><span>ได้เครื่องราง<br><b>${AM[drop].n}</b></span></div>`:''}`:'<p class="sub">ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่</p>'}
+    ${won&&n<MAXST?`<button class="btn go" data-act="go" data-n="${next}">ด่าน ${next}</button>`:''}
+    <button class="btn ${won?'alt':'go'}" data-act="go" data-n="${n}">เล่นด่านนี้อีก</button>
+    <button class="btn alt sm" data-act="home">หน้าหลัก</button>
+  </div><div class="main">${won?`<div class="res">${rows}</div>`:''}</div></div>`);
+}
+
+/* ---------- input ---------- */
+$('view').onclick=ev=>{
+  const t=ev.target.closest('[data-act]');if(!t||t.disabled)return;const a=t.dataset.act,id=t.dataset.id;
+  if(a!=='reset')armed=false;
+  if(a==='home')home();
+  else if(a==='prep'){prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;$('ov').innerHTML='';prep()}
+  else if(a==='stg'){prepN+=+t.dataset.d;prep()}
+  else if(a==='pick'){const k=S.team.indexOf(id);if(k>=0)S.team.splice(k,1);else if(S.team.length<3)S.team.push(id);save();const m=document.querySelector('.main'),y=m?m.scrollTop:0;prep();const n=document.querySelector('.main');if(n){n.scrollTop=y;requestAnimationFrame(()=>{n.scrollTop=y})}}
+  else if(a==='ctab'){collTab=t.dataset.r;coll()}
+  else if(a==='amtab'){collTab='am';coll()}
+  else if(a==='market'){mkSel=null;market()}
+  else if(a==='settings')settings();
+  else if(a==='sfxt'){S.sfx=S.sfx===false;save();settings();sfx('slash')}
+  else if(a==='snd'){S.snd=S.snd===false;save();settings()}
+  else if(a==='lang'){S.lang=t.dataset.l;save();document.documentElement.lang=S.lang;settings()}
+  else if(a==='logout'){save();USER=null;try{localStorage.removeItem(SESSION)}catch(e){}try{window.google&&google.accounts.id.disableAutoSelect()}catch(e){}titleScreen()}
+  else if(a==='guest')signIn({guest:true,name:'Guest'})
+  else if(a==='tlang'){S.lang=t.dataset.l;document.documentElement.lang=S.lang;try{localStorage.setItem('pdb_lang',S.lang)}catch(e){}titleScreen()}
+  else if(a==='troom')roomList();
+  else if(a==='roomgo'){roomNo=+t.dataset.i;enterRoom()}
+  else if(a==='charedit'||a==='profile'){dressBack=a==='profile'?'home':'room';charMake()}
+  else if(a==='dress'){S.me.name=($('nm').value.trim()||'ผู้เล่น').slice(0,12);S.me.look=+t.dataset.i;save();const m=document.querySelector('.main'),y=m.scrollTop;charMake();document.querySelector('.main').scrollTop=y}
+  else if(a==='dressdone'){S.me.name=($('nm').value.trim()||'ผู้เล่น').slice(0,12);save();room=null;dressBack==='room'?enterRoom():home()}
+  else if(a==='tnpc'){if(room&&room.menu==null){room.target=+t.dataset.i}}
+  else if(a==='tclose'){room.menu=null;$('tui').innerHTML=''}
+  else if(a==='ttrade'){trGive=null;tradeMenu()}
+  else if(a==='tgive'){trGive=t.dataset.k;tradeMenu()}
+  else if(a==='tsendc'){if(trGive)sendConfirm()}
+  else if(a==='trecv'){if(room.npcs[room.menu].item)recvConfirm()}
+  else if(a==='tok'){const n=room.npcs[room.menu];if(trGive&&spare(trGive)>0&&S.gold>=TRADE_TAX){S.gold-=TRADE_TAX;S.am[trGive]--;const sent=trGive;trGive=null;save();room.menu=null;enterRoom();$('tlog').innerHTML=`ส่งแล้ว: ${AM[sent].n} → <b class="nt">${n.name.replace(/</g,'&lt;')}</b> · จ่ายภาษี ${TRADE_TAX.toLocaleString()} Gold`}}
+  else if(a==='trok'){const n=room.npcs[room.menu];if(n.item){const got=n.item;S.am=S.am||{};S.am[got]=(S.am[got]||0)+1;n.item=null;save();room.menu=null;enterRoom();$('tlog').innerHTML=`รับแล้ว: ${AM[got].n} ← <b class="nt">${n.name.replace(/</g,'&lt;')}</b>`}}
+  else if(a==='mksel'){mkSel=t.dataset.k;market()}
+  else if(a==='mkp'){mkPrice=Math.max(20,Math.min(9980,mkPrice+ +t.dataset.d));market()}
+  else if(a==='mklist'){if(spare(mkSel)>0){S.am[mkSel]--;S.myl.push({k:mkSel,p:mkPrice});save()}market()}
+  else if(a==='mkcancel'){const l=S.myl.splice(+t.dataset.i,1)[0];if(l)S.am[l.k]=(S.am[l.k]||0)+1;save();market()}
+  else if(a==='mkbuy'){const i=+t.dataset.i,[k,p]=SAMPLE[i];if(S.gold>=p&&!S.mk.includes(i)){S.gold-=p;S.mk.push(i);S.am=S.am||{};S.am[k]=(S.am[k]||0)+1;save()}market()}
+  else if(a==='tam'){S.am=S.am||{};Object.keys(AM).forEach(k=>S.am[k]=(S.am[k]||0)+1);save();settings()}
+  else if(a==='amsel'||a==='amput'){const m=document.querySelector('.main'),y=m?m.scrollTop:0;
+    if(a==='amsel')amSel=amSel===t.dataset.k?null:t.dataset.k;
+    else{const c=S.cards[id];if(amSel&&c.am!==amSel){if(spare(amSel)>0)c.am=amSel}else if(c.am)delete c.am;save()}
+    coll();const n=document.querySelector('.main');if(n)n.scrollTop=y}
+  else if(a==='start'){save();startBattle(prepN)}
+  else if(a==='go'){prepN=+t.dataset.n;startBattle(prepN)}
+  else if(a==='tgt')act(+t.dataset.i);
+  else if(a==='sk'){bt.sel=+t.dataset.k;const ac=actor();if(ac&&!needT(SK[ac.id][bt.sel]))act(-1);else{bt.log=`${SK[ac.id][bt.sel][0]}: แตะศัตรูที่จะโจมตี`;draw()}}
+  else if(a==='spd'){S.spd=S.spd===2?1:2;save();if(!busy)draw()}
+  else if(a==='auto'){S.auto=!S.auto;save();if(!busy){draw();if(S.auto)autoAct()}}
+  else if(a==='coll')coll();
+  else if(a==='tgold'){S.gold+=10000;save();settings()}
+  else if(a==='tlv'){Object.values(S.cards).forEach(c=>c.lv+=5);unlock(S);save();settings()}
+  else if(a==='shop'){pull=null;shop()}
+  else if(a==='open')openPack();
+  else if(a==='zoom')zoom(id);
+  else if(a==='reset'){if(armed){armed=false;S=unlock(fresh());save();home()}else{armed=true;settings()}}
+};
+$('zoom').onclick=()=>$('zoom').hidden=true;
+/* ---------- pixel fire for the fire frame ---------- */
+const FW=108,FH=130,FM=14,fsim=document.createElement('canvas');fsim.width=FW;fsim.height=FH;
+const fctx=fsim.getContext('2d'),fimg=fctx.createImageData(FW,FH);let heat=new Float32Array(FW*FH),heat2=new Float32Array(FW*FH),ft=0;
+const FPAL=Array.from({length:37},(_,i)=>{const t=i/36,st=[[0,90,0,20],[.22,214,0,40],[.45,255,96,0],[.7,255,190,20],[1,255,244,170]];
+  let k=0;while(k<st.length-2&&t>st[k+1][0])k++;const A=st[k],B=st[k+1],u=(t-A[0])/(B[0]-A[0]);
+  return[A[1]+(B[1]-A[1])*u,A[2]+(B[2]-A[2])*u,A[3]+(B[3]-A[3])*u,i<3?0:Math.min(255,(i-2)*70)]});
+// the card edge is the fuel line: its heat rolls along the perimeter so tongues grow and shrink; each cell outside
+// copies the cell one step nearer the card (leaning upward on the sides) and cools a little, which draws tongues
+function fireStep(){
+  const x0=FM,x1=FW-FM-1,y0=FM,y1=FH-FM-1,R=Math.random,cl=(v,m)=>v<0?0:v>m?m:v;ft+=.22;
+  for(let y=0;y<FH;y++)for(let x=0;x<FW;x++){
+    const i=y*FW+x,inX=x>=x0&&x<=x1,inY=y>=y0&&y<=y1;
+    if(inX&&inY){
+      if(x===x0||x===x1||y===y0||y===y1){const p=(y===y0?x:x===x1?FW+y:y===y1?FW+FH+(FW-x):2*FW+FH+(FH-y));
+        const n=.5+.27*Math.sin(p*.42+ft*1.3)+.23*Math.sin(p*.17-ft*.8+2);heat2[i]=cl(36*(.3+.75*n)+R()*5-2,36)}
+      else heat2[i]=0;continue}
+    const dx=x<x0?1:x>x1?-1:0,dy=y<y0?1:y>y1?-1:0;let sx,sy,dec;
+    if(!dx&&dy>0){sx=x+(R()<.34?(R()<.5?-1:1):0);sy=y+1;dec=1.5+R()*2.5}
+    else if(dy<0){sx=x+dx+(dx?0:(R()<.3?(R()<.5?-1:1):0));sy=y-1;dec=3.5+R()*4}
+    else{sx=x+dx;sy=y+(R()<.62?1:0)+(dy>0&&R()<.5?1:0);dec=1.7+R()*2.6}
+    const v=heat[cl(sy,FH-1)*FW+cl(sx,FW-1)]-dec;heat2[i]=v>0?v:0}
+  [heat,heat2]=[heat2,heat];
+  for(let i=0;i<FW*FH;i++){const c=FPAL[Math.min(36,heat[i]|0)],o=i*4;fimg.data[o]=c[0];fimg.data[o+1]=c[1];fimg.data[o+2]=c[2];fimg.data[o+3]=c[3]}
+  fctx.putImageData(fimg,0,0);
+}
+function firePaint(){document.querySelectorAll('canvas.firec').forEach(c=>{const x=c.getContext('2d');x.clearRect(0,0,FW,FH);x.drawImage(fsim,0,0)})}
+for(let i=0;i<30;i++)fireStep();
+if(matchMedia('(prefers-reduced-motion:reduce)').matches)new MutationObserver(firePaint).observe($('stage'),{childList:true,subtree:true});
+else{let last=0;(function loop(t){if(t-last>70){last=t;if(document.querySelector('canvas.firec'))fireStep()}firePaint();requestAnimationFrame(loop)})(0)}
+/* ---------- language: the game is written in Thai; in English mode a translator rewrites text as it reaches the page ---------- */
+const EN={"แตะเครื่องราง แล้วแตะการ์ดที่จะใส่ แตะการ์ดที่ใส่อยู่อีกครั้งเพื่อถอด": "Tap an amulet, then tap a card to equip it. Tap the wearing card again to remove it.", "แตะการ์ดเพื่อดูใบใหญ่และสกิล": "Tap a card to see it full size with its skills", "ต่อใบ · 1 กล่องได้ 3 ใบ · Rare ออกได้ไม่เกิน 1 ใบ · ได้ใบซ้ำเปลี่ยนเป็น Exp": "per card · 3 cards per box · at most 1 Rare · duplicates become Exp", "ตอนนี้ผู้เล่นในห้องเป็นผู้เล่นจำลอง จำนวนคนเป็นตัวอย่าง": "Players in the rooms are simulated for now; the head counts are examples.", "ยังไม่มีเครื่องราง เครื่องรางได้จากการดรอปในด่าน (โอกาส": "No amulets yet. Amulets drop in stages (chance", "ด่านบอส": "boss stages", "หรือซื้อจากตลาดกลาง": "or are bought in the Market", "ผู้เล่นจำลอง (ยังไม่มีผู้เล่นจริงจนกว่าจะมีเซิร์ฟเวอร์)": "Simulated player (no real players until there is a server)", "ผู้เล่นตั้งราคาขายกันเอง จ่ายด้วย Gold ผู้ขายเสียภาษี": "Players set their own prices and pay in Gold. The seller pays a tax of", "เมื่อขายได้": "on a sale", "ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่": "Level up on earlier stages, or open packs for new cards", "ห้องละ 10 คน เดินไปหาผู้เล่นอื่นแล้วแลกไอเท็ม ภาษี 10,000 Gold": "10 players per room. Walk up to another player and swap items. Tax 10,000 Gold", "คน คนเยอะก็กระจายไปหลายห้อง ห้องเต็มเข้าไม่ได้": "players. Crowds spread across rooms; a full room cannot be entered.", "ห้องละ": "Each room holds", "ตอนนี้ Gold ไม่พอ ไปตะลุยด่านเก็บ Gold ก่อน": "Not enough Gold yet. Clear stages to earn more.", "ตั้งขาย: เลือกเครื่องรางที่ไม่ได้ใส่อยู่": "Sell: pick an amulet that is not equipped", "รายการขาย (ตัวอย่าง ยังไม่ใช่ผู้เล่นจริง)": "Listings (samples, not real players yet)", "แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อเทรด": "Tap the ground to walk. Tap another character to trade.", "แตะอีกครั้งเพื่อลบเซฟ": "Tap again to erase the save", "เริ่มใหม่ทั้งหมด": "Reset everything", "แตะการ์ดเพื่อเลือกเข้าทีม สูงสุด 3 ใบ": "Tap cards to add them to your team, up to 3", "ดูระดับ เลเวล และ Exp ของการ์ดทุกใบ": "Rank, level and Exp of every card", "เปิดแพ็คแล้วการ์ด 3 ใบจะขึ้นตรงนี้": "Open a pack and its 3 cards appear here.", "ใส่เครื่องรางให้การ์ด ใบละ 1 ชิ้น": "Equip one amulet per card", "เร็ว ๆ นี้ · ต้องมีเซิร์ฟเวอร์": "Coming soon · needs a server", "เร็ว ๆ นี้ · เติมด้วยเงินจริง": "Coming soon · bought with real money", "เร็ว ๆ นี้": "Coming soon", "ด่านถัดไป": "Next stage", "ใบละ 1 ชิ้น": "1 per card", "ซื้อขายด้วย Gold": "Trade for Gold", "ห้องละ 10 คน": "10 players a room", "เซฟ": "Save data", "ทีมของคุณ (แตะช่องเพื่อเอาออก)": "Your team (tap a slot to remove)", "ชื่อ (ไม่เกิน 12 ตัวอักษร)": "Name (up to 12 characters)", "เลือกเครื่องรางด้านบนก่อน": "Pick an amulet above first", "โหมดเทส: ปลดล็อกครบทุกใบ": "Test mode: all cards unlocked", "ยังไม่มี": "Not owned", "แพ็คในอนาคต": "Future pack", "เลือกสกิล แล้วแตะศัตรู": "Pick a skill, then tap an enemy", "ซื้อขายเครื่องรางด้วย Gold": "Buy and sell amulets for Gold", "อยู่ แตะการ์ดที่จะใส่": "selected. Tap a card to equip it.", "เครื่องราง +1 ทุกชิ้น": "+1 of every amulet", "ชนะแล้วการ์ดในทีมได้ Exp": "win to give your team Exp", "เลือกของที่จะให้ก่อน": "Pick the item you will give first", "รายการที่คุณตั้งขาย": "Your listings", "ไม่มีเครื่องรางว่าง": "No spare amulets", "แตะศัตรูที่จะโจมตี": "tap the enemy to attack", "ขายได้จะได้รับ": "You receive", "ศัตรู:": "Enemies:", "รางวัล:": "Reward:", "แผนที่:": "Map:", "เครื่องราง:": "Amulet:", "ยังไม่ได้ใส่": "none", "ตัวละครทั้ง": "All", "แบบใช้ได้ฟรี": "characters are free", "แตะเพื่อเปลี่ยน": "tap to change", "แตะเพื่อปิด": "Tap to close", "เล่นด่านนี้อีก": "Replay this stage", "ได้เครื่องราง": "Amulet found", "ไม่พอจ่ายภาษี": "is not enough for the tax", "การันตี 3 ใบ": "3 cards guaranteed", "PvP · ทัวร์นาเมนต์": "PvP · Tournament", "การ์ดของฉัน": "My Cards", "ขายหมดแล้ว": "Sold out", "ตลาดประมูล": "Auction House", "ยืนยันเทรด": "Confirm trade", "เข้าสู่ระบบด้วย Google": "Sign in with Google", "เล่นแบบ Guest": "Play as Guest", "ล็อกอินด้วย Gmail เพื่อแยกเซฟตามบัญชี": "Sign in with Gmail to keep a separate save per account", "ล็อกอิน Google จะเปิดใช้เมื่อเกมอยู่บนเซิร์ฟเวอร์ของตัวเอง ตอนนี้เข้าเล่นแบบ Guest ได้": "Google sign-in turns on once the game runs on its own server. For now, play as a guest.", "บัญชี:": "Account:", "เซฟเก็บในเครื่องนี้ แยกตามบัญชีที่ล็อกอิน ยังไม่ซิงก์ข้ามเครื่อง": "Saves stay on this device, one per signed-in account. No cross-device sync yet.", "การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ": "Only cards in the winning team gain Exp", "ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า": "Boss stages come every 10 stages, always drop Gold and drop amulets more often", "การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน": "Each rank has its own max level", "ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้": "Check the recommended Lv on the stage screen before a fight", "การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง": "A trade is a gift: every transfer asks you to confirm sender or receiver", "Lv แนะนำ": "Recommended Lv", "ทีมคุณ": "your team", "เลเวลทีมต่ำกว่าที่แนะนำ ลองเก็บเลเวลจากด่านก่อนหน้า": "Your team is under the recommended level. Level up on earlier stages first.", "ส่งแล้ว:": "Sent:", "รับแล้ว:": "Received:", "ผู้ส่งเป็นคนจ่าย": "paid by the sender", "คุณมี": "you have", "Gold ไม่พอจ่ายภาษี": "Not enough Gold for the tax", "ฉันเป็นผู้ส่ง": "I'm sending", "ฉันเป็นผู้รับ": "I'm receiving", "การเทรดคือการให้ของ ไม่ต้องมีของมาแลก": "A trade is a gift. Nothing has to come back.", "เลือกของที่จะส่ง": "Pick the item to send", "ถัดไป": "Next", "ผู้ส่ง": "Sender", "ผู้รับ": "Receiver", "(คุณ)": "(you)", "ยืนยันการส่งของ": "Confirm sending", "ยืนยันการรับของ": "Confirm receiving", "คุณเป็นผู้ส่ง ของชิ้นนี้จะออกจากกระเป๋าคุณ และคุณจะไม่ได้อะไรตอบแทน": "You are the sender. This item leaves your bag and you get nothing back.", "คุณเป็นผู้รับ คุณไม่ต้องให้อะไรตอบแทน ผู้ส่งเป็นคนจ่ายภาษี": "You are the receiver. You give nothing back. The sender pays the tax.", "ยืนยัน ฉันเป็นผู้ส่ง": "Confirm: I'm the sender", "ยืนยัน ฉันเป็นผู้รับ": "Confirm: I'm the receiver", "ไม่รับ": "Decline", "ส่งของให้": "Send to", "เทรดไอเท็ม": "Trade items", "ด่านถัดไป:": "Next stage:", "ตะลุยด่าน": "Stages", "รอผู้ซื้อ": "waiting for a buyer", "ออกจากทีม": "from the team", "ตลาดกลาง": "Market", "ผ่านแล้ว": "Cleared", "ภาษีเทรด": "Trade tax", "ร้านเพชร": "Diamond Shop", "ร้านแพ็ค": "Pack Shop", "หน้าหลัก": "Home", "ห้องอื่น": "Rooms", "ห้องเทรด": "Trade Room", "เลเวลอัป!": "Level up!", "ตัวละคร": "Character", "ตั้งขาย": "List", "ทั้งหมด": "All", "เข้าสู้": "Fight", "เทรดกับ": "Trade with", "(เล่นซ้ำ)": "(replay)", "(สุ่มดรอป)": "(random drop)", "รอบนี้ Gold ไม่ดรอป": "No Gold dropped this time", "คุณให้": "You give", "บันทึก": "Save", "ยกเลิก": "Cancel", "ต่อครั้ง · คุณมี": "per trade · you have", "เทรดสำเร็จ ได้": "Trade done. Got", "จ่ายภาษี": "tax paid", "ใส่อยู่": "equipped", "ว่าง": "spare", "เครื่องราง": "Amulets", "ทุกใบ Lv +5": "All cards Lv +5", "ต่อใบ": "per card", "ออโต้": "Auto", "ถอย": "Retreat", "กลับ": "Back", "ปิด": "Close", "เต็ม": "full", "เพชร": "Diamonds", "ใหม่!": "New!", "ซ้ำ →": "Duplicate →", "ชนะ!": "Victory!", "แพ้": "Defeat", "ออก": "Leave", "เปิด": "Open", "ซื้อ": "Buy", "บอส": "Boss", "ผู้เล่น": "Player", "ตั้งค่า": "Settings", "เสียงกดปุ่ม": "Button sound", "เสียงต่อสู้": "Battle sounds", "ภาษา": "Language", "ออกจากระบบ": "Log out", "เข้าเล่น": "Start", "ปิดอยู่": "Off", "เปิดอยู่": "On", "ออกจากระบบแล้ว": "You are logged out", "เกมยังไม่มีระบบบัญชี ข้อมูลเซฟยังอยู่ในเครื่องนี้": "There are no accounts yet. Your save stays on this device.", "เกมยังไม่มีระบบบัญชี ออกจากระบบจะกลับไปหน้าเริ่มเกม เซฟยังอยู่ในเครื่อง": "There are no accounts yet. Logging out returns to the title screen; your save stays on this device.", "พัก": "rest", "โจมตีศัตรู 1 ตัว": "Hit one enemy for", "โจมตีศัตรูทุกตัว": "Hit all enemies for", "ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of ATK, doubled if the target is below half DEF", "ของ MATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of MATK, doubled if the target is below half DEF", "ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of ATK and heal self for half the damage", "ของ MATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of MATK and heal self for half the damage", "ฟื้น DEF ให้เพื่อนที่เจ็บสุด": "Heal the most hurt ally for", "ฟื้น DEF ให้ทั้งทีม": "Heal the whole team for", "ฟื้น DEF ตัวเอง": "Heal self for", "ของ DEF สูงสุด": "of max DEF", "ของตัวเองเพิ่มเป็น": "of self rises to", "จนจบด่าน": "until the stage ends", "ของ MATK": "of MATK", "ของ ATK": "of ATK", "ใช้": "uses", "โจมตี": "attacks", "ฟันขวาน": "Axe Chop", "ขวานคลั่ง": "Frenzy Axe", "ศึกเผ่าก๊อบลิน": "Goblin War Cry", "พุ่งชน": "Body Slam", "เมือกหุ้มตัว": "Slime Coat", "คลื่นเมือก": "Slime Wave", "แทงเงา": "Shadow Stab", "ลอบแทง": "Backstab", "ระบำเงา": "Shadow Dance", "ยิงธนู": "Arrow Shot", "ศรเจาะเกราะ": "Piercing Arrow", "ห่าฝนธนู": "Arrow Rain", "ฟันดาบ": "Slash", "จุดตาย": "Vital Point", "พันคมดาบ": "Thousand Cuts", "แสงศักดิ์สิทธิ์": "Holy Light", "รักษา": "Heal", "พรแห่งแสง": "Blessing of Light", "ลูกไฟ": "Fireball", "เสาเพลิง": "Flame Pillar", "อุกกาบาต": "Meteor", "ลำแสงจันทร์": "Moonbeam", "คำสาปจันทรา": "Lunar Curse", "จันทร์ดับ": "Eclipse", "ตะปบ": "Claw", "ลมหายใจไฟ": "Fire Breath", "เพลิงล้างโลก": "World Burner", "ฟาดขวาน": "Axe Swing", "ขวานกวาด": "Axe Sweep", "ตั้งโล่": "Shield Up", "บุกทะลวง": "Charge", "เคียวเงา": "Shadow Scythe", "ดูดวิญญาณ": "Soul Drain", "เก็บเกี่ยว": "Reap", "ดาบแสง": "Light Blade", "โล่ศรัทธา": "Shield of Faith", "พิพากษา": "Judgement", "หมัดหิน": "Stone Fist", "ผิวศิลา": "Stone Skin", "แผ่นดินไหว": "Earthquake", "ศรมรณะ": "Death Bolt", "ดูดชีพ": "Life Drain", "กองทัพกระดูก": "Bone Army", "เขี้ยวเสือ": "Tiger Fang", "กระดองเต่า": "Turtle Shell", "ตาเหยี่ยว": "Hawk Eye", "หัวใจมังกร": "Dragon Heart", "หินผา": "Bedrock", "เอา": "Remove", "เลือก": "Selected", "ให้": "gives", "คน": "players", "ด่าน": "Stage", "รอบ": "Round", "ห้อง": "Room", "ตา": "turns", "ใบ": "cards"};
+const EN_RX=[["ผ่านแล้ว (\\d+)/(\\d+) ด่าน · มีการ์ด (\\d+)/(\\d+) ใบ", "Cleared $1/$2 stages · $3/$4 cards"], ["Exp (\\d+) ต่อใบ", "Exp $1 per card"], ["· พัก (\\d+) ตา", "· $1-turn cooldown"], ["ใส่อยู่ (\\d+) · ว่าง (\\d+)", "$1 equipped · $2 spare"], ["เลือก \"(.+?)\" อยู่ แตะการ์ดที่จะใส่", "\"$1\" selected. Tap a card to equip it."], ["ตั้งขาย (.+)$", "List $1"], ["เข้าสู้ \\((\\d)/3\\)", "Fight ($1/3)"], ["เอา (.+?) ออกจากทีม", "Remove $1 from the team"], ["(.+?) ให้$", "$1 gives"], ["^ซื้อ (\\d+) Gold", "Buy for $1 Gold"], ["เปิด (\\d+) Gold", "Open for $1 Gold"], ["(\\d+)/(\\d+) คน", "$1/$2 players"], ["ซ้ำ → Exp", "Duplicate → Exp"]].map(([a,b])=>[new RegExp(a),b]),EN_KEYS=Object.keys(EN).sort((a,b)=>b.length-a.length),THAI=/[\u0e00-\u0e7f]/;
+function tr(x){if(!THAI.test(x))return x;for(const [r,b] of EN_RX)x=x.replace(r,b);for(const k of EN_KEYS){if(x.includes(k))x=x.split(k).join(EN[k]);if(!THAI.test(x))break}return x}
+function trNode(n){if(n.nodeType===3){if(n.parentNode&&n.parentNode.closest&&n.parentNode.closest('.nt'))return;const v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v;return}
+  if(n.nodeType!==1||n.classList.contains('nt'))return;for(const a of['aria-label','title','placeholder','alt'])if(n.hasAttribute(a)){const v=tr(n.getAttribute(a));if(v!==n.getAttribute(a))n.setAttribute(a,v)}
+  n.childNodes.forEach(trNode)}
+new MutationObserver(ms=>{if(!S||S.lang!=='en')return;for(const m of ms){if(m.type==='characterData')trNode(m.target);else m.addedNodes.forEach(trNode)}}).observe($('stage'),{childList:true,subtree:true,characterData:true});
+/* ---------- button sound ---------- */
+let actx=null;
+// battle sounds are synthesised in the browser (no audio files): tones for magic and jingles, filtered noise for blades and impacts
+function sfx(kind){if(!S||S.sfx===false)return;try{
+  actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();const A=actx,t=A.currentTime;
+  const tone=(type,f0,f1,d,v,at=0)=>{const o=A.createOscillator(),g=A.createGain();o.type=type;o.frequency.setValueAtTime(f0,t+at);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+at+d);g.gain.setValueAtTime(v,t+at);g.gain.exponentialRampToValueAtTime(.001,t+at+d);o.connect(g).connect(A.destination);o.start(t+at);o.stop(t+at+d+.02)};
+  const noise=(d,v,ft,f0,f1,at=0)=>{const n=A.sampleRate*d|0,b=A.createBuffer(1,n,A.sampleRate),c=b.getChannelData(0);for(let i=0;i<n;i++)c[i]=Math.random()*2-1;const src=A.createBufferSource(),fl=A.createBiquadFilter(),g=A.createGain();src.buffer=b;fl.type=ft;fl.frequency.setValueAtTime(f0,t+at);fl.frequency.exponentialRampToValueAtTime(f1,t+at+d);g.gain.setValueAtTime(v,t+at);g.gain.exponentialRampToValueAtTime(.001,t+at+d);src.connect(fl).connect(g).connect(A.destination);src.start(t+at)};
+  if(kind==='slash'){noise(.16,.22,'bandpass',5200,900);tone('sawtooth',900,200,.1,.04)}
+  else if(kind==='smash'){noise(.28,.35,'lowpass',900,90);tone('sine',140,38,.3,.35)}
+  else if(kind==='arrow'){noise(.2,.15,'highpass',1800,6500);tone('triangle',520,180,.07,.12)}
+  else if(kind==='magic'){tone('square',380,1500,.22,.06);tone('sine',760,2600,.26,.06,.03);noise(.22,.06,'bandpass',2400,5200,.04)}
+  else if(kind==='hit'){noise(.09,.3,'lowpass',2400,300);tone('square',210,70,.1,.1)}
+  else if(kind==='heal'){[523,659,784,1047].forEach((f,i)=>tone('sine',f,f,.2,.08,i*.07))}
+  else if(kind==='ult'){tone('sawtooth',110,880,.5,.07);noise(.5,.08,'bandpass',300,4200)}
+  else if(kind==='win'){[523,659,784,1047,1319].forEach((f,i)=>tone('square',f,f,.16,.07,i*.11))}
+  else if(kind==='lose'){[392,330,262,196].forEach((f,i)=>tone('triangle',f,f*.97,.28,.1,i*.2))}
+  else if(kind==='start'){tone('square',440,440,.09,.07);tone('square',660,660,.14,.07,.1)}
+}catch(e){}}
+function beep(){if(!S||S.snd===false)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime;o.type='square';o.frequency.setValueAtTime(660,t);o.frequency.setValueAtTime(880,t+.03);g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.1)}catch(e){}}
+$('stage').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button:not(:disabled)'))beep()},true);
+function settings(){
+  view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ตั้งค่า</h2></div>
+    <p class="sub">Pixeldeck Battle</p></div>
+    <div class="main" style="display:grid;gap:16px;align-content:start;max-width:440px">
+    <div class="row"><span style="flex:1">เสียงกดปุ่ม</span><button class="btn sm ${S.snd===false?'alt':'on'}" data-act="snd" aria-pressed="${S.snd!==false}">${S.snd===false?'ปิดอยู่':'เปิดอยู่'}</button></div>
+    <div class="row"><span style="flex:1">เสียงต่อสู้</span><button class="btn sm ${S.sfx===false?'alt':'on'}" data-act="sfxt" aria-pressed="${S.sfx!==false}">${S.sfx===false?'ปิดอยู่':'เปิดอยู่'}</button></div>
+    <div class="row"><span style="flex:1">ภาษา</span><button class="btn sm nt ${S.lang==='en'?'alt':'on'}" data-act="lang" data-l="th">ไทย</button><button class="btn sm nt ${S.lang==='en'?'on':'alt'}" data-act="lang" data-l="en">English</button></div>
+    <div class="row"><span style="flex:1">บัญชี: <b class="nt">${USER&&USER.email?USER.email.replace(/</g,'&lt;'):'Guest'}</b></span><button class="btn red sm" data-act="logout">ออกจากระบบ</button></div>
+    <p class="sub">เซฟเก็บในเครื่องนี้ แยกตามบัญชีที่ล็อกอิน ยังไม่ซิงก์ข้ามเครื่อง</p>
+    <div class="row"><span style="flex:1">เซฟ</span><button class="btn red sm" data-act="reset">${armed?'แตะอีกครั้งเพื่อลบเซฟ':'เริ่มใหม่ทั้งหมด'}</button></div>
+    ${TEST?`<p class="sub">โหมดเทส: ปลดล็อกครบทุกใบ</p><div class="row"><button class="btn alt sm" data-act="tgold">Gold +10000</button><button class="btn alt sm" data-act="tlv">ทุกใบ Lv +5</button><button class="btn alt sm" data-act="tam">เครื่องราง +1 ทุกชิ้น</button></div>`:''}</div></div>`)}
+const COVER_BG='bg/39.webp',CAST=[['dragon',62,30,0,1],['zar',40,4,-.4,1],['paladin',44,62,-.9,1],['mage',46,16,-.2,0],['knight2',48,50,-.7,0],['rogue',38,36,-1.1,0]];
+function titleScreen(){
+  const emb=Array.from({length:16},(_,i)=>`<i class="emb" style="--x:${(i*37+11)%100}%;--t:${4+i%5}s;--d:${-(i*.7)}s;--dx:${(i%2?1:-1)*(10+i*3)}px;--c:${['#ffb04a','#ff6a3a','#ffe45c'][i%3]}"></i>`).join('');
+  view(`<div class="cover" style="--bg:url(${COVER_BG})"><div class="cbg"></div>${emb}
+   <div class="cast">${CAST.map(([id,h,x,d,b])=>`<img class="${b?'back':''}" src="spr/${id}.webp" alt="" style="--h:${h}%;--x:${x}%;--d:${d}s">`).join('')}</div>
+   <div class="cpanel">
+    <h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1>
+    <p class="ctag nt">COLLECT · BATTLE · TRADE</p>
+    <div class="cbtns">
+     <div id="gsi">${GOOGLE_CLIENT_ID?'':`<button class="gbtn" disabled><i class="nt">G</i>เข้าสู่ระบบด้วย Google</button>`}</div>
+     <button class="btn go" data-act="guest">เล่นแบบ Guest</button>
+    </div>
+    <p class="cnote">${GOOGLE_CLIENT_ID?'ล็อกอินด้วย Gmail เพื่อแยกเซฟตามบัญชี':'ล็อกอิน Google จะเปิดใช้เมื่อเกมอยู่บนเซิร์ฟเวอร์ของตัวเอง ตอนนี้เข้าเล่นแบบ Guest ได้'}</p>
+   </div>
+   <div class="clang"><button class="btn sm nt ${S.lang==='en'?'alt':'on'}" data-act="tlang" data-l="th">ไทย</button><button class="btn sm nt ${S.lang==='en'?'on':'alt'}" data-act="tlang" data-l="en">EN</button></div>
+   <p class="cfoot nt">Toey Seafishingclub · test build</p></div>`);
+  if(GOOGLE_CLIENT_ID)gsiInit();
+}
+// Google Identity Services: the real Google button; the ID token it returns carries the player's name, email and picture
+function gsiInit(){
+  const go=()=>{try{google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:r=>{try{const p=JSON.parse(decodeURIComponent(escape(atob(r.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')))));signIn({sub:p.sub,name:p.given_name||p.name||'Player',email:p.email,pic:p.picture})}catch(e){}}});
+    const el=$('gsi');if(el)google.accounts.id.renderButton(el,{theme:'filled_blue',size:'large',shape:'rectangular',text:'signin_with',width:240})}catch(e){gsiFail()}};
+  if(window.google&&google.accounts)return go();
+  const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.async=true;sc.onload=go;sc.onerror=gsiFail;document.head.append(sc)}
+function gsiFail(){const el=$('gsi');if(el)el.innerHTML='<button class="gbtn" disabled><i class="nt">G</i>เข้าสู่ระบบด้วย Google</button>'}
+function signIn(u){const lang=S&&S.lang;USER=u;try{localStorage.setItem(SESSION,JSON.stringify(u))}catch(e){}
+  S=load();if(lang)S.lang=lang;ensureMe();if(u.sub&&u.name&&S.me.name==='ผู้เล่น')S.me.name=u.name.slice(0,12);save();loading()}
+const TIPS=['การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ','ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า','การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน','ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้','การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง'];
+// loading screen: really preloads every card, fighter and the next map so nothing pops in during play
+function loading(){
+  const next=Math.min(MAXST,S.cleared+1),list=['chars.png',mapImg(next),...Object.keys(C).flatMap(id=>[img(id),`spr/${id}.webp`])];
+  view(`<div class="loadv" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
+   <h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1>
+   <div class="lrun">${S.team.map((id,i)=>`<img src="spr/${id}.webp" alt="" style="--d:${-i*.17}s">`).join('')}</div>
+   <div class="lbar"><i id="lbi"></i></div><p class="lpct nt" id="lpc">0%</p>
+   <p class="ltip">${TIPS[Math.floor(Math.random()*TIPS.length)]}</p></div>`);
+  let done=0,fin=false;const t0=performance.now(),total=list.length;
+  const end=()=>{if(fin)return;fin=true;setTimeout(()=>{if($('lbi'))home()},Math.max(250,1400-(performance.now()-t0)))};
+  const tick=()=>{done++;const b=$('lbi'),p=$('lpc'),v=Math.round(done/total*100);if(b)b.style.width=v+'%';if(p)p.textContent=v+'%';if(done>=total)end()};
+  let k=0;const pump=()=>{if(k>=total)return;const im=new Image();im.onload=im.onerror=()=>{tick();pump()};im.src=list[k++]};
+  for(let i=0;i<6;i++)pump();setTimeout(()=>{const b=$('lbi');if(b)b.style.width='100%';end()},12000);
+}
+function fit(){const w=innerWidth,h=innerHeight,p=h>w,s=$('stage');s.style.width=(p?h:w)+'px';s.style.height=(p?w:h)+'px';s.style.setProperty('--H',(p?w:h)+'px');s.style.transform=p?'rotate(90deg) translateY(-100%)':'none'}
+fit();addEventListener('resize',fit);
+S=load();try{const l=localStorage.getItem('pdb_lang');if(l&&!USER)S.lang=l}catch(e){}document.documentElement.lang=S.lang||'th';USER?loading():titleScreen();
+</script>
+
+</body>
+</html>
