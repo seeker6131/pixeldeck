@@ -521,7 +521,7 @@ const stars=id=>{const n=(S&&S.cards[id]&&S.cards[id].star)||0;return `<span cla
 const STARTERS=['wraith','assassin','golem'],POOL=['golem','wraith','assassin','cleric','slime','archer','zar','luna','rogue','knight','paladin','goblin','barb','dragon','mage'];
 // paste the Google OAuth Web client ID here once the game is hosted on its own domain; empty = Google sign-in stays off and players enter as guests
 const GOOGLE_CLIENT_ID='443031373694-i11a4cfr2bhc1m7pbqebsbhd31fh52vl.apps.googleusercontent.com';
-const PACK=100,ODDS={C:.60,UC:.32,R:.08},DUP=50,MAXST=500,KEY='bit8save6';
+const PACK=100,ODDS={C:.60,UC:.32,R:.08},DUP=50,MAXST=500,KEY='pdb_save1';
 let S,bt=null,busy=false,fx=[],prepN=1,pull=null,armed=false;
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -639,7 +639,7 @@ function market(){
   </div></div>`);
 }
 function fresh(){const cards={};STARTERS.forEach(id=>cards[id]={lv:1,exp:0});return{gold:PACK,cleared:0,cards,team:[...STARTERS],auto:false}}
-const TEST=true; // test build: every card of every rank is unlocked
+const TEST=false; // test build: every card of every rank is unlocked
 function unlock(s){s.am=s.am||{};Object.values(s.cards).forEach(c=>{if(c.am&&!AM[c.am])delete c.am});Object.keys(AM).forEach(k=>{const w=Object.values(s.cards).filter(c=>c.am===k).length;if(w>(s.am[k]||0))s.am[k]=w});if(TEST)Object.keys(C).forEach(id=>{if(!s.cards[id])s.cards[id]={lv:1,exp:0}});Object.keys(s.cards).forEach(id=>{if(!C[id])return;const c=s.cards[id],cap=RAR[C[id].r].cap;if(c.lv>=cap){c.lv=cap;c.exp=0}});return s}
 const SESSION='pdb_session';let USER=null;try{USER=JSON.parse(localStorage.getItem(SESSION))}catch(e){}
 // each Google account keeps its own save on this device; guests share the device save
