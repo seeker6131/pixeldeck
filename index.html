@@ -49,7 +49,7 @@ p{margin:0}
 .tile{display:grid;gap:2px;text-align:left;padding:10px 12px;font-family:var(--display);font-size:20px;font-weight:700}
 .tile span{font-family:var(--body);font-size:12px;font-weight:500;color:var(--dim)}
 /* rarity: each tier sets --gl; the frame glow is drawn from it */
-.r-ST{--gl:var(--st)}.r-C{--gl:var(--c)}.r-UC{--gl:var(--uc)}.r-R{--gl:var(--r)}.r-L{--gl:var(--l)}.r-SL{--gl:var(--sl)}
+.r-ST{--gl:var(--st)}.r-C{--gl:var(--c)}.r-UC{--gl:var(--uc)}.r-R{--gl:var(--r)}.r-L{--gl:var(--l)}.r-SL{--gl:var(--sl)}.r-LT{--gl:#bff3ff}
 .glow{--ln:color-mix(in srgb,var(--gl) 45%,#fff);box-shadow:0 0 0 2px var(--ln),0 0 7px 3px var(--gl),0 0 18px 6px color-mix(in srgb,var(--gl) 70%,transparent),0 0 34px 10px color-mix(in srgb,var(--gl) 30%,transparent)}
 .r-C.glow{box-shadow:0 0 0 2px var(--c)}
 /* Rare and above move: the halo breathes and stars twinkle on the frame */
@@ -64,22 +64,22 @@ p{margin:0}
 .firec{position:absolute;z-index:-1;left:-17.5%;top:-13.7%;width:135%;height:127.4%;image-rendering:pixelated;pointer-events:none}
 .fire.glow{animation:none;box-shadow:0 0 0 2px #ffec27,0 0 26px 10px rgba(255,90,0,.55)}
 /* rarity banner drawn over the caption strip of the card art */
-.cnm{position:absolute;left:6.5%;right:6.5%;top:4.2%;height:10.4%;display:grid;place-items:center;background:#000;color:#fff;font-family:var(--display);font-weight:700;font-size:7.6cqw;letter-spacing:.04em;line-height:1;white-space:nowrap;text-transform:uppercase;overflow:hidden}
-.chp{position:absolute;top:15.8%;height:8.2%;min-width:27%;padding:0 2cqw;display:grid;place-items:center;background:rgba(8,10,24,.96);color:#fff;font-family:var(--display);font-weight:700;font-size:5.2cqw;line-height:1;white-space:nowrap}
-.chp.l{left:8.3%}.chp.r{right:8.3%;color:var(--gl)}
-.ban{position:absolute;left:8.3%;right:8.3%;top:66.2%;height:8.4%;display:grid;place-items:center;background:#000;color:var(--gl);font-family:var(--display);font-weight:700;font-size:6.2cqw;letter-spacing:.08em;line-height:1;white-space:nowrap}
-.pan{position:absolute;left:7.4%;right:7.4%;top:75.2%;height:19%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1.6cqw;padding:0 2cqw;
+.cnm{position:absolute;left:12.5%;right:12.5%;top:5.4%;height:7.4%;display:grid;place-items:center;background:none;color:#fff;font-family:var(--display);font-weight:700;font-size:6.4cqw;text-shadow:.5cqw .5cqw 0 #000;letter-spacing:.04em;line-height:1;white-space:nowrap;text-transform:uppercase;overflow:hidden}
+.chp{position:absolute;top:16.6%;height:6.4%;min-width:22%;padding:0 2cqw;display:grid;place-items:center;background:rgba(8,10,24,.96);color:#fff;font-family:var(--display);font-weight:700;font-size:4.4cqw;line-height:1;white-space:nowrap}
+.chp.l{left:10.5%}.chp.r{right:10.5%;color:#ffd98a}
+.ban{position:absolute;left:10%;right:10%;top:64%;height:6.4%;display:grid;place-items:center;background:none;text-shadow:.4cqw .4cqw 0 #000;color:var(--gl);font-family:var(--display);font-weight:700;font-size:5.2cqw;letter-spacing:.08em;line-height:1;white-space:nowrap}
+.pan{position:absolute;left:9.6%;right:9.6%;top:75.4%;height:14.6%;display:grid;grid-template-columns:28.4cqw 1fr 28.4cqw;align-items:center;justify-items:center;gap:0;padding:0;
   background:linear-gradient(#3a2a5c,#1a1230);box-shadow:inset 0 0 0 .8cqw #0a0e22,inset 0 0 0 1.5cqw #d9a441;font-family:var(--display);font-weight:700;line-height:1}
-.sb{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:.6cqw 1.2cqw;padding:1.6cqw 1.8cqw 1.3cqw;background:#0a0e22;box-shadow:inset 0 0 0 .5cqw var(--sc);min-width:0}
+.sb{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;gap:.2cqw 1cqw;padding:0;background:none;min-width:0;width:100%}
 .sb.a{--sc:#ff7a4d}.sb.m{--sc:#c98bff}.sb.d{--sc:#5cb8ff}
 .sb img{width:5.6cqw;height:5.6cqw;max-width:none;image-rendering:pixelated}
-.sb b{font-size:5.2cqw;letter-spacing:.06em;color:var(--sc);text-align:left;white-space:nowrap}
-.sb i{grid-column:1/-1;font-style:normal;font-size:10.6cqw;color:#fff;text-align:center;font-variant-numeric:tabular-nums;text-shadow:.6cqw .6cqw 0 #000}
-.amslot{display:grid;place-items:center;width:13.5cqw;height:13.5cqw;border-radius:50%;border:.7cqw dashed #d9a441;color:#d9a441;font-size:8cqw;line-height:1}
+.sb img{width:4.6cqw!important;height:4.6cqw!important}.sb b{font-size:4.6cqw;letter-spacing:.06em;color:var(--sc);text-align:left;white-space:nowrap}
+.sb i{grid-column:1/-1;font-style:normal;font-size:8.6cqw;line-height:1;color:#fff;text-align:center;font-variant-numeric:tabular-nums;text-shadow:.6cqw .6cqw 0 #000}
+.amslot{display:grid;place-items:center;width:12cqw;height:12cqw;border-radius:50%;border:.6cqw dashed rgba(217,164,65,.6);color:#d9a441;font-size:8cqw;line-height:1}
 .amslot.has{border:0}
 /* amulets: a round charm in the amulet's colour */
 .amu{display:grid;place-items:center;width:100%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 35%,#4a59a8,#161c44 75%);box-shadow:inset 0 0 0 2px var(--k1),0 0 0 2px #0a0e22,0 0 0 4px #d9a441,0 0 0 6px #0a0e22}
-.amslot .amu{width:12.2cqw;height:12.2cqw;aspect-ratio:auto;box-shadow:inset 0 0 0 .5cqw var(--k1),0 0 0 .6cqw #0a0e22,0 0 0 1.3cqw #d9a441}
+.amslot .amu{width:11cqw;height:11cqw;aspect-ratio:auto;box-shadow:inset 0 0 0 .5cqw var(--k1),0 0 0 .6cqw #0a0e22,0 0 0 1.3cqw #d9a441}
 .amu img{width:80%;image-rendering:pixelated}
 .amlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-bottom:18px}
 .amrow{display:grid;grid-template-columns:44px 1fr;gap:4px 14px;align-items:center;text-align:left;padding:10px 12px 10px 14px;border:3px solid var(--deep);background:var(--panel);color:var(--ink)}
@@ -132,7 +132,7 @@ p{margin:0}
 .rib{display:block;font-family:var(--display);font-weight:700;font-size:11px;line-height:1.35;text-align:center;background:var(--gl);color:var(--deep);letter-spacing:.04em}
 /* crops the picture window out of a full card image */
 .art{position:relative;aspect-ratio:1.3;overflow:hidden;background:var(--deep);width:100%}
-.art img{position:absolute;width:119.6%;max-width:none;left:-9.6%;top:-30.6%}
+.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .art .nm{position:absolute;left:0;right:0;bottom:0;font-size:10px;line-height:1.3;text-align:center;background:rgba(18,26,54,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mini{position:relative;display:block;padding:0;border:0;background:var(--deep);color:var(--ink);text-align:center;min-width:0;width:100%}
 .st{display:flex;justify-content:space-between;gap:2px;padding:0 4px;font-family:var(--display);font-size:12px;line-height:1.5;font-variant-numeric:tabular-nums}
@@ -149,14 +149,15 @@ p{margin:0}
 .cf.sel{outline:4px solid var(--yellow);outline-offset:5px}
 .cf .ord{top:-10px;right:-10px;z-index:4;min-width:28px;font-size:20px;line-height:1.3;box-shadow:0 0 0 3px var(--deep)}
 .picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:5px 4px}
-.picks .empty{display:grid;place-items:center;aspect-ratio:.788;border:3px dashed var(--lav);color:var(--lav);font-family:var(--display);font-size:22px}
+.picks .empty{display:grid;place-items:center;aspect-ratio:.754;border:3px dashed var(--lav);color:var(--lav);font-family:var(--display);font-size:22px}
 .picks .sp{display:none}
 .tab{font-family:var(--display);font-weight:700;font-size:15px;line-height:1.5;padding:1px 8px;text-align:left;border:3px solid var(--deep);background:var(--gl,var(--panel));color:var(--deep);opacity:.55}
 .tab:not([class*="r-"]){color:var(--ink)}.tab.am{background:#d9a441;color:var(--deep)}
 .tab.on{opacity:1;outline:3px solid var(--yellow);outline-offset:1px}
 .ord{position:absolute;z-index:1;top:14px;right:0;min-width:20px;font-family:var(--display);font-weight:700;background:var(--yellow);color:var(--deep)}
-.cf{position:relative;container-type:inline-size;display:block;padding:0;border:0;background:var(--deep);color:var(--ink);text-align:center;min-width:0;width:100%}
-.cf img{display:block;width:100%;aspect-ratio:1370/1740}
+.cf{position:relative;container-type:inline-size;display:block;padding:0;border:0;background:none;color:var(--ink);text-align:center;min-width:0;width:100%}
+.cf>img{display:block;width:100%;aspect-ratio:540/716}
+.cf.glow{box-shadow:none!important;animation:none!important}.cf.glow>img{filter:drop-shadow(0 0 1.2cqw color-mix(in srgb,var(--gl) 80%,transparent))}.cf.r-C.glow>img,.cf.r-ST.glow>img{filter:none}.cf.sel>img{filter:drop-shadow(0 0 2px var(--yellow)) drop-shadow(0 0 6px var(--yellow))}.cf.sel{outline:0!important}
 .cf.lock img{filter:grayscale(1) brightness(.45)}
 /* battle: side view, your team stacked on the left, enemies on the right, the middle is the lane attacks cross */
 .arena{position:relative;overflow:hidden;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:2px;padding:5px 10px 6px;background:#121a36}
@@ -186,13 +187,18 @@ p{margin:0}
 .team .rib{font-size:9px}.team .st{font-size:11px;padding:0 3px;white-space:nowrap;gap:7px;justify-content:center;background:rgba(10,14,34,.7)}.team .st span{display:flex;align-items:center;gap:2px}.team .st img{width:9px;height:9px;image-rendering:pixelated}.team .art .nm{font-size:8px}.team .mini .stars{bottom:12px}.team .mini .stars svg{width:9px}
 /* fighters: the character cut out of its card stands on the floor; rank shows as a glow around the silhouette */
 .fig{position:relative;isolation:isolate;display:grid;justify-items:center;gap:1px;width:calc(var(--cw)*1.3);padding:0;border:0;background:none;color:var(--ink);flex:none}
-.fig .fhp{width:74%;height:6px;background:#000;box-shadow:0 0 0 1px #0a0e22}.fig .fhp i{display:block;height:100%;background:var(--green);transition:width .2s steps(5)}
+.fig .fhp{width:74%;height:6px;background:#000;box-shadow:0 0 0 1px #0a0e22}.fig .fhp i{display:block;height:100%;background:var(--green);transition:width .2s steps(5)}.fig .fhp{position:relative}.fig .fhp b{position:absolute;left:0;top:0;height:100%;background:repeating-linear-gradient(90deg,#9fe6ff 0 4px,#4fb8ff 4px 6px);opacity:.92}
+.fig .shv{color:#8fdcff;font-weight:700;margin-left:2px}.fig .tnt{position:absolute;top:-11px;right:0;font-family:var(--display);font-weight:700;font-size:9px;background:#1f58b5;padding:0 4px;line-height:1.2}
 .fig .sw{display:block;width:100%;height:calc(var(--cw)*1.28)}.fig .sw.flip{transform:scaleX(-1)}
 .fig.boss .sw{height:calc(var(--cw)*1.5)}
 /* idle: every fighter breathes and sways from the feet; slime wobbles, flyers hover */
-.spr{display:block;overflow:hidden;aspect-ratio:176/216;height:100%;flex:none}
-.spr img{display:block;height:100%;width:400%;max-width:none;animation:fr4 .72s steps(4) infinite;will-change:transform}
-@keyframes fr4{to{transform:translateX(-100%)}}
+.spr{position:relative;display:block;aspect-ratio:176/216;height:100%;flex:none}
+/* one sheet per character: 6 frames across, rows = idle, walk, attack, front idle */
+.spr>i{position:absolute;left:50%;bottom:-3%;height:128%;aspect-ratio:336/272;margin-left:calc(128%*-.5*336/272*216/176);overflow:hidden;pointer-events:none}
+.spr img{position:absolute;left:0;top:0;display:block;width:600%;height:400%;max-width:none;--ry:0%;transform:translate(0,var(--ry));animation:fr6 .84s steps(6) infinite;will-change:transform}
+@keyframes fr6{from{transform:translate(0,var(--ry))}to{transform:translate(-100%,var(--ry))}}
+.spr.walk img{--ry:-25%}.spr.front img{--ry:-75%}
+.spr.atk img{--ry:-50%;animation:fr6 var(--ad,.5s) steps(6) 1}
 .fig .spr{margin:0 auto;transform-origin:50% 100%;animation:var(--aura,none) .5s steps(3) infinite alternate}
 .fig.i-jelly .spr{--idle:jelly;animation-duration:.8s,.5s}.fig.i-hover .spr{--idle:hover}
 .slot:nth-child(2) .spr,.team.en>.fig:nth-child(2) .spr{animation-delay:-.6s}.slot:nth-child(3) .spr,.team.en>.fig:nth-child(3) .spr{animation-delay:-1.1s}
@@ -202,6 +208,7 @@ p{margin:0}
 .fig.r-UC .spr{filter:drop-shadow(0 0 3px var(--gl))}
 .fig.r-R .spr{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 6px var(--gl))}
 .fig.r-L .spr{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 8px var(--gl))}
+.fig.r-LT .spr{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 8px #7ff0ff) drop-shadow(0 0 5px #ff8af0)}
 .fig.r-SL .spr{--aura:blaze;filter:drop-shadow(0 0 2px #ffec27) drop-shadow(0 -3px 7px #ff5a00)}
 @keyframes blaze{to{filter:drop-shadow(0 0 3px #fff3b0) drop-shadow(0 -6px 11px #ff2a00)}}
 /* attack effects: slash arc and ground slam on the target, projectiles crossing the lane */
@@ -226,7 +233,7 @@ p{margin:0}
 .sks .sk{width:28px;height:28px}.sks .sk img{width:19px;height:19px}.sks .sk .cd{font-size:18px}
 .order{position:absolute;left:50%;bottom:2px;transform:translateX(-50%);display:flex;gap:5px;align-items:flex-end}
 .op{display:block;width:24px;border:2px solid var(--blue)}.op.en{border-color:var(--red)}.op.now{width:36px;outline:2px solid var(--yellow);outline-offset:1px}
-.op .art,.vp .art{aspect-ratio:1}.op .art img,.vp .art img{width:156%;left:-28%;top:-30.7%}
+.op .art,.vp .art{aspect-ratio:1}
 .arena .fl{font-size:30px;z-index:7}
 .imp{position:absolute;z-index:4;left:50%;top:45%;width:80%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,60% 35%,100% 20%,70% 50%,100% 80%,60% 65%,50% 100%,40% 65%,0 80%,30% 50%,0 20%,40% 35%);animation:imp .35s steps(5) forwards}
 @keyframes imp{from{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}to{transform:translate(-50%,-50%) scale(1.5) rotate(25deg);opacity:0}}
@@ -255,7 +262,7 @@ p{margin:0}
 @keyframes cut{0%{clip-path:inset(50% 0)}14%,84%{clip-path:inset(-20% 0)}100%{clip-path:inset(-20% 0 -20% 100%)}}
 /* hollow star slots */
 .stars{position:absolute;z-index:2;left:0;right:0;display:flex;justify-content:center;gap:1.5%;pointer-events:none}
-.cf .stars{top:58.2%}.cf .stars svg{width:9.5%}
+.cf .stars{top:55.8%}.cf .stars svg{width:7.5%}
 .mini .stars{bottom:15px}.mini .stars svg{width:11px}
 .stars svg{display:block;aspect-ratio:1;fill:rgba(10,14,34,.7);stroke:#ffd98a;stroke-width:2.2;stroke-linejoin:round;paint-order:stroke}
 .stars svg.on{fill:var(--yellow)}
@@ -263,7 +270,8 @@ p{margin:0}
 .sk{--k1:#ff7a6b;--k2:#b3122f;position:relative;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;flex:none;
   background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.55),transparent 42%),linear-gradient(160deg,var(--k1),var(--k2));
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),inset 0 -5px 0 rgba(0,0,0,.28),0 0 0 2px #0a0e22,0 0 0 4px var(--k2),0 0 0 6px #0a0e22}
-.sk img{width:24px;height:24px;image-rendering:pixelated;filter:drop-shadow(1px 2px 0 rgba(10,14,34,.75))}
+.sk{background:radial-gradient(circle at 50% 40%,#2a3360,#0c1026 75%)!important}.sk img{width:92%!important;height:92%!important;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.sk.t-sure{--k1:#ff9a6b;--k2:#c2410c}.sk.t-shieldall{--k1:#8fd3ff;--k2:#1f58b5}.sk.t-rally{--k1:#ffe98a;--k2:#c98a00}
 .sk.t-aoe{--k1:#ffc04d;--k2:#d9480f}.sk.t-exec{--k1:#d59bff;--k2:#6a1fb5}.sk.t-drain{--k1:#ff7ab8;--k2:#8a1158}
 .sk.t-heal,.sk.t-healall{--k1:#8dffa0;--k2:#118a3c}.sk.t-guard{--k1:#8fd3ff;--k2:#1f58b5}.sk.t-buff{--k1:#ffe98a;--k2:#c98a00}
 .sk.ult{box-shadow:inset 0 0 0 2px rgba(255,255,255,.28),inset 0 -5px 0 rgba(0,0,0,.28),0 0 0 2px #0a0e22,0 0 0 4px #ffd23a,0 0 0 6px #0a0e22,0 0 12px 5px rgba(255,210,58,.65);animation:ult 1.2s ease-in-out infinite alternate}
@@ -278,7 +286,7 @@ p{margin:0}
 .mini.dead{box-shadow:none!important;animation:none;background:transparent}.mini.dead>:not(.fl):not(.imp){opacity:.22}
 .mini.boss .rib{background:var(--red);color:var(--ink)}
 .fl{position:absolute;left:50%;top:30%;z-index:2;transform:translateX(-50%);font-family:var(--display);font-weight:700;font-size:24px;white-space:nowrap;text-shadow:2px 2px 0 var(--deep),-2px -2px 0 var(--deep);animation:up .7s steps(7) forwards;pointer-events:none}
-.fl.d{color:var(--yellow)}.fl.g{color:var(--green)}
+.fl.d{color:var(--yellow)}.fl.g{color:var(--green)}.fl.s{color:#8fdcff}.fl.c{color:#ff5a3c;font-size:1.35em;text-shadow:2px 2px 0 #2a0500,-2px -2px 0 #2a0500,0 0 10px #ffb000}
 @keyframes up{to{top:0;opacity:0}}
 .pack{display:grid;place-items:center;height:74px;font-family:var(--display);font-weight:700;font-size:16px;text-align:center;line-height:1.1;background:repeating-linear-gradient(45deg,var(--plum) 0 8px,var(--panel) 8px 16px)}
 .pull{display:grid;grid-template-columns:repeat(3,minmax(0,150px));gap:16px;justify-content:center;padding-top:6px}
@@ -294,7 +302,7 @@ p{margin:0}
 .res .firec,.res .sp{display:none}
 .res .rib{font-size:8px;letter-spacing:0;overflow:hidden;white-space:nowrap}
 #zoom{position:absolute;inset:0;z-index:9;background:rgba(18,26,54,.94);display:flex;gap:70px;align-items:center;justify-content:center;padding:16px;border:0;width:100%;text-align:left}
-#zoom .cf{width:calc((var(--H) - 110px)*.788);flex:none}
+#zoom .cf{width:calc((var(--H) - 110px)*.754);flex:none}
 #zoom .inf{display:grid;gap:5px;max-width:330px}
 .stb{display:grid;gap:3px;padding:7px 9px;background:#141a33;border:2px solid #3b4a7a;box-shadow:0 0 0 2px #0a0e22,inset 0 0 0 1px rgba(255,255,255,.06)}
 .stb span{display:grid;grid-template-columns:14px 52px 62px 1fr;align-items:center;gap:6px;font-size:13px;line-height:1.25}
@@ -457,24 +465,24 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 #kb{position:fixed;inset:0;z-index:99;background:rgba(8,11,31,.94);display:grid;align-content:start;justify-items:center;gap:12px;padding:28px 18px}
 #kb label{font-size:15px;color:#c8d2ff}#kb input{font:inherit;font-size:20px;padding:10px 12px;border:3px solid #080b1f;background:#fff1e8;color:#121a36;width:min(100%,340px);text-align:center}
 #kb .row{justify-content:center;gap:10px}
-.slot{aspect-ratio:1370/1740;display:grid;place-items:center;border:3px dashed color-mix(in srgb,var(--gl,#6f7cc0) 55%,transparent);background:rgba(8,11,31,.45)}.slot b{font-family:var(--display);font-size:28px;color:color-mix(in srgb,var(--gl,#6f7cc0) 60%,transparent)}
+.eslot{aspect-ratio:540/716;display:grid;place-items:center;border:3px dashed color-mix(in srgb,var(--gl,#6f7cc0) 55%,transparent);background:rgba(8,11,31,.45)}.eslot b{font-family:var(--display);font-size:28px;color:color-mix(in srgb,var(--gl,#6f7cc0) 60%,transparent)}
 .spr.au.r-C{filter:drop-shadow(0 0 2px var(--gl))}
 .spr.au.r-UC{filter:drop-shadow(0 0 4px var(--gl))}
 .spr.au.r-R{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 7px var(--gl))}
 .spr.au.r-L{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 9px var(--gl));animation:aul 1.1s ease-in-out infinite alternate}
+.spr.au.r-LT{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 8px #7ff0ff) drop-shadow(0 0 5px #ff8af0);animation:aul 1.1s ease-in-out infinite alternate}
 .spr.au.r-SL{filter:drop-shadow(0 0 2px #ffec27) drop-shadow(0 -3px 8px #ff5a00);animation:blaze .5s steps(3) infinite alternate}
 @keyframes aul{to{filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 16px var(--gl))}}
 /* trade-room avatars: a glowing ring under the feet and a name tag underlined in the rank colour */
 .av::before{content:"";position:absolute;left:50%;top:50px;width:58px;height:20px;margin-left:-29px;border-radius:50%;z-index:-1;background:radial-gradient(closest-side,color-mix(in srgb,var(--gl) 80%,transparent),transparent)}
 .av.r-ST::before{display:none}.av.r-C::before{opacity:.45}.av.r-UC::before{opacity:.7}
-.av.r-L::before,.av.r-SL::before{width:74px;height:26px;margin-left:-37px;top:46px;animation:ring 1s ease-in-out infinite alternate}
+.av.r-L::before,.av.r-SL::before,.av.r-LT::before{width:74px;height:26px;margin-left:-37px;top:46px;animation:ring 1s ease-in-out infinite alternate}
 .av.r-SL::before{background:radial-gradient(closest-side,#ffec27,#ff5a00 55%,transparent)}
 @keyframes ring{from{transform:scale(.85);opacity:.65}to{transform:scale(1.1);opacity:1}}
 .av>span.nm{border-bottom:2px solid var(--gl,transparent)}
 /* walk cycle: the body hops and waddles from the feet while the idle frames run faster */
 .av .wk{display:block;transform-origin:50% 100%}
-.av.walk .wk{animation:wk .34s linear infinite}
-.av.walk .spr img{animation-duration:.3s}
+.av.walk .spr img{--ry:-25%;animation-duration:.5s}
 @keyframes wk{0%{transform:translateY(0) rotate(-7deg) scale(1.04,.96)}25%{transform:translateY(-7px) rotate(-2deg) scale(.97,1.04)}50%{transform:translateY(0) rotate(7deg) scale(1.04,.96)}75%{transform:translateY(-7px) rotate(2deg) scale(.97,1.04)}100%{transform:translateY(0) rotate(-7deg) scale(1.04,.96)}}
 @media (prefers-reduced-motion:reduce){.av.walk .wk{animation:none}}
 @media (prefers-reduced-motion:reduce){.spr.au,.av::before{animation:none}}
@@ -492,120 +500,65 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 <script>
 const $=id=>document.getElementById(id);
 // rarity tiers in the order the game ranks them; g = stat growth per level
-// keys are the tier slots from lowest to highest; the lowest (grey) is named Uncommon and the green one Common, as the game ranks them
-// cap = highest level a card of that rank can reach; with the stage curve it walls Starter near stage 9, Uncommon 10, Common 25, Rare 90, Legend 240, and only a full SuperLegend team finishes 500 (checked with a battle simulator)
-const RAR={ST:{n:'การ์ดเริ่มต้น',g:.075,cap:3},C:{n:'Uncommon',g:.08,cap:10},UC:{n:'Common',g:.085,cap:15},R:{n:'Rare',g:.09,cap:46,star:1,spk:1},L:{n:'Legend',g:.095,cap:125,star:1,spk:1},SL:{n:'SuperLegend',g:.10,cap:180,star:1,fire:1}};
-// a = ATK, d = DEF at Lv 1, budgeted by rank (ATK+DEF): Uncommon 115, Common 125, Rare 135, Legend 150, SuperLegend 165; tuned with a battle simulator against stages 1-500
+// keys are the tier slots from lowest to highest: Starter, Common, Uncommon, Rare, Legend, SuperLegend, and Limited (event-only, never in packs)
+// cap = highest level a card of that rank can reach; with the stage curve it walls Starter near stage 7, Common 25, Uncommon 47, Rare 95, Legend 250, and a SuperLegend team needs stars to finish 500 (checked by simulating battles in the page)
+const RAR={ST:{n:'การ์ดเริ่มต้น',g:.075,cap:3},C:{n:'Common',g:.08,cap:15},UC:{n:'Uncommon',g:.085,cap:25},R:{n:'Rare',g:.09,cap:38,star:1,spk:1},L:{n:'Legend',g:.095,cap:90,star:1,spk:1},SL:{n:'SuperLegend',g:.10,cap:190,star:1,fire:1},LT:{n:'Limited',g:.10,cap:190,star:1,spk:1}};
+const ROLE={atk:'สายโจมตี',tank:'แท้งค์',sup:'ซัพพอร์ต'};
+// a = ATK (MATK when m is set), d = DEF (the life pool), c = crit chance %, x = crit damage (1.5 unless set); a+d is budgeted by rank: Starter 85, Common 115, Uncommon 125, Rare 135, Legend 150, SuperLegend 165, Limited 172
 const C={
- c01:{n:"Frost Wizard",a:85,d:50,r:'R'},
- c02:{n:"Rookie Ranger",a:55,d:30,r:'ST'},
- c03:{n:"Flame Knight",a:90,d:60,r:'L'},
- c04:{n:"High Priestess",a:50,d:75,r:'UC'},
- c05:{n:"Shadow Rogue",a:70,d:45,r:'C'},
- c06:{n:"Ice Maiden",a:80,d:45,r:'UC'},
- c07:{n:"Blaze Berserker",a:80,d:55,r:'R'},
- c08:{n:"Necromancer",a:75,d:60,r:'R'},
- c09:{n:"Antler Hunter",a:70,d:45,r:'C'},
- c10:{n:"Royal Knight",a:60,d:65,r:'UC'},
- c11:{n:"Demon Witch",a:95,d:55,r:'L'},
- c12:{n:"White Assassin",a:70,d:45,r:'C'},
- c13:{n:"Forest Druid",a:50,d:65,r:'C'},
- c14:{n:"Blood Knight",a:90,d:75,r:'SL'},
- c15:{n:"Golden Paladin",a:60,d:75,r:'R'},
- c16:{n:"Spirit Shaman",a:50,d:65,r:'C'},
- c17:{n:"Gunslinger",a:70,d:45,r:'C'},
- c18:{n:"Star Wizard",a:80,d:45,r:'UC'},
- c19:{n:"Rookie Smith",a:50,d:35,r:'ST'},
- c20:{n:"Fire Monk",a:65,d:50,r:'C'},
- c21:{n:"Crimson Samurai",a:80,d:55,r:'R'},
- c22:{n:"Ice Princess",a:80,d:45,r:'UC'},
- c23:{n:"Plague Doctor",a:70,d:55,r:'UC'},
- c24:{n:"Rookie Monk",a:50,d:35,r:'ST'},
- c25:{n:"Hoplite Captain",a:65,d:70,r:'R'},
- c26:{n:"Storm Ninja",a:75,d:50,r:'UC'},
- c27:{n:"Elf Archer",a:70,d:45,r:'C'},
- c28:{n:"Alchemist",a:70,d:45,r:'C'},
- c29:{n:"Tribal Hunter",a:70,d:45,r:'C'},
- c30:{n:"Void Wraith",a:85,d:50,r:'R'},
- c31:{n:"Viking Raider",a:65,d:50,r:'C'},
- c32:{n:"Pink Enchantress",a:50,d:65,r:'C'},
- c33:{n:"Dark Knight",a:70,d:80,r:'L'},
- c34:{n:"Cleric",a:50,d:65,r:'C'},
- c35:{n:"Pirate Captain",a:75,d:50,r:'UC'},
- c36:{n:"Moon Mage",a:80,d:45,r:'UC'},
- c37:{n:"Frost Reaper",a:90,d:60,r:'L'},
- c38:{n:"Fire Sorceress",a:85,d:50,r:'R'},
- c39:{n:"Witch Doctor",a:65,d:50,r:'C'},
- c40:{n:"Silver Guard",a:60,d:65,r:'UC'},
- c41:{n:"Lich Lord",a:95,d:70,r:'SL'},
- c42:{n:"Red Scarf Assassin",a:70,d:45,r:'C'},
- c43:{n:"Sun Priestess",a:65,d:85,r:'L'},
- c44:{n:"Mermaid",a:85,d:50,r:'R'},
- c45:{n:"Dark Overlord",a:100,d:65,r:'SL'},
- c46:{n:"Wandering Swordsman",a:75,d:50,r:'UC'},
- c47:{n:"Tribal Chief",a:70,d:55,r:'UC'},
- c48:{n:"Amethyst Golem",a:60,d:75,r:'R'},
- c49:{n:"Elf Sage",a:50,d:75,r:'UC'},
- c50:{n:"Archmage",a:95,d:55,r:'L'}
+ h06:{n:"Bone Raider",a:50,d:35,c:10,r:'ST',role:'atk',st:'slash'},
+ h20:{n:"Goblin Scrapper",a:45,d:40,c:15,r:'ST',role:'atk',st:'slash'},
+ h11:{n:"Stone Golem",a:30,d:55,c:5,r:'ST',role:'tank',st:'smash'},
+ h17:{n:"Goblin Berserker",a:70,d:45,c:15,r:'C',role:'atk',st:'smash'},
+ h12:{n:"Vampire Bat",a:62,d:53,c:10,r:'C',role:'atk',st:'slash'},
+ h01:{n:"Magma Golem",a:45,d:70,c:5,r:'C',role:'tank',st:'smash'},
+ h02:{n:"Leaf Ronin",a:78,d:47,c:25,r:'UC',role:'atk',st:'slash'},
+ h16:{n:"Elder Treant",a:50,d:75,c:5,r:'UC',role:'sup',m:1,st:'smash'},
+ h21:{n:"Sylvan Archer",a:82,d:43,c:20,r:'UC',role:'atk',st:'shoot',pj:'arrow'},
+ h05:{n:"Soul Reaper",a:88,d:47,c:20,r:'R',role:'atk',m:1,st:'slash'},
+ h09:{n:"Lion Paladin",a:55,d:80,c:5,r:'R',role:'tank',st:'slash'},
+ h10:{n:"Frost Fenrir",a:80,d:55,c:15,r:'R',role:'atk',st:'slash'},
+ h08:{n:"Shadow Ninja",a:80,d:50,c:35,x:1.75,r:'R',role:'atk',st:'slash'},
+ h15:{n:"Glacier Sage",a:97,d:53,c:15,r:'L',role:'atk',m:1,st:'cast',pj:'moon'},
+ h13:{n:"Crimson Lord",a:95,d:55,c:25,r:'L',role:'atk',st:'slash'},
+ h14:{n:"Scarlet Griffin",a:90,d:60,c:20,r:'L',role:'atk',st:'slash'},
+ h19:{n:"Inferno Drake",a:88,d:62,c:10,r:'L',role:'atk',m:1,st:'cast',pj:'fire'},
+ h04:{n:"Frost Empress",a:80,d:70,c:5,r:'L',role:'sup',m:1,st:'cast',pj:'moon'},
+ h03:{n:"Zeus",a:108,d:57,c:20,r:'SL',role:'atk',m:1,st:'cast',pj:'light'},
+ h22:{n:"Wukong",a:100,d:65,c:30,r:'SL',role:'atk',st:'slash'},
+ h07:{n:"Seraphina",a:85,d:80,c:5,r:'SL',role:'sup',m:1,st:'cast',pj:'light'},
+ h18:{n:"Aurum Hydra",a:105,d:67,c:20,r:'LT',role:'atk',m:1,st:'cast',pj:'fire'}
 };
 // three skills per card: [name, icon, type, value]; type decides the effect, value is its strength
 const SK={
- c01:[['ศรน้ำแข็ง','drop','hit',1],['หอกน้ำแข็ง','drop','hit',1.8],['พายุหิมะ','drop','aoe',1.3]],
- c02:[['ยิง','arrow','hit',1],['ยิงเจาะเกราะ','arrow','hit',1.7],['ห่ากระสุน','arrow','aoe',1.0]],
- c03:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c04:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c05:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c06:[['ศรน้ำแข็ง','drop','hit',1],['หอกน้ำแข็ง','drop','hit',1.8],['พายุหิมะ','drop','aoe',1.3]],
- c07:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c08:[['ศรมรณะ','skull','hit',1],['ดูดชีพ','heart','drain',1.4],['กองทัพกระดูก','skull','aoe',1.2]],
- c09:[['ยิง','arrow','hit',1],['ยิงเจาะเกราะ','arrow','hit',1.7],['ห่ากระสุน','arrow','aoe',1.0]],
- c10:[['ฟันดาบ','sword','hit',1],['ตั้งโล่','shield','guard',0.4],['บุกทะลวง','sword','hit',2.2]],
- c11:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]],
- c12:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c13:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c14:[['ดาบโลหิต','sword','hit',1],['พายุโลหิต','skull','aoe',1.0],['ดูดเลือด','heart','drain',2.4]],
- c15:[['ทุบ','star','hit',1],['เกราะศรัทธา','shield','guard',0.45],['แผ่นดินไหว','star','aoe',0.9]],
- c16:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c17:[['ยิง','arrow','hit',1],['ยิงเจาะเกราะ','arrow','hit',1.7],['ห่ากระสุน','arrow','aoe',1.0]],
- c18:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]],
- c19:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c20:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c21:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c22:[['ศรน้ำแข็ง','drop','hit',1],['หอกน้ำแข็ง','drop','hit',1.8],['พายุหิมะ','drop','aoe',1.3]],
- c23:[['ศรมรณะ','skull','hit',1],['ดูดชีพ','heart','drain',1.4],['กองทัพกระดูก','skull','aoe',1.2]],
- c24:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c25:[['ฟันดาบ','sword','hit',1],['ตั้งโล่','shield','guard',0.4],['บุกทะลวง','sword','hit',2.2]],
- c26:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c27:[['ยิง','arrow','hit',1],['ยิงเจาะเกราะ','arrow','hit',1.7],['ห่ากระสุน','arrow','aoe',1.0]],
- c28:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]],
- c29:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c30:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]],
- c31:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c32:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c33:[['ฟันดาบ','sword','hit',1],['ตั้งโล่','shield','guard',0.4],['บุกทะลวง','sword','hit',2.2]],
- c34:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c35:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c36:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]],
- c37:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c38:[['ลูกไฟ','flame','hit',1],['เสาเพลิง','flame','hit',1.8],['อุกกาบาต','flame','aoe',1.3]],
- c39:[['ศรมรณะ','skull','hit',1],['ดูดชีพ','heart','drain',1.4],['กองทัพกระดูก','skull','aoe',1.2]],
- c40:[['ฟันดาบ','sword','hit',1],['ตั้งโล่','shield','guard',0.4],['บุกทะลวง','sword','hit',2.2]],
- c41:[['ศรวิญญาณ','skull','hit',1],['คลื่นวิญญาณ','skull','aoe',1.1],['ราตรีนิรันดร์','skull','aoe',1.9]],
- c42:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c43:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c44:[['ศรน้ำแข็ง','drop','hit',1],['หอกน้ำแข็ง','drop','hit',1.8],['พายุหิมะ','drop','aoe',1.3]],
- c45:[['สายฟ้าทมิฬ','orb','hit',1],['คลื่นมืด','skull','aoe',1.2],['วันสิ้นโลก','flame','aoe',2.1]],
- c46:[['ฟันดาบ','sword','hit',1],['จุดตาย','skull','exec',1.5],['ระบำดาบ','star','aoe',1.0]],
- c47:[['ฟาดหนัก','axe','hit',1],['ทุบคลั่ง','axe','hit',1.6],['กวาดล้าง','axe','aoe',1.0]],
- c48:[['ทุบ','star','hit',1],['เกราะศรัทธา','shield','guard',0.45],['แผ่นดินไหว','star','aoe',0.9]],
- c49:[['แสงศักดิ์สิทธิ์','star','hit',1],['รักษา','heart','heal',2],['พรแห่งแสง','heart','healall',1.5]],
- c50:[['ลำแสงเวท','orb','hit',1],['คำสาป','orb','exec',1.5],['ดาวตก','star','aoe',1.2]]
+ h06:[['Bone Slash','sword','hit',1],['Skull Crusher','hammer','hit',1.6],['Grave Rush','claw','aoe',.9]],
+ h20:[['Rusty Cleaver','sword','hit',1],['Dirty Trick','exec','exec',1.4],['Scrap Frenzy','buff','buff',1.4]],
+ h11:[['Rock Punch','hammer','hit',1],['Stone Wall','shield','guard',.4],['Quake','claw','aoe',1]],
+ h17:[['Axe Chop','sword','hit',1],['Skull Splitter','hammer','hit',1.7],['Blood Rage','buff','buff',1.5]],
+ h12:[['Wing Slash','sword','hit',1],['Blood Suck','drain','drain',1.2],['Bat Swarm','dark','aoe',1]],
+ h01:[['Magma Fist','fire','hit',1],['Molten Armor','shield','guard',.4],['Eruption','fire','aoe',1.1]],
+ h02:[['Leaf Cut','sword','hit',1],['Iaido','exec','sure',1.3],['Bamboo Storm','claw','aoe',1.1]],
+ h16:[['Root Slam','hammer','hit',1],['Nature Mend','heal','heal',1.8],['Bark Ward','shield','shieldall',.25]],
+ h21:[['Leaf Arrow','sword','hit',1],['Piercing Shot','exec','hit',1.8],['Arrow Rain','claw','aoe',1.2]],
+ h05:[['Soul Scythe','dark','hit',1],['Death Mark','exec','exec',1.5],['Wraith Storm','dark','aoe',1.2]],
+ h09:[['Lion Blade','sword','hit',1],['Lion Guard','shield','guard',.45],['Royal Roar','buff','rally',1.3]],
+ h10:[['Frost Fang','ice','hit',1],['Blood Hunt','drain','drain',1.4],['Howling Blizzard','ice','aoe',1.3]],
+ h08:[['Shuriken','sword','hit',1],['Assassinate','exec','sure',1.4],['Shadow Kill','dark','exec',1.7]],
+ h15:[['Ice Bolt','ice','hit',1],['Frost Lance','ice','hit',1.9],['Ice Dragon','ice','aoe',1.5]],
+ h13:[['Crimson Lance','sword','hit',1],['Blood Pact','drain','drain',1.5],['Hell Pierce','exec','sure',1.8]],
+ h14:[['Talon Strike','sword','hit',1],['War Cry','buff','buff',1.4],['Crimson Gale','claw','aoe',1.4]],
+ h19:[['Fire Breath','fire','hit',1],['Lava Wave','fire','aoe',1.2],['Meltdown','exec','exec',1.8]],
+ h04:[['Ice Shard','ice','hit',1],['Snow Blessing','healall','healall',1],['Crystal Barrier','shield','shieldall',.35]],
+ h03:[['Thunderbolt','claw','hit',1],['Divine Judgment','exec','exec',1.7],['Olympus Storm','claw','aoe',1.6]],
+ h22:[['Staff Strike','sword','hit',1],['Monkey King Fury','buff','buff',1.5],['Flame Cyclone','fire','aoe',1.5]],
+ h07:[['Holy Ray','claw','hit',1],['Angel Grace','healall','healall',1.3],['Divine Aegis','shield','shieldall',.4]],
+ h18:[['Triple Bite','sword','hit',1],['Devour','drain','drain',1.6],['Golden Breath','fire','aoe',1.7]]
 };
 const CD=[0,2,4],pc=v=>Math.round(v*100)+'%';
 const skDesc=([,,t,v])=>({hit:`โจมตีศัตรู 1 ตัว ${pc(v)} ของ ATK`,aoe:`โจมตีศัตรูทุกตัว ${pc(v)} ของ ATK`,exec:`โจมตี ${pc(v)} ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง`,
-  drain:`โจมตี ${pc(v)} ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ`,heal:`ฟื้น DEF ให้เพื่อนที่เจ็บสุด ${pc(v)} ของ ATK`,healall:`ฟื้น DEF ให้ทั้งทีม ${pc(v)} ของ ATK`,
-  guard:`ฟื้น DEF ตัวเอง ${pc(v)} ของ DEF สูงสุด`,buff:`ATK ของตัวเองเพิ่มเป็น ${pc(v)} จนจบด่าน`})[t];
-const needT=sk=>['hit','exec','drain'].includes(sk[2]);
+  drain:`โจมตี ${pc(v)} ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ`,sure:`โจมตี ${pc(v)} ของ ATK คริติคอลแน่นอน`,heal:`ฟื้น DEF ให้เพื่อนที่เจ็บสุด ${pc(v)} ของ ATK`,healall:`ฟื้น DEF ให้ทั้งทีม ${pc(v)} ของ ATK`,
+  guard:`สร้างโล่ให้ตัวเอง ${pc(v)} ของ DEF สูงสุด ล่อศัตรูให้ตีตัวเอง 1 รอบ และรับดาเมจลดลง 40%`,shieldall:`สร้างโล่ให้ทั้งทีม ${pc(v)} ของ DEF สูงสุดของผู้ใช้`,buff:`พลังโจมตีของตัวเองเพิ่มเป็น ${pc(v)} จนจบด่าน`,rally:`พลังโจมตีของทั้งทีมเพิ่มเป็น ${pc(v)} จนจบด่าน`})[t];
+const needT=sk=>['hit','exec','drain','sure'].includes(sk[2]),isAtk=sk=>['hit','exec','drain','sure','aoe'].includes(sk[2]);
 const IPAL={w:'#ffffff',e:'#cfd6e6',y:'#ffe66b',k:'#0a0e22'};
 function icon(rows){const c=document.createElement('canvas');c.width=12;c.height=12;const x=c.getContext('2d');
   rows.forEach((r,y)=>[...(r.length>6?r:r+[...r].reverse().join(''))].forEach((ch,i)=>{if(IPAL[ch]){x.fillStyle=IPAL[ch];x.fillRect(i,y,1,1)}}));return c.toDataURL()}
@@ -632,13 +585,14 @@ const ICON={
  orb:icon(["...www","..w...",".w....","w.....","w....y","w...yy","w...yy","w....y","w.....",".w....","..w...","...www"]),
  drop:icon([".....w",".....w","....ww","....ww","...www","..wwww",".wwwww",".wwwww",".wwwww",".wwwww","..wwww","......"])
 };
-const skBtn=(id,k,o={})=>{const sk=SK[id][k];return `<${o.tag||'button'} class="sk t-${sk[2]} ${k===2?'ult':''} ${o.cls||''}" ${o.attr||''} title="${sk[0]}"><img src="${ICON[sk[1]]}" alt="${sk[0]}">${o.cd?`<span class="cd">${o.cd}</span>`:''}</${o.tag||'button'}>`};
+['sword','hammer','claw','exec','shield','heal','healall','drain','buff','fire','ice','dark'].forEach(k=>ICON['k_'+k]='ic/'+k+'.webp');
+const skBtn=(id,k,o={})=>{const sk=SK[id][k];return `<${o.tag||'button'} class="sk t-${sk[2]} ${k===2?'ult':''} ${o.cls||''}" ${o.attr||''} title="${sk[0]}"><img src="${ICON['k_'+sk[1]]}" alt="${sk[0]}">${o.cd?`<span class="cd">${o.cd}</span>`:''}</${o.tag||'button'}>`};
 const STAR='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.3 6.8.8-5 4.7 1.3 6.8-6-3.4-6 3.4 1.3-6.8-5-4.7 6.8-.8z"/></svg>';
-const sprite=(id,cls='',st='')=>`<span class="spr ${cls}" style="${st}"><img src="spr/${id}.webp" alt="" style="animation-delay:-${(id.charCodeAt(1)*7+id.charCodeAt(2)*3)%8/10}s"></span>`;
+const sprite=(id,cls='',st='')=>`<span class="spr ${cls}" style="${st}"><i><img src="spr/${id}.webp" alt="" style="animation-delay:-${(id.charCodeAt(1)*7+id.charCodeAt(2)*3)%8/10}s"></i></span>`;
 // the same character drawn with its rank aura, so a card's rank shows wherever the avatar walks
-const hero=(id,st='')=>sprite(id,'au r-'+C[id].r,st);
+const hero=(id,st='')=>sprite(id,'au front r-'+C[id].r,st);
 const stars=id=>{const n=(S&&S.cards[id]&&S.cards[id].star)||0;return `<span class="stars">${[0,1,2,3,4].map(i=>i<n?STAR.replace('<svg','<svg class="on"'):STAR).join('')}</span>`};
-const STARTERS=['c02','c19','c24'],POOL=Object.keys(C).filter(id=>C[id].r!=='ST').sort((x,y)=>['C','UC','R','L','SL'].indexOf(C[x].r)-['C','UC','R','L','SL'].indexOf(C[y].r));
+const RORD=['C','UC','R','L','SL','LT'],STARTERS=['h06','h20','h11'],POOL=Object.keys(C).filter(id=>C[id].r!=='ST').sort((x,y)=>RORD.indexOf(C[x].r)-RORD.indexOf(C[y].r));
 // Firebase web config of the live site (null in the preview build = no Google sign-in or cloud save, guests only)
 const FB_CFG={"apiKey": "AIzaSyBxPtaSzWfEWeLUZffrgB5cbr1Mhtdpj7M", "authDomain": "pixeldeck-battle-1a625.firebaseapp.com", "projectId": "pixeldeck-battle-1a625", "storageBucket": "pixeldeck-battle-1a625.firebasestorage.app", "messagingSenderId": "520020450750", "appId": "1:520020450750:web:c54dadd6f487038ab22def", "databaseURL": "https://pixeldeck-battle-1a625-default-rtdb.asia-southeast1.firebasedatabase.app"};
 // stars: each one adds 3% ATK/DEF and raises the card's max level by 3% of its rank cap (at least 1); costs are [Gold, duplicate copies] per star
@@ -648,7 +602,7 @@ const PACK=100,ODDS={SL:.003,L:.017,R:.09,UC:.31,C:.58},DUP=50,MAXST=500,KEY='pd
 let S,bt=null,busy=false,fx=[],prepN=1,pull=null,armed=false;
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const img=id=>`cards/${id}.webp`;
+const img=id=>`cards/${id}.webp`,artSrc=id=>`art/${id}.webp`;
 const need=lv=>20+10*lv;
 // amulets: one per card; a = ATK multiplier, d = DEF multiplier
 const AM={
@@ -658,10 +612,10 @@ const AM={
  dragon:{n:'หัวใจมังกร',ic:'am_dragon',k:['#ff8a8a','#a3122f'],a:1.08,d:.95,t:'ATK +8% · DEF −5%'},
  rock:{n:'หินผา',ic:'am_rock',k:['#c9d1dc','#4b5563'],a:.95,d:1.1,t:'DEF +10% · ATK −5%'}
 };
-const MAGIC=['c01','c04','c06','c08','c11','c13','c16','c18','c22','c23','c28','c30','c32','c34','c36','c38','c39','c41','c43','c44','c45','c49','c50'],atkName=id=>MAGIC.includes(id)?'MATK':'ATK';
+const MAGIC={includes:id=>!!(C[id]&&C[id].m)},atkName=id=>MAGIC.includes(id)?'MATK':'ATK';
 const amOf=id=>S&&S.cards[id]&&AM[S.cards[id].am]||null;
 const starOf=id=>(S&&S.cards[id]&&S.cards[id].star)||0;
-const stat=(id,lv)=>{const m=(1+RAR[C[id].r].g*(lv-1))*(1+STAR_STAT*starOf(id)),am=amOf(id);return{atk:Math.round(C[id].a*m*(am?am.a:1)),hp:Math.round(C[id].d*m*(am?am.d:1))}};
+const stat=(id,lv)=>{const m=(1+RAR[C[id].r].g*(lv-1))*(1+STAR_STAT*starOf(id)),am=amOf(id);return{atk:Math.round(C[id].a*m*(am?am.a:1)),hp:Math.round(C[id].d*m*(am?am.d:1)),crit:C[id].c/100,cx:C[id].x||1.5}};
 // amulet icons share one design language so they read as a set: a gold bail on top, a dark outline, three tones and one highlight
 const AMPAL={k:'#10142c',y:'#ffd23a',n:'#b9860c',w:'#fff8e8',e:'#aab2c0',s:'#5d6676',o:'#ff8a2a',g:'#3ddc5a',d:'#168a3c',l:'#b6ffb0',b:'#29adff',r:'#ff3a55',m:'#a3122f',p:'#ffc0cc'};
 const AMART={"tiger": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "....kkkkkkkk....", "....koooooyk....", "....kokookok....", "....kkkkkkkk....", ".....kwwwwek....", ".....kwwwwek....", "......kwwwek....", "......kwwek.....", ".......kwwek....", ".......kwek.....", "........kwk.....", ".........k......"], "turtle": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", ".....kkkkkk.....", "....kgglggdk....", "...kggkggkgdk...", "...kgkglgkgdk...", "...kggkggkgdk...", "...kgkgggkgdk...", "...kggkggkddk...", "....kggggddk....", ".....kddddk.....", "......kkkk......", "................", "................"], "hawk": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", ".....kkkkkk.....", "...kkyyyyyykk...", "..kyywwwwwwynk..", "..kywwbbbbwwnk..", "..kywbbkkbbwnk..", "..kywbbkkbbwnk..", "..kywwbbbbwwnk..", "..kyywwwwwwnnk..", "...kknnnnnnkk...", ".....kkkkkk.....", "................", "................"], "dragon": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "...kkk....kkk...", "..krrrk..krrmk..", ".krprrrkkrrrrmk.", ".krprrrrrrrrrmk.", ".krrrrryyrrrrmk.", "..krrryyyyrrmk..", "...krryyyyrmk...", "....krryyrmk....", ".....krrrmk.....", "......krmk......", ".......kk.......", "................"], "rock": ["......kkkk......", ".....kyyyyk.....", ".....ky..yk.....", "......kyyk......", "....kkkkkkk.....", "...kwweeeeskk...", "..kwweeeeeessk..", "..kweeekeeessk..", ".kweeekkeeeessk.", ".keeeekeeesessk.", ".keeeeeeeskessk.", ".kesseeeeskssk..", "..kssssesssskk..", "...kkkkkkkkk....", "................", "................"]};
@@ -819,7 +773,9 @@ function market(){
 }
 function fresh(){return{gold:0,dia:0,cleared:0,cards:{},team:[],auto:false}}
 const TEST=false; // test build: every card of every rank is unlocked
-function unlock(s){s.am=s.am||{};Object.values(s.cards).forEach(c=>{if(c.am&&!AM[c.am])delete c.am});Object.keys(AM).forEach(k=>{const w=Object.values(s.cards).filter(c=>c.am===k).length;if(w>(s.am[k]||0))s.am[k]=w});if(TEST)Object.keys(C).forEach(id=>{if(!s.cards[id])s.cards[id]={lv:1,exp:0}});Object.keys(s.cards).forEach(id=>{if(!C[id])return;const c=s.cards[id],cap=RAR[C[id].r].cap+Math.max(1,Math.round(RAR[C[id].r].cap*.03))*(c.star||0);if(c.lv>=cap){c.lv=cap;c.exp=0}});return s}
+function unlock(s){s.am=s.am||{};
+  {const old=Object.keys(s.cards).filter(id=>/^c\d\d$/.test(id));if(old.length){const n=old.filter(id=>!['c02','c19','c24'].includes(id)).length;s.gold=(s.gold||0)+n*300;s.cards={};s.team=[];s.cleared=0;s.gift=false;s.mig=n*300;if(s.me)delete s.me.look}}
+  Object.values(s.cards).forEach(c=>{if(c.am&&!AM[c.am])delete c.am});Object.keys(AM).forEach(k=>{const w=Object.values(s.cards).filter(c=>c.am===k).length;if(w>(s.am[k]||0))s.am[k]=w});if(TEST)Object.keys(C).forEach(id=>{if(!s.cards[id])s.cards[id]={lv:1,exp:0}});Object.keys(s.cards).forEach(id=>{if(!C[id])return;const c=s.cards[id],cap=RAR[C[id].r].cap+Math.max(1,Math.round(RAR[C[id].r].cap*.03))*(c.star||0);if(c.lv>=cap){c.lv=cap;c.exp=0}});return s}
 const SESSION='pdb_session';let USER=null;try{USER=JSON.parse(localStorage.getItem(SESSION))}catch(e){}
 // each Google account keeps its own save on this device; guests share the device save
 const saveKey=()=>USER&&USER.sub?KEY+'_'+USER.sub:KEY;
@@ -838,19 +794,20 @@ const SPK=[[2,3,0],[98,2,.7],[100,56,1.3],[3,97,.4],[96,98,1.8],[0,38,1.1]].map(
 const fxh=id=>(RAR[C[id].r].fire?'<canvas class="firec" width="108" height="130"></canvas>':'')+(RAR[C[id].r].spk?SPK:'');
 const ban=id=>{const r=RAR[C[id].r],t=r.n.toUpperCase();return `<span class="ban">${r.star?'★ '+t+' ★':t}</span>`};
 function mini(id,lv,attr='',extra=''){const s=stat(id,lv);
-  return `<button class="mini r-${C[id].r} glow ${fr(id)}" ${attr}>${fxh(id)}${rib(id)}<div class="art"><img src="${img(id)}" alt=""><span class="nm">${C[id].n} Lv${lv}</span>${stars(id)}</div><div class="st"><span class="a">ATK ${s.atk}</span><span class="d">DEF ${s.hp}</span></div>${extra}</button>`}
+  return `<button class="mini r-${C[id].r} glow ${fr(id)}" ${attr}>${fxh(id)}${rib(id)}<div class="art"><img src="${artSrc(id)}" alt=""><span class="nm">${C[id].n} Lv${lv}</span>${stars(id)}</div><div class="st"><span class="a">${atkName(id)} ${s.atk}</span><span class="d">DEF ${s.hp}</span></div>${extra}</button>`}
 const pan=id=>{const v=stat(id,S.cards[id]?S.cards[id].lv:1),mg=MAGIC.includes(id),am=S.cards[id]&&AM[S.cards[id].am]?S.cards[id].am:null;
   return `<span class="pan"><span class="sb ${mg?'m':'a'}"><img src="${ICON[mg?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i></span><span class="amslot ${am?'has':''}">${am?amu(am):'+'}</span><span class="sb d"><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.hp}</i></span></span>`};
-const full=(id,attr='',cls='')=>`<button class="cf r-${C[id].r} ${cls} ${fr(id)}" ${attr}>${fxh(id)}<img src="${img(id)}" alt="${C[id].n}"><span class="cnm nt">${C[id].n}</span><span class="chp l nt">Lv ${S.cards[id]?S.cards[id].lv:1}</span><span class="chp r nt">${RAR[C[id].r].n}</span>${stars(id)}${ban(id)}${pan(id)}</button>`;
+const full=(id,attr='',cls='')=>`<button class="cf r-${C[id].r} ${cls} ${fr(id)}" ${attr}>${fxh(id)}<img src="${img(id)}" alt="${C[id].n}"><span class="cnm nt">${C[id].n}</span><span class="chp l nt">Lv ${S.cards[id]?S.cards[id].lv:1}</span><span class="chp r nt">CRIT ${C[id].c}%</span>${stars(id)}${ban(id)}${pan(id)}</button>`;
 
 /* ---------- stages 1-500 ---------- */
 // enemy strength follows LNAT[n], the level a card reaches by clearing every earlier stage once, measured against a Rare card;
 // the first 30 stages ramp up from half strength so the starter team gets through
 const LNAT=[1];{let lv=1,ex=0;for(let n=1;n<=MAXST;n++){LNAT[n]=lv;ex+=10+2*n;while(ex>=20+10*lv){ex-=20+10*lv;lv++}}}
+let DIFF=2.6,EA=.3,EH=1.3,E0=.42;
 function stageDef(n){
-  const ease=Math.min(1,.75+.25*(n-1)/14),bud=135*(1+.09*(LNAT[n]-1))*2.6*ease,cnt=n<=3?1:n<=10?2:3,size=Math.min(POOL.length,3+Math.floor(n/5)),boss=n%10===0;
+  const ease=Math.min(1,E0+(1-E0)*(n-1)/14),bud=135*(1+.09*(LNAT[n]-1))*DIFF*ease,cnt=n<=3?1:n<=10?2:3,size=Math.min(POOL.length,3+Math.floor(n/5)),boss=n%10===0;
   return Array.from({length:cnt},(_,i)=>{const id=POOL[(n*7+i*5+(n>>2))%size],b=boss&&i===(cnt>1?1:0),sh=.35+.3*C[id].a/(C[id].a+C[id].d);
-    return{id,boss:b,atk:Math.round(bud*sh*(b?1.2:1)),hp:Math.round(bud*(1-sh)*(b?2.2:1))}});
+    return{id,boss:b,atk:Math.round(bud*sh*EA*(b?1.2:1)),hp:Math.round(bud*(1-sh)*EH*(b?2.2:1)),crit:C[id].c/200,cx:1.5,sh:0}});
 }
 const expOf=n=>10+2*n,goldBase=n=>6+Math.floor(n/3);
 // Gold drops from every win: a first clear rolls 100-300% of the stage's base, a replay a little less (40-110%), with a 5% jackpot of x4; the first win over a boss adds a fixed bonus
@@ -907,7 +864,7 @@ function home(){
    </nav>
    </div>`);
 }
-const ORD=['SL','L','R','UC','C','ST'],byRank=ids=>[...ids].sort((a,b)=>ORD.indexOf(C[a].r)-ORD.indexOf(C[b].r));
+const ORD=['LT','SL','L','R','UC','C','ST'],byRank=ids=>[...ids].sort((a,b)=>ORD.indexOf(C[a].r)-ORD.indexOf(C[b].r));
 let collTab='all';
 function prep(){
   const top=Math.min(MAXST,S.cleared+1);prepN=Math.max(1,Math.min(top,prepN));const en=stageDef(prepN);
@@ -941,7 +898,7 @@ function coll(){
     ${isAm?(have.length?`<div class="amlist">${have.map(k=>`<button class="amrow ${amSel===k?'on':''}" data-act="amsel" data-k="${k}">${amu(k)}<span><b>${AM[k].n} x${owned(k)}</b><small>${AM[k].t}</small><small>ใส่อยู่ ${worn(k)} · ว่าง ${spare(k)}</small></span></button>`).join('')}</div>
     <p class="sub" style="margin-bottom:14px">${amSel&&owned(amSel)?`เลือก "${AM[amSel].n}" อยู่ แตะการ์ดที่จะใส่`:'เลือกเครื่องรางด้านบนก่อน'}</p>`:`<p style="margin-bottom:14px">ยังไม่มีเครื่องราง เครื่องรางได้จากการดรอปในด่าน (โอกาส ${DROP*100}% ด่านบอส ${DROP_BOSS*100}%) หรือซื้อจากตลาดกลาง</p>`):''}
     <div class="grid big">
-    ${ids.map(id=>{const o=S.cards[id];if(!o)return `<div><div class="slot r-${collTab==='all'?'':C[id].r}"><b class="nt">?</b></div><p class="sub cap">ช่องว่าง</p></div>`;return `<div>${full(id,isAm?`data-act="amput" data-id="${id}"`:`data-act="zoom" data-id="${id}"`,o?'glow':'lock')}<p class="sub cap">${o?(isAm?(amOf(id)?amOf(id).n:'ว่าง'):lvTxt(id)):(ODDS[C[id].r]?'ยังไม่มี':'แพ็คในอนาคต')}</p></div>`}).join('')}
+    ${ids.map(id=>{const o=S.cards[id];if(!o)return `<div><div class="eslot r-${collTab==='all'?'':C[id].r}"><b class="nt">?</b></div><p class="sub cap">ช่องว่าง</p></div>`;return `<div>${full(id,isAm?`data-act="amput" data-id="${id}"`:`data-act="zoom" data-id="${id}"`,o?'glow':'lock')}<p class="sub cap">${o?(isAm?(amOf(id)?amOf(id).n:'ว่าง'):lvTxt(id)):(ODDS[C[id].r]?'ยังไม่มี':'แพ็คในอนาคต')}</p></div>`}).join('')}
   </div></div></div>`);
 }
 // diamond top-up: [diamonds, bonus, price in THB]. No payment gateway is wired yet, so while PAY_SANDBOX is on a purchase is a clearly labelled test that grants the diamonds without charging
@@ -993,8 +950,8 @@ function openGold(){
   save();shop();
 }
 function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),z=$('zoom');
-  z.innerHTML=`${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}<div class="inf"><h2>${C[id].n}</h2><span class="rib r-${C[id].r}">${RAR[C[id].r].n}</span>
-   <div class="stb nt"><span><img src="${ICON[MAGIC.includes(id)?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i><u>▸ +${gr(C[id].a,id)} / Lv</u></span><span><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.hp}</i><u>▸ +${gr(C[id].d,id)} / Lv</u></span>
+  z.innerHTML=`${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}<div class="inf"><h2>${C[id].n}</h2><span class="rib r-${C[id].r}">${RAR[C[id].r].n} · ${ROLE[C[id].role]}</span>
+   <div class="stb nt"><span><img src="${ICON[MAGIC.includes(id)?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i><u>▸ +${gr(C[id].a,id)} / Lv</u></span><span><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.hp}</i><u>▸ +${gr(C[id].d,id)} / Lv</u></span><span><b class="k">CRIT</b><i>${C[id].c}%</i><u>CRIT DMG x${v.cx}</u></span>
     <span><b class="k">LEVEL</b><i>${o?o.lv:1}<small> / ${capOf(id)}</small></i><u>EXP ${o&&maxed(id)?'MAX':(o?o.exp:0)+'/'+need(o?o.lv:1)}</u></span></div>
    ${o?(()=>{const c=starCost(id),st=starOf(id);return `<div class="strow"><span class="nt">★ ${st}/5${C[id].r==='ST'?'':` · <span class="tx">ใบซ้ำ</span> ${o.cp||0}`}</span>${c?`<span class="btn sm ${canStar(id)?'':'off'}" data-star="${id}">อัปดาว <i class="nt">${c[0].toLocaleString('en')} Gold${c[1]?' + '+c[1]:''}</i>${c[1]?' ใบซ้ำ':''}</span>`:'<span class="gold nt">MAX ★</span>'}<small class="tx">ดาวละ ATK/DEF +3% · เลเวลสูงสุด +${capBonus(C[id].r)}</small></div>`})():''}
    <p class="sub">เครื่องราง: ${amOf(id)?amOf(id).n+' ('+amOf(id).t+')':'ยังไม่ได้ใส่'}</p>
@@ -1049,7 +1006,7 @@ function fxStep(c,t){
   x.globalAlpha=1}
 if(!RM)(function loop(t){const c=$('bgfx');if(c){const w=Math.max(1,c.clientWidth>>1),h=Math.max(1,c.clientHeight>>1);if(c.width!==w||c.height!==h){c.width=w;c.height=h;fxM=0}fxStep(c,t)}requestAnimationFrame(loop)})(0);
 const W=ms=>sleep(ms/(S.spd||1));
-const art=id=>`<div class="art"><img src="${img(id)}" alt=""></div>`;
+const art=id=>`<div class="art"><img src="${artSrc(id)}" alt=""></div>`;
 const ov=h=>{$('ov').innerHTML=h};
 let ret=null,quake=false;const hits=new Set();
 async function banner(t,cls=''){ov(`<div class="bn ${cls}"><span>${t}</span></div>`);await W(RM?400:850);ov('')}
@@ -1065,20 +1022,26 @@ async function lunge(from,to,dir){const f=$(from);if(!f||RM)return;let dx=dir*14
   f.style.transition=`transform ${170/(S.spd||1)}ms cubic-bezier(.5,0,.2,1)`;f.style.zIndex=6;f.style.transform=`translate(${dx}px,${dy}px) scale(1.12)`;ret={id:from,dx,dy};await W(180)}
 async function startBattle(n){
   bt={n,round:1,sel:0,log:'',
-    al:S.team.map(id=>{const v=stat(id,S.cards[id].lv);return{id,lv:S.cards[id].lv,atk:v.atk,hp:v.hp,max:v.hp,done:false,cds:[0,0,2]}}),
+    al:S.team.map(id=>{const v=stat(id,S.cards[id].lv);return{id,lv:S.cards[id].lv,atk:v.atk,base:v.atk,hp:v.hp,max:v.hp,crit:v.crit,cx:v.cx,sh:0,done:false,cds:[0,0,2]}}),
     en:stageDef(n).map(e=>({...e,max:e.hp}))};
   const my=bt;busy=true;draw();await vsIntro();if(bt!==my)return;sfx('start');await banner('START');if(bt!==my)return;
   busy=false;my.log='เลือกสกิล แล้วแตะศัตรู';draw();if(S.auto)autoAct();
 }
 const actor=()=>bt.al.find(a=>a.hp>0&&!a.done);
 function autoT(){let b=-1;bt.en.forEach((e,i)=>{if(e.hp>0&&(b<0||e.hp<bt.en[b].hp))b=i});return b}
-function autoAct(){const a=actor();if(!a)return;const hurtAlly=bt.al.some(x=>x.hp>0&&x.hp<x.max*.6);
-  let k=0;for(const j of[2,1]){const t=SK[a.id][j][2];if(a.cds[j]===0&&(!['heal','healall','guard'].includes(t)||(t==='guard'?a.hp<a.max*.6:hurtAlly))){k=j;break}}
-  bt.sel=k;act(autoT())}
+function autoPick(a){const hurtAlly=bt.al.some(x=>x.hp>0&&x.hp<x.max*.6);
+  for(const j of[2,1]){const t=SK[a.id][j][2];if(a.cds[j])continue;
+    if(t==='heal'||t==='healall'){if(hurtAlly)return j}
+    else if(t==='guard'){if(!(a.sh>a.max*.1))return j}
+    else if(t==='shieldall'){if(bt.al.some(x=>x.hp>0&&!(x.sh>x.max*.1)))return j}
+    else if(t==='buff'){if(a.atk<a.base*2)return j}
+    else if(t==='rally'){if(bt.al.some(x=>x.hp>0&&x.atk<x.base*2))return j}
+    else return j}
+  return 0}
+function autoAct(){const a=actor();if(!a)return;bt.sel=autoPick(a);act(autoT())}
 const FACE_R=[];
 // how each fighter attacks: slash (swing a blade), smash (leap and slam), shoot / cast (stand back and fire a projectile)
-const STYLE={'c01':'cast','c02':'shoot','c03':'slash','c04':'cast','c05':'slash','c06':'cast','c07':'smash','c08':'cast','c09':'shoot','c10':'slash','c11':'cast','c12':'slash','c13':'cast','c14':'slash','c15':'smash','c16':'cast','c17':'shoot','c18':'cast','c19':'smash','c20':'smash','c21':'slash','c22':'cast','c23':'cast','c24':'smash','c25':'slash','c26':'slash','c27':'shoot','c28':'cast','c29':'slash','c30':'cast','c31':'smash','c32':'cast','c33':'slash','c34':'cast','c35':'slash','c36':'cast','c37':'slash','c38':'cast','c39':'cast','c40':'slash','c41':'cast','c42':'slash','c43':'cast','c44':'cast','c45':'cast','c46':'slash','c47':'smash','c48':'smash','c49':'cast','c50':'cast'};
-const PROJ={'c01':'moon','c02':'arrow','c04':'light','c06':'moon','c08':'soul','c09':'arrow','c11':'moon','c13':'light','c16':'light','c17':'arrow','c18':'moon','c22':'moon','c23':'soul','c27':'arrow','c28':'moon','c30':'moon','c32':'light','c34':'light','c36':'moon','c38':'fire','c39':'soul','c41':'soul','c43':'light','c44':'moon','c45':'soul','c49':'light','c50':'moon'},IDLE={};
+const IDLE={};
 // free welcome cards: the Starter rank, given once on first login, never in packs and never used as enemies
 const GIFT=STARTERS;
 const NC=Object.keys(C).length;
@@ -1090,22 +1053,18 @@ function shoot(from,to,type){const f=$(from),t=$(to);if(!f||!t)return;const A=mi
   d.animate([{transform:'translate(0,0)'},{transform:`translate(${B.x-A.x}px,${B.y-A.y}px)`}],{duration:260/sp,easing:'ease-in'}).onfinish=()=>d.remove()}
 // one attack: wind up, then either cross the lane and swing, or stay put and fire; resolves at the moment of impact
 async function strike(from,id,tos,dir){
-  const f=$(from);if(!f||RM)return;const spr=f.querySelector('.spr'),st=STYLE[id]||'slash',sp=S.spd||1,g=(dir===1||f.querySelector('.sw.flip'))?1:-1;
-  if(st==='shoot'||st==='cast'){
-    spr.animate([{transform:'none'},{transform:`rotate(${-9*g}deg) translateX(${-7*g}px) scale(.97,1.03)`,offset:.45},{transform:`rotate(${7*g}deg) translateX(${9*g}px)`,offset:.6},{transform:'none'}],{duration:520/sp});
-    await W(250);sfx(st==='shoot'?'arrow':'magic');tos.forEach(t=>shoot(from,t,PROJ[id]||'fire'));await W(255);return}
-  await lunge(from,tos.length===1?tos[0]:null,dir);
-  if(st==='smash'){spr.animate([{transform:`translateY(-38px) rotate(${-24*g}deg)`},{transform:`translateY(-44px) rotate(${-30*g}deg)`,offset:.45},{transform:`translateY(6px) rotate(${26*g}deg) scale(1.08,.88)`,offset:.8},{transform:'none'}],{duration:330/sp});
-    await W(260);sfx('smash');tos.forEach(t=>addFx(t,'slam'));quake=true}
-  else{spr.animate([{transform:`rotate(${-30*g}deg) translateX(${-6*g}px)`},{transform:`rotate(${-34*g}deg) translateX(${-8*g}px)`,offset:.35},{transform:`rotate(${40*g}deg) translateX(${12*g}px)`,offset:.75},{transform:`rotate(${12*g}deg)`}],{duration:260/sp});
-    await W(180);sfx('slash');tos.forEach(t=>addFx(t,'arc'+(dir===1?'':' rv')))}
-  await W(70)}
+  const f=$(from);if(!f||RM)return;const spr=f.querySelector('.spr'),st=C[id].st||'slash',sp=S.spd||1;
+  const swing=()=>{spr.style.setProperty('--ad',(.5/sp)+'s');spr.classList.remove('atk');void spr.offsetWidth;spr.classList.add('atk')};
+  if(st==='shoot'||st==='cast'){swing();await W(300);sfx(st==='shoot'?'arrow':'magic');tos.forEach(t=>shoot(from,t,C[id].pj||'fire'));await W(255);return}
+  await lunge(from,tos.length===1?tos[0]:null,dir);swing();await W(240);
+  if(st==='smash'){sfx('smash');tos.forEach(t=>addFx(t,'slam'));quake=true}else{sfx('slash');tos.forEach(t=>addFx(t,'arc'+(dir===1?'':' rv')))}
+  await W(130)}
 async function pose(from,tos){const f=$(from);if(!f||RM)return;
   f.querySelector('.spr').animate([{transform:'none'},{transform:'translateY(-14px) scale(1.06)'},{transform:'none'}],{duration:380/(S.spd||1)});await W(200);sfx('heal');tos.forEach(t=>addFx(t,'aur'));await W(150)} // sprites drawn facing right; mirrored when they fight on the enemy side
 function unit(u,el,cls,attr){const p=Math.max(0,u.hp/u.max*100),mon=u.boss!==undefined;
   return `<button class="fig r-${mon?'C':C[u.id].r} ${IDLE[u.id]?'i-'+IDLE[u.id]:''} ${u.boss?'boss':''} ${u.hp<=0?'dead':''} ${cls}" id="${el}" ${attr} title="${C[u.id].n}">${u.boss?'<span class="tagb">BOSS</span>':''}
-    <span class="fhp"><i style="width:${p}%"></i></span><span class="sw ${mon?'':'flip'}">${sprite(u.id)}</span>
-    <div class="st"><span class="a"><img src="${ICON[MAGIC.includes(u.id)?'orb':'sword']}" alt="${atkName(u.id)}">${u.atk}</span><span class="d"><img src="${ICON.shield}" alt="DEF">${Math.max(0,u.hp)}</span></div></button>`}
+    <span class="fhp"><i style="width:${p}%"></i>${u.sh>0&&u.hp>0?`<b style="width:${Math.min(100,u.sh/u.max*100)}%"></b>`:''}</span><span class="sw ${mon?'':'flip'}">${sprite(u.id)}</span>
+    <div class="st"><span class="a"><img src="${ICON[MAGIC.includes(u.id)?'orb':'sword']}" alt="${atkName(u.id)}">${u.atk}</span><span class="d"><img src="${ICON.shield}" alt="DEF">${Math.max(0,u.hp)}${u.sh>0&&u.hp>0?`<b class="shv">+${u.sh}</b>`:''}</span></div>${u.taunt&&u.hp>0?'<span class="tnt">TAUNT</span>':''}</button>`}
 function draw(){
   const ac=busy?null:actor(),ord=[...bt.al.filter(a=>a.hp>0&&!a.done).map(a=>[a,'al']),...bt.en.filter(e=>e.hp>0).map(e=>[e,'en'])];
   view(`<div class="arena px">${bgLayers(bt.n)}
@@ -1123,37 +1082,47 @@ function draw(){
     if(!RM)e.animate([{filter:'brightness(3.5)',transform:'translateX(8px)'},{transform:'translateX(-7px)'},{filter:'none',transform:'translateX(4px)'},{transform:'none'}],{duration:280})});hits.clear();
   if(quake){quake=false;if(!RM)$('view').animate([{transform:'translate(7px,-5px)'},{transform:'translate(-7px,5px)'},{transform:'translate(5px,4px)'},{transform:'none'}],{duration:320})}
 }
-function hurt(list,pre,i,d,cls='d'){const t=list[i];t.hp-=d;q(pre+i,(d<0?'+':'-')+Math.abs(d),cls);if(d>0)hits.add(pre+i)}
+// damage goes through the shield first; a critical hit multiplies it by the attacker's crit damage
+function hurt(list,pre,i,d,cls='d',cr){const t=list[i];
+  if(d>0&&t.sh>0){const ab=Math.min(t.sh,d);t.sh-=ab;d-=ab;if(d<=0){q(pre+i,(cr?'CRIT ':'')+'🛡 -'+ab,'s');hits.add(pre+i);return}}
+  t.hp-=d;q(pre+i,(cr?'CRIT ':'')+(d<0?'+':'-')+Math.abs(d),cr?'c':cls);if(d>0)hits.add(pre+i)}
 function mend(j,amt){const x=bt.al[j],h=Math.min(Math.round(amt),x.max-x.hp);if(h>0)hurt(bt.al,'a',j,-h,'g')}
+function ward(j,amt){const x=bt.al[j],v=Math.min(x.max,Math.round((x.sh||0)+amt))-(x.sh||0);x.sh=(x.sh||0)+v;q('a'+j,'🛡 +'+v,'s')}
+const roll=(a,v,sure)=>{const cr=sure||Math.random()<a.crit;return[Math.round(a.atk*v*(cr?a.cx:1)),cr]};
+const pump=(x,j,v)=>{const n=Math.min(x.base*2,Math.round(x.atk*v));if(n>x.atk){x.atk=n;q('a'+j,'ATK ↑','g')}};
 function cast(a,k,ti){
   const sk=SK[a.id][k],[name,,type,v]=sk,ai=bt.al.indexOf(a),t=bt.en[ti];bt.log=`${C[a.id].n} ใช้ ${name}`;
-  if(type==='hit'||type==='exec'||type==='drain'){
-    const d=Math.round(a.atk*v*(type==='exec'&&t.hp<=t.max/2?2:1));hurt(bt.en,'e',ti,d);
+  if(needT(sk)){
+    const [d,cr]=roll(a,v*(type==='exec'&&t.hp<=t.max/2?2:1),type==='sure');hurt(bt.en,'e',ti,d,'d',cr);
     if(type==='drain')mend(ai,d/2)}
-  else if(type==='aoe')bt.en.forEach((e,j)=>{if(e.hp>0)hurt(bt.en,'e',j,Math.round(a.atk*v))});
+  else if(type==='aoe')bt.en.forEach((e,j)=>{if(e.hp>0){const [d,cr]=roll(a,v);hurt(bt.en,'e',j,d,'d',cr)}});
   else if(type==='heal'){let b=-1;bt.al.forEach((x,j)=>{if(x.hp>0&&(b<0||x.hp/x.max<bt.al[b].hp/bt.al[b].max))b=j});mend(b,a.atk*v)}
   else if(type==='healall')bt.al.forEach((x,j)=>{if(x.hp>0)mend(j,a.atk*v)});
-  else if(type==='guard')mend(ai,a.max*v);
-  else if(type==='buff'){a.atk=Math.round(a.atk*v);q('a'+ai,'ATK ↑','g')}
+  else if(type==='guard'){ward(ai,a.max*v);a.taunt=true}
+  else if(type==='shieldall')bt.al.forEach((x,j)=>{if(x.hp>0)ward(j,a.max*v)});
+  else if(type==='buff')pump(a,ai,v);
+  else if(type==='rally')bt.al.forEach((x,j)=>{if(x.hp>0)pump(x,j,v)});
   a.cds=a.cds.map((c,j)=>j===k?CD[k]:Math.max(0,c-1));
 }
+// an enemy hits whoever is taunting, otherwise a random fighter
+function foePick(){const live=bt.al.map((x,j)=>j).filter(j=>bt.al[j].hp>0);if(!live.length)return -1;const tn=live.filter(j=>bt.al[j].taunt);return tn.length?tn[0]:live[Math.floor(Math.random()*live.length)]}
+function foeHit(e,j){const [d,cr]=roll(e,1);hurt(bt.al,'a',j,Math.round(d*(bt.al[j].taunt?.6:1)),'d',cr)}
 async function act(ti){
   const my=bt;if(busy||!my)return;const a=actor();if(!a)return;const k=a.cds[my.sel]?0:my.sel,sk=SK[a.id][k],ai=my.al.indexOf(a);
   if(needT(sk)&&(ti<0||!my.en[ti]||my.en[ti].hp<=0))return;
   busy=true;my.log=`${C[a.id].n} ใช้ ${sk[0]}`;draw();
   if(k>0){await cutin(a,k);if(bt!==my)return}
-  if(['hit','exec','drain','aoe'].includes(sk[2]))await strike('a'+ai,a.id,needT(sk)?['e'+ti]:my.en.map((e,j)=>e.hp>0?'e'+j:null).filter(Boolean),1);
-  else await pose('a'+ai,sk[2]==='healall'?my.al.map((x,j)=>x.hp>0?'a'+j:null).filter(Boolean):['a'+ai]);
+  if(isAtk(sk))await strike('a'+ai,a.id,needT(sk)?['e'+ti]:my.en.map((e,j)=>e.hp>0?'e'+j:null).filter(Boolean),1);
+  else await pose('a'+ai,['healall','shieldall','rally'].includes(sk[2])?my.al.map((x,j)=>x.hp>0?'a'+j:null).filter(Boolean):['a'+ai]);
   if(bt!==my)return;const big=quake;
   cast(a,k,ti);a.done=true;my.sel=0;quake=big||k===2;draw();await W(540);if(bt!==my)return;
   if(my.en.every(e=>e.hp<=0))return finish(true);
   if(!actor()){
     for(let i=0;i<my.en.length;i++){const e=my.en[i];if(e.hp<=0)continue;
-      const live=my.al.map((x,j)=>j).filter(j=>my.al[j].hp>0);if(!live.length)break;
-      const j=live[Math.floor(Math.random()*live.length)];my.log=`${C[e.id].n} โจมตี ${C[my.al[j].id].n}`;draw();
-      await strike('e'+i,e.id,['a'+j],-1);if(bt!==my)return;hurt(my.al,'a',j,e.atk);draw();await W(440);if(bt!==my)return}
+      const j=foePick();if(j<0)break;my.log=`${C[e.id].n} โจมตี ${C[my.al[j].id].n}`;draw();
+      await strike('e'+i,e.id,['a'+j],-1);if(bt!==my)return;foeHit(e,j);draw();await W(440);if(bt!==my)return}
     if(my.al.every(x=>x.hp<=0))return finish(false);
-    my.round++;my.al.forEach(x=>x.done=false);
+    my.round++;my.al.forEach(x=>{x.done=false;x.taunt=false});
   }
   busy=false;if(!S.auto)my.log='เลือกสกิล แล้วแตะศัตรู';draw();if(S.auto)autoAct();
 }
@@ -1162,7 +1131,7 @@ async function finish(won){
   const n=bt.n,team=bt.al.map(a=>a.id);bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0;
   if(won){const rg=rollGold(n);g=rg.g;jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<(n%10===0?DROP_BOSS:DROP)){const ks=Object.keys(AM);drop=ks[Math.floor(Math.random()*ks.length)];S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}const x=expOf(n);
     rows=team.map(id=>{const was=S.cards[id].lv,wasMax=maxed(id),up=addExp(id,x),c=S.cards[id];
-      return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${img(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
+      return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${artSrc(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
     if(n>S.cleared)S.cleared=n;save()}
   const next=Math.min(MAXST,n+1);
   view(`<div class="cols"><div class="rail">
@@ -1277,7 +1246,7 @@ for(let i=0;i<30;i++)fireStep();
 if(matchMedia('(prefers-reduced-motion:reduce)').matches)new MutationObserver(firePaint).observe($('stage'),{childList:true,subtree:true});
 else{let last=0;(function loop(t){if(t-last>70){last=t;if(document.querySelector('canvas.firec'))fireStep()}firePaint();requestAnimationFrame(loop)})(0)}
 /* ---------- language: the game is written in Thai; in English mode a translator rewrites text as it reaches the page ---------- */
-const EN={"แตะเครื่องราง แล้วแตะการ์ดที่จะใส่ แตะการ์ดที่ใส่อยู่อีกครั้งเพื่อถอด": "Tap an amulet, then tap a card to equip it. Tap the wearing card again to remove it.", "แตะการ์ดเพื่อดูใบใหญ่และสกิล": "Tap a card to see it full size with its skills", "ต่อใบ · 1 กล่องได้ 3 ใบ · Rare ออกได้ไม่เกิน 1 ใบ · ได้ใบซ้ำเปลี่ยนเป็น Exp": "per card · 3 cards per box · at most 1 Rare · duplicates become Exp", "ตอนนี้ผู้เล่นในห้องเป็นผู้เล่นจำลอง จำนวนคนเป็นตัวอย่าง": "Players in the rooms are simulated for now; the head counts are examples.", "ยังไม่มีเครื่องราง เครื่องรางได้จากการดรอปในด่าน (โอกาส": "No amulets yet. Amulets drop in stages (chance", "ด่านบอส": "boss stages", "หรือซื้อจากตลาดกลาง": "or are bought in the Market", "ผู้เล่นจำลอง (ยังไม่มีผู้เล่นจริงจนกว่าจะมีเซิร์ฟเวอร์)": "Simulated player (no real players until there is a server)", "ผู้เล่นตั้งราคาขายกันเอง จ่ายด้วย Gold ผู้ขายเสียภาษี": "Players set their own prices and pay in Gold. The seller pays a tax of", "เมื่อขายได้": "on a sale", "ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่": "Level up on earlier stages, or open packs for new cards", "ห้องละ 10 คน เดินไปหาผู้เล่นอื่นแล้วแลกไอเท็ม ภาษี 10,000 Gold": "10 players per room. Walk up to another player and swap items. Tax 10,000 Gold", "คน คนเยอะก็กระจายไปหลายห้อง ห้องเต็มเข้าไม่ได้": "players. Crowds spread across rooms; a full room cannot be entered.", "ห้องละ": "Each room holds", "ตอนนี้ Gold ไม่พอ ไปตะลุยด่านเก็บ Gold ก่อน": "Not enough Gold yet. Clear stages to earn more.", "ตั้งขาย: เลือกเครื่องรางที่ไม่ได้ใส่อยู่": "Sell: pick an amulet that is not equipped", "รายการขาย (ตัวอย่าง ยังไม่ใช่ผู้เล่นจริง)": "Listings (samples, not real players yet)", "แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อเทรด": "Tap the ground to walk. Tap another character to trade.", "แตะอีกครั้งเพื่อลบเซฟ": "Tap again to erase the save", "เริ่มใหม่ทั้งหมด": "Reset everything", "แตะการ์ดเพื่อเลือกเข้าทีม สูงสุด 3 ใบ": "Tap cards to add them to your team, up to 3", "ดูระดับ เลเวล และ Exp ของการ์ดทุกใบ": "Rank, level and Exp of every card", "เปิดแพ็คแล้วการ์ด 3 ใบจะขึ้นตรงนี้": "Open a pack and its 3 cards appear here.", "ใส่เครื่องรางให้การ์ด ใบละ 1 ชิ้น": "Equip one amulet per card", "เร็ว ๆ นี้ · ต้องมีเซิร์ฟเวอร์": "Coming soon · needs a server", "เร็ว ๆ นี้ · เติมด้วยเงินจริง": "Coming soon · bought with real money", "เร็ว ๆ นี้": "Coming soon", "ด่านถัดไป": "Next stage", "ใบละ 1 ชิ้น": "1 per card", "ซื้อขายด้วย Gold": "Trade for Gold", "ห้องละ 10 คน": "10 players a room", "เซฟ": "Save data", "ทีมของคุณ (แตะช่องเพื่อเอาออก)": "Your team (tap a slot to remove)", "ชื่อ (ไม่เกิน 12 ตัวอักษร)": "Name (up to 12 characters)", "เลือกเครื่องรางด้านบนก่อน": "Pick an amulet above first", "โหมดเทส: ปลดล็อกครบทุกใบ": "Test mode: all cards unlocked", "ยังไม่มี": "Not owned", "แพ็คในอนาคต": "Future pack", "เลือกสกิล แล้วแตะศัตรู": "Pick a skill, then tap an enemy", "ซื้อขายเครื่องรางด้วย Gold": "Buy and sell amulets for Gold", "อยู่ แตะการ์ดที่จะใส่": "selected. Tap a card to equip it.", "เครื่องราง +1 ทุกชิ้น": "+1 of every amulet", "ชนะแล้วการ์ดในทีมได้ Exp": "win to give your team Exp", "เลือกของที่จะให้ก่อน": "Pick the item you will give first", "รายการที่คุณตั้งขาย": "Your listings", "ไม่มีเครื่องรางว่าง": "No spare amulets", "แตะศัตรูที่จะโจมตี": "tap the enemy to attack", "ขายได้จะได้รับ": "You receive", "ศัตรู:": "Enemies:", "รางวัล:": "Reward:", "แผนที่:": "Map:", "เครื่องราง:": "Amulet:", "ยังไม่ได้ใส่": "none", "ตัวละครทั้ง": "All", "แบบใช้ได้ฟรี": "characters are free", "แตะเพื่อเปลี่ยน": "tap to change", "แตะเพื่อปิด": "Tap to close", "เล่นด่านนี้อีก": "Replay this stage", "ได้เครื่องราง": "Amulet found", "ไม่พอจ่ายภาษี": "is not enough for the tax", "การันตี 3 ใบ": "3 cards guaranteed", "PvP · ทัวร์นาเมนต์": "PvP · Tournament", "การ์ดของฉัน": "My Cards", "ขายหมดแล้ว": "Sold out", "ตลาดประมูล": "Auction House", "ยืนยันเทรด": "Confirm trade", "เต็มจอแนวนอน": "Fullscreen landscape", "หมุนเครื่องเป็นแนวนอนจริง แป้นพิมพ์จะเป็นแนวนอนด้วย": "Really turns the device to landscape, so the keyboard is landscape too", "ส่ง": "Send", "ผู้เล่นที่อยู่ห้องเดียวกันจะเห็นกันและส่งเครื่องรางให้กันได้": "Players in the same room see each other and can send amulets", "ล็อกอินด้วย Google เพื่อเห็นผู้เล่นอื่น ตอนนี้เดินได้คนเดียว": "Sign in with Google to see other players. For now you walk alone.", "แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อส่งของ": "Tap the ground to walk · tap another player to send an item", "แตะพื้นเพื่อเดิน · ล็อกอิน Google เพื่อเห็นผู้เล่นอื่น": "Tap the ground to walk · sign in with Google to see other players", "ผู้รับไม่รับของ ได้ของและภาษีคืน": "The receiver declined. Item and tax refunded.", "ส่งของไม่สำเร็จ ได้ของและภาษีคืน": "Sending failed. Item and tax refunded.", "ผู้รับได้รับของแล้ว": "The receiver got the item", "รอผู้รับยืนยัน": "waiting for the receiver to confirm", "เลือกได้เฉพาะตัวละครของการ์ดที่คุณมี ได้การ์ดใหม่ก็ได้ตัวละครเพิ่ม": "You can use the characters of cards you own. New cards unlock new characters.", "รีเฟรชตลาด": "Refresh market", "ต้องล็อกอินด้วย Google ก่อนจึงใช้ตลาดได้": "Sign in with Google to use the market", "กำลังโหลดตลาด…": "Loading the market…", "ยังไม่มีใครตั้งขาย": "Nobody is selling yet", "ขายของได้ รับ": "Items sold. You received", "ตั้งขายแล้ว": "Listed", "ยกเลิกแล้ว ได้ของคืน": "Cancelled, item returned", "ซื้อสำเร็จ ได้": "Bought:", "ของชิ้นนี้ถูกซื้อไปแล้ว": "This item was already bought", "เชื่อมต่อตลาดไม่ได้": "Could not reach the market", "ช่วง OBT ยังไม่เปิดเติมเงิน ตอนนี้ได้เพชรจากการแลก Gold เท่านั้น": "Top-ups are closed during OBT. For now diamonds come only from trading in Gold.", "ยังไม่เปิดเติมเงิน": "Top-ups closed", "Starter Pack ออก Rare ขึ้นไปได้ไม่เกิน 1 ใบต่อกล่อง · ได้ใบซ้ำจะเก็บไว้ใช้อัปดาวการ์ดใบนั้น": "A Starter Pack holds at most one Rare-or-better card · duplicates are kept to star up that card", "ล็อกอินด้วย Gmail เซฟจะเก็บบนคลาวด์ เปลี่ยนเครื่องก็เล่นต่อได้ · Guest เก็บเซฟในเครื่องนี้เท่านั้น": "Sign in with Gmail to keep your save in the cloud and continue on any device · Guest saves stay on this device", "เซฟเก็บบนคลาวด์ตามบัญชี Google เปลี่ยนเครื่องแล้วเล่นต่อได้": "Your save is stored in the cloud under your Google account. Continue on any device.", "Guest เก็บเซฟในเครื่องนี้เท่านั้น ล็อกอิน Google เพื่อเก็บเซฟบนคลาวด์": "Guest saves stay on this device only. Sign in with Google for a cloud save.", "ช่องว่าง": "Empty slot", "ศรน้ำแข็ง": "Ice Bolt", "หอกน้ำแข็ง": "Ice Lance", "พายุหิมะ": "Blizzard", "ยิง": "Shot", "ยิงเจาะเกราะ": "Piercing Shot", "ห่ากระสุน": "Barrage", "ระบำดาบ": "Blade Dance", "ฟาดหนัก": "Heavy Blow", "ทุบคลั่ง": "Frenzy Smash", "กวาดล้าง": "Sweep", "ลำแสงเวท": "Arcane Beam", "คำสาป": "Curse", "ดาวตก": "Starfall", "ดาบโลหิต": "Blood Blade", "พายุโลหิต": "Blood Storm", "ดูดเลือด": "Blood Feast", "ทุบ": "Smash", "เกราะศรัทธา": "Faith Armor", "ศรวิญญาณ": "Soul Bolt", "คลื่นวิญญาณ": "Soul Wave", "ราตรีนิรันดร์": "Endless Night", "สายฟ้าทมิฬ": "Dark Bolt", "คลื่นมืด": "Dark Wave", "วันสิ้นโลก": "Doomsday", "การ์ด 3 ใบ ·": "3 cards ·", "การ์ด 1 ใบ ·": "1 card ·", "ได้ใบซ้ำจะเก็บเป็นใบซ้ำ ใช้อัปดาวการ์ดใบนั้น": "Duplicates are kept as copies and used to star up that card", "เปิดแพ็คแล้วการ์ดจะขึ้นตรงนี้": "Cards from the pack appear here", "ใบซ้ำ": "copies", "อัปดาว": "Star up", "ดาวละ ATK/DEF +3% · เลเวลสูงสุด": "Each star: ATK/DEF +3% · max level", "โบนัสชนะบอสครั้งแรก": "First boss win bonus", "โบนัสบอส": "boss bonus", "ฟาร์มออฟไลน์": "Offline farm", "สะสม": "Earns", "Gold ต่อชั่วโมง สูงสุด": "Gold per hour, up to", "ชั่วโมง ยิ่งผ่านด่านสูงยิ่งได้มาก": "hours. Higher stages earn more.", "เก็บ": "Collect", "ภารกิจรีเซ็ตทุกวัน": "Quests reset daily", "ภารกิจ": "Quests", "ชนะ 10 ด่าน": "Win 10 stages", "ชนะด่านบอส 1 ครั้ง": "Win 1 boss stage", "เก็บ Gold ออฟไลน์ 1 ครั้ง": "Collect offline Gold once", "รับแล้ว": "Claimed", "รับรางวัล": "Claim", "ยังไม่ครบ": "In progress", "ออฟไลน์": "Offline", "แลก Gold เป็นเพชร": "Trade Gold for diamonds", "แลกได้ไม่จำกัด · คุณมี": "No limit · you have", "แลกแล้ววันนี้": "Done today", "แลก": "Exchange", "การ์ดเริ่มต้น": "Starter", "ยินดีต้อนรับ": "Welcome", "ของขวัญล็อกอินครั้งแรก: การ์ดเริ่มต้น 3 ใบ": "First-login gift: 3 Starter cards", "รับการ์ด": "Claim cards", "รายการขายจากผู้เล่นอื่น": "Listings from other players", "ยังไม่มีรายการขาย ของในตลาดมาจากผู้เล่นตั้งขายเท่านั้น และจะเห็นของกันได้เมื่อเกมมีเซิร์ฟเวอร์ฐานข้อมูล": "No listings yet. Everything in the market is listed by players, and listings become visible to others once the game has a database server.", "เติมเพชร": "Top up diamonds", "เพชรใช้เปิดแพ็คการ์ด": "Diamonds open card packs", "โหมดทดสอบ: ยังไม่เชื่อมระบบชำระเงิน กดซื้อแล้วได้เพชรโดยไม่ตัดเงินจริง": "Test mode: no payment system is connected yet. Buying grants diamonds without charging real money.", "รายการที่เลือก": "Selected", "ยืนยัน (ทดสอบ ไม่ตัดเงิน)": "Confirm (test, no charge)", "ชำระเงิน": "Pay", "แตะแพ็กเพชรที่ต้องการ": "Tap a diamond pack", "ตอนนี้เพชรไม่พอ": "Not enough diamonds yet.", "ร้านเพชร": "Diamond Shop", "ยังไม่มีผู้เล่นอื่นในห้อง ผู้เล่นจริงจะเห็นกันเมื่อเกมมีเซิร์ฟเวอร์ฐานข้อมูล": "No other players here yet. Real players will see each other once the game has a database server.", "แตะพื้นเพื่อเดิน · ยังไม่มีผู้เล่นอื่นในห้อง": "Tap the ground to walk · no other players here yet", "เข้าสู่ระบบด้วย Google": "Sign in with Google", "เล่นแบบ Guest": "Play as Guest", "ล็อกอินด้วย Gmail เพื่อแยกเซฟตามบัญชี": "Sign in with Gmail to keep a separate save per account", "ล็อกอิน Google จะเปิดใช้เมื่อเกมอยู่บนเซิร์ฟเวอร์ของตัวเอง ตอนนี้เข้าเล่นแบบ Guest ได้": "Google sign-in turns on once the game runs on its own server. For now, play as a guest.", "บัญชี:": "Account:", "เซฟเก็บในเครื่องนี้ แยกตามบัญชีที่ล็อกอิน ยังไม่ซิงก์ข้ามเครื่อง": "Saves stay on this device, one per signed-in account. No cross-device sync yet.", "การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ": "Only cards in the winning team gain Exp", "ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า": "Boss stages come every 10 stages, always drop Gold and drop amulets more often", "การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน": "Each rank has its own max level", "ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้": "Check the recommended Lv on the stage screen before a fight", "การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง": "A trade is a gift: every transfer asks you to confirm sender or receiver", "Lv แนะนำ": "Recommended Lv", "ทีมคุณ": "your team", "เลเวลทีมต่ำกว่าที่แนะนำ ลองเก็บเลเวลจากด่านก่อนหน้า": "Your team is under the recommended level. Level up on earlier stages first.", "ส่งแล้ว:": "Sent:", "รับแล้ว:": "Received:", "ผู้ส่งเป็นคนจ่าย": "paid by the sender", "คุณมี": "you have", "Gold ไม่พอจ่ายภาษี": "Not enough Gold for the tax", "ฉันเป็นผู้ส่ง": "I'm sending", "ฉันเป็นผู้รับ": "I'm receiving", "การเทรดคือการให้ของ ไม่ต้องมีของมาแลก": "A trade is a gift. Nothing has to come back.", "เลือกของที่จะส่ง": "Pick the item to send", "ถัดไป": "Next", "ผู้ส่ง": "Sender", "ผู้รับ": "Receiver", "(คุณ)": "(you)", "ยืนยันการส่งของ": "Confirm sending", "ยืนยันการรับของ": "Confirm receiving", "คุณเป็นผู้ส่ง ของชิ้นนี้จะออกจากกระเป๋าคุณ และคุณจะไม่ได้อะไรตอบแทน": "You are the sender. This item leaves your bag and you get nothing back.", "คุณเป็นผู้รับ คุณไม่ต้องให้อะไรตอบแทน ผู้ส่งเป็นคนจ่ายภาษี": "You are the receiver. You give nothing back. The sender pays the tax.", "ยืนยัน ฉันเป็นผู้ส่ง": "Confirm: I'm the sender", "ยืนยัน ฉันเป็นผู้รับ": "Confirm: I'm the receiver", "ไม่รับ": "Decline", "ส่งของให้": "Send to", "เทรดไอเท็ม": "Trade items", "ด่านถัดไป:": "Next stage:", "ตะลุยด่าน": "Stages", "รอผู้ซื้อ": "waiting for a buyer", "ออกจากทีม": "from the team", "ตลาดกลาง": "Market", "ผ่านแล้ว": "Cleared", "ภาษีเทรด": "Trade tax", "ร้านเพชร": "Diamond Shop", "ร้านแพ็ค": "Pack Shop", "หน้าหลัก": "Home", "ห้องอื่น": "Rooms", "ห้องเทรด": "Trade Room", "เลเวลอัป!": "Level up!", "ตัวละคร": "Character", "ตั้งขาย": "List", "ทั้งหมด": "All", "เข้าสู้": "Fight", "เทรดกับ": "Trade with", "(เล่นซ้ำ)": "(replay)", "(สุ่มดรอป)": "(random drop)", "รอบนี้ Gold ไม่ดรอป": "No Gold dropped this time", "คุณให้": "You give", "บันทึก": "Save", "ยกเลิก": "Cancel", "ต่อครั้ง · คุณมี": "per trade · you have", "เทรดสำเร็จ ได้": "Trade done. Got", "จ่ายภาษี": "tax paid", "ใส่อยู่": "equipped", "ว่าง": "spare", "เครื่องราง": "Amulets", "ทุกใบ Lv +5": "All cards Lv +5", "ต่อใบ": "per card", "ออโต้": "Auto", "ถอย": "Retreat", "กลับ": "Back", "ปิด": "Close", "เต็ม": "full", "เพชร": "Diamonds", "ใหม่!": "New!", "ซ้ำ →": "Duplicate →", "ชนะ!": "Victory!", "แพ้": "Defeat", "ออก": "Leave", "เปิด": "Open", "ซื้อ": "Buy", "บอส": "Boss", "ผู้เล่น": "Player", "ตั้งค่า": "Settings", "เสียงกดปุ่ม": "Button sound", "เสียงต่อสู้": "Battle sounds", "ภาษา": "Language", "ออกจากระบบ": "Log out", "เข้าเล่น": "Start", "ปิดอยู่": "Off", "เปิดอยู่": "On", "ออกจากระบบแล้ว": "You are logged out", "เกมยังไม่มีระบบบัญชี ข้อมูลเซฟยังอยู่ในเครื่องนี้": "There are no accounts yet. Your save stays on this device.", "เกมยังไม่มีระบบบัญชี ออกจากระบบจะกลับไปหน้าเริ่มเกม เซฟยังอยู่ในเครื่อง": "There are no accounts yet. Logging out returns to the title screen; your save stays on this device.", "พัก": "rest", "โจมตีศัตรู 1 ตัว": "Hit one enemy for", "โจมตีศัตรูทุกตัว": "Hit all enemies for", "ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of ATK, doubled if the target is below half DEF", "ของ MATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of MATK, doubled if the target is below half DEF", "ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of ATK and heal self for half the damage", "ของ MATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of MATK and heal self for half the damage", "ฟื้น DEF ให้เพื่อนที่เจ็บสุด": "Heal the most hurt ally for", "ฟื้น DEF ให้ทั้งทีม": "Heal the whole team for", "ฟื้น DEF ตัวเอง": "Heal self for", "ของ DEF สูงสุด": "of max DEF", "ของตัวเองเพิ่มเป็น": "of self rises to", "จนจบด่าน": "until the stage ends", "ของ MATK": "of MATK", "ของ ATK": "of ATK", "ใช้": "uses", "โจมตี": "attacks", "ฟันขวาน": "Axe Chop", "ขวานคลั่ง": "Frenzy Axe", "ศึกเผ่าก๊อบลิน": "Goblin War Cry", "พุ่งชน": "Body Slam", "เมือกหุ้มตัว": "Slime Coat", "คลื่นเมือก": "Slime Wave", "แทงเงา": "Shadow Stab", "ลอบแทง": "Backstab", "ระบำเงา": "Shadow Dance", "ยิงธนู": "Arrow Shot", "ศรเจาะเกราะ": "Piercing Arrow", "ห่าฝนธนู": "Arrow Rain", "ฟันดาบ": "Slash", "จุดตาย": "Vital Point", "พันคมดาบ": "Thousand Cuts", "แสงศักดิ์สิทธิ์": "Holy Light", "รักษา": "Heal", "พรแห่งแสง": "Blessing of Light", "ลูกไฟ": "Fireball", "เสาเพลิง": "Flame Pillar", "อุกกาบาต": "Meteor", "ลำแสงจันทร์": "Moonbeam", "คำสาปจันทรา": "Lunar Curse", "จันทร์ดับ": "Eclipse", "ตะปบ": "Claw", "ลมหายใจไฟ": "Fire Breath", "เพลิงล้างโลก": "World Burner", "ฟาดขวาน": "Axe Swing", "ขวานกวาด": "Axe Sweep", "ตั้งโล่": "Shield Up", "บุกทะลวง": "Charge", "เคียวเงา": "Shadow Scythe", "ดูดวิญญาณ": "Soul Drain", "เก็บเกี่ยว": "Reap", "ดาบแสง": "Light Blade", "โล่ศรัทธา": "Shield of Faith", "พิพากษา": "Judgement", "หมัดหิน": "Stone Fist", "ผิวศิลา": "Stone Skin", "แผ่นดินไหว": "Earthquake", "ศรมรณะ": "Death Bolt", "ดูดชีพ": "Life Drain", "กองทัพกระดูก": "Bone Army", "เขี้ยวเสือ": "Tiger Fang", "กระดองเต่า": "Turtle Shell", "ตาเหยี่ยว": "Hawk Eye", "หัวใจมังกร": "Dragon Heart", "หินผา": "Bedrock", "เอา": "Remove", "เลือก": "Selected", "ให้": "gives", "คน": "players", "ด่าน": "Stage", "รอบ": "Round", "ห้อง": "Room", "ตา": "turns", "ใบ": "cards"};
+const EN={"แตะเครื่องราง แล้วแตะการ์ดที่จะใส่ แตะการ์ดที่ใส่อยู่อีกครั้งเพื่อถอด": "Tap an amulet, then tap a card to equip it. Tap the wearing card again to remove it.", "แตะการ์ดเพื่อดูใบใหญ่และสกิล": "Tap a card to see it full size with its skills", "ต่อใบ · 1 กล่องได้ 3 ใบ · Rare ออกได้ไม่เกิน 1 ใบ · ได้ใบซ้ำเปลี่ยนเป็น Exp": "per card · 3 cards per box · at most 1 Rare · duplicates become Exp", "ตอนนี้ผู้เล่นในห้องเป็นผู้เล่นจำลอง จำนวนคนเป็นตัวอย่าง": "Players in the rooms are simulated for now; the head counts are examples.", "ยังไม่มีเครื่องราง เครื่องรางได้จากการดรอปในด่าน (โอกาส": "No amulets yet. Amulets drop in stages (chance", "ด่านบอส": "boss stages", "หรือซื้อจากตลาดกลาง": "or are bought in the Market", "ผู้เล่นจำลอง (ยังไม่มีผู้เล่นจริงจนกว่าจะมีเซิร์ฟเวอร์)": "Simulated player (no real players until there is a server)", "ผู้เล่นตั้งราคาขายกันเอง จ่ายด้วย Gold ผู้ขายเสียภาษี": "Players set their own prices and pay in Gold. The seller pays a tax of", "เมื่อขายได้": "on a sale", "ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่": "Level up on earlier stages, or open packs for new cards", "ห้องละ 10 คน เดินไปหาผู้เล่นอื่นแล้วแลกไอเท็ม ภาษี 10,000 Gold": "10 players per room. Walk up to another player and swap items. Tax 10,000 Gold", "คน คนเยอะก็กระจายไปหลายห้อง ห้องเต็มเข้าไม่ได้": "players. Crowds spread across rooms; a full room cannot be entered.", "ห้องละ": "Each room holds", "ตอนนี้ Gold ไม่พอ ไปตะลุยด่านเก็บ Gold ก่อน": "Not enough Gold yet. Clear stages to earn more.", "ตั้งขาย: เลือกเครื่องรางที่ไม่ได้ใส่อยู่": "Sell: pick an amulet that is not equipped", "รายการขาย (ตัวอย่าง ยังไม่ใช่ผู้เล่นจริง)": "Listings (samples, not real players yet)", "แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อเทรด": "Tap the ground to walk. Tap another character to trade.", "แตะอีกครั้งเพื่อลบเซฟ": "Tap again to erase the save", "เริ่มใหม่ทั้งหมด": "Reset everything", "แตะการ์ดเพื่อเลือกเข้าทีม สูงสุด 3 ใบ": "Tap cards to add them to your team, up to 3", "ดูระดับ เลเวล และ Exp ของการ์ดทุกใบ": "Rank, level and Exp of every card", "เปิดแพ็คแล้วการ์ด 3 ใบจะขึ้นตรงนี้": "Open a pack and its 3 cards appear here.", "ใส่เครื่องรางให้การ์ด ใบละ 1 ชิ้น": "Equip one amulet per card", "เร็ว ๆ นี้ · ต้องมีเซิร์ฟเวอร์": "Coming soon · needs a server", "เร็ว ๆ นี้ · เติมด้วยเงินจริง": "Coming soon · bought with real money", "เร็ว ๆ นี้": "Coming soon", "ด่านถัดไป": "Next stage", "ใบละ 1 ชิ้น": "1 per card", "ซื้อขายด้วย Gold": "Trade for Gold", "ห้องละ 10 คน": "10 players a room", "เซฟ": "Save data", "ทีมของคุณ (แตะช่องเพื่อเอาออก)": "Your team (tap a slot to remove)", "ชื่อ (ไม่เกิน 12 ตัวอักษร)": "Name (up to 12 characters)", "เลือกเครื่องรางด้านบนก่อน": "Pick an amulet above first", "โหมดเทส: ปลดล็อกครบทุกใบ": "Test mode: all cards unlocked", "ยังไม่มี": "Not owned", "แพ็คในอนาคต": "Future pack", "เลือกสกิล แล้วแตะศัตรู": "Pick a skill, then tap an enemy", "ซื้อขายเครื่องรางด้วย Gold": "Buy and sell amulets for Gold", "อยู่ แตะการ์ดที่จะใส่": "selected. Tap a card to equip it.", "เครื่องราง +1 ทุกชิ้น": "+1 of every amulet", "ชนะแล้วการ์ดในทีมได้ Exp": "win to give your team Exp", "เลือกของที่จะให้ก่อน": "Pick the item you will give first", "รายการที่คุณตั้งขาย": "Your listings", "ไม่มีเครื่องรางว่าง": "No spare amulets", "แตะศัตรูที่จะโจมตี": "tap the enemy to attack", "ขายได้จะได้รับ": "You receive", "ศัตรู:": "Enemies:", "รางวัล:": "Reward:", "แผนที่:": "Map:", "เครื่องราง:": "Amulet:", "ยังไม่ได้ใส่": "none", "ตัวละครทั้ง": "All", "แบบใช้ได้ฟรี": "characters are free", "แตะเพื่อเปลี่ยน": "tap to change", "แตะเพื่อปิด": "Tap to close", "เล่นด่านนี้อีก": "Replay this stage", "ได้เครื่องราง": "Amulet found", "ไม่พอจ่ายภาษี": "is not enough for the tax", "การันตี 3 ใบ": "3 cards guaranteed", "PvP · ทัวร์นาเมนต์": "PvP · Tournament", "การ์ดของฉัน": "My Cards", "ขายหมดแล้ว": "Sold out", "ตลาดประมูล": "Auction House", "ยืนยันเทรด": "Confirm trade", "สายโจมตี": "Attacker", "แท้งค์": "Tank", "ซัพพอร์ต": "Support", "ดาเมจคริ": "Crit damage", "คริติคอลแน่นอน": "guaranteed critical", "สร้างโล่ให้ตัวเอง": "Shield self for", "ของ DEF สูงสุด ล่อศัตรูให้ตีตัวเอง 1 รอบ และรับดาเมจลดลง 40%": "of max DEF, taunt enemies for 1 round and take 40% less damage", "สร้างโล่ให้ทั้งทีม": "Shield the whole team for", "ของ DEF สูงสุดของผู้ใช้": "of the caster's max DEF", "พลังโจมตีของตัวเองเพิ่มเป็น": "Own attack rises to", "พลังโจมตีของทั้งทีมเพิ่มเป็น": "Team attack rises to", "อัปเดตใหญ่: ตัวละครชุดใหม่ทั้งหมด เริ่มด่าน 1 ใหม่ · Gold เพชร และเครื่องรางยังอยู่ครบ": "Big update: an all-new character set, starting again from stage 1 · your Gold, diamonds and amulets are kept", "ชดเชยการ์ดชุดเก่า": "for your old cards", "ของขวัญล็อกอิน: การ์ดเริ่มต้น 3 ใบ": "Login gift: 3 Starter cards", "ของ MATK คริติคอลแน่นอน": "of MATK guaranteed critical", "เต็มจอแนวนอน": "Fullscreen landscape", "หมุนเครื่องเป็นแนวนอนจริง แป้นพิมพ์จะเป็นแนวนอนด้วย": "Really turns the device to landscape, so the keyboard is landscape too", "ส่ง": "Send", "ผู้เล่นที่อยู่ห้องเดียวกันจะเห็นกันและส่งเครื่องรางให้กันได้": "Players in the same room see each other and can send amulets", "ล็อกอินด้วย Google เพื่อเห็นผู้เล่นอื่น ตอนนี้เดินได้คนเดียว": "Sign in with Google to see other players. For now you walk alone.", "แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อส่งของ": "Tap the ground to walk · tap another player to send an item", "แตะพื้นเพื่อเดิน · ล็อกอิน Google เพื่อเห็นผู้เล่นอื่น": "Tap the ground to walk · sign in with Google to see other players", "ผู้รับไม่รับของ ได้ของและภาษีคืน": "The receiver declined. Item and tax refunded.", "ส่งของไม่สำเร็จ ได้ของและภาษีคืน": "Sending failed. Item and tax refunded.", "ผู้รับได้รับของแล้ว": "The receiver got the item", "รอผู้รับยืนยัน": "waiting for the receiver to confirm", "เลือกได้เฉพาะตัวละครของการ์ดที่คุณมี ได้การ์ดใหม่ก็ได้ตัวละครเพิ่ม": "You can use the characters of cards you own. New cards unlock new characters.", "รีเฟรชตลาด": "Refresh market", "ต้องล็อกอินด้วย Google ก่อนจึงใช้ตลาดได้": "Sign in with Google to use the market", "กำลังโหลดตลาด…": "Loading the market…", "ยังไม่มีใครตั้งขาย": "Nobody is selling yet", "ขายของได้ รับ": "Items sold. You received", "ตั้งขายแล้ว": "Listed", "ยกเลิกแล้ว ได้ของคืน": "Cancelled, item returned", "ซื้อสำเร็จ ได้": "Bought:", "ของชิ้นนี้ถูกซื้อไปแล้ว": "This item was already bought", "เชื่อมต่อตลาดไม่ได้": "Could not reach the market", "ช่วง OBT ยังไม่เปิดเติมเงิน ตอนนี้ได้เพชรจากการแลก Gold เท่านั้น": "Top-ups are closed during OBT. For now diamonds come only from trading in Gold.", "ยังไม่เปิดเติมเงิน": "Top-ups closed", "Starter Pack ออก Rare ขึ้นไปได้ไม่เกิน 1 ใบต่อกล่อง · ได้ใบซ้ำจะเก็บไว้ใช้อัปดาวการ์ดใบนั้น": "A Starter Pack holds at most one Rare-or-better card · duplicates are kept to star up that card", "ล็อกอินด้วย Gmail เซฟจะเก็บบนคลาวด์ เปลี่ยนเครื่องก็เล่นต่อได้ · Guest เก็บเซฟในเครื่องนี้เท่านั้น": "Sign in with Gmail to keep your save in the cloud and continue on any device · Guest saves stay on this device", "เซฟเก็บบนคลาวด์ตามบัญชี Google เปลี่ยนเครื่องแล้วเล่นต่อได้": "Your save is stored in the cloud under your Google account. Continue on any device.", "Guest เก็บเซฟในเครื่องนี้เท่านั้น ล็อกอิน Google เพื่อเก็บเซฟบนคลาวด์": "Guest saves stay on this device only. Sign in with Google for a cloud save.", "ช่องว่าง": "Empty slot", "ศรน้ำแข็ง": "Ice Bolt", "หอกน้ำแข็ง": "Ice Lance", "พายุหิมะ": "Blizzard", "ยิง": "Shot", "ยิงเจาะเกราะ": "Piercing Shot", "ห่ากระสุน": "Barrage", "ระบำดาบ": "Blade Dance", "ฟาดหนัก": "Heavy Blow", "ทุบคลั่ง": "Frenzy Smash", "กวาดล้าง": "Sweep", "ลำแสงเวท": "Arcane Beam", "คำสาป": "Curse", "ดาวตก": "Starfall", "ดาบโลหิต": "Blood Blade", "พายุโลหิต": "Blood Storm", "ดูดเลือด": "Blood Feast", "ทุบ": "Smash", "เกราะศรัทธา": "Faith Armor", "ศรวิญญาณ": "Soul Bolt", "คลื่นวิญญาณ": "Soul Wave", "ราตรีนิรันดร์": "Endless Night", "สายฟ้าทมิฬ": "Dark Bolt", "คลื่นมืด": "Dark Wave", "วันสิ้นโลก": "Doomsday", "การ์ด 3 ใบ ·": "3 cards ·", "การ์ด 1 ใบ ·": "1 card ·", "ได้ใบซ้ำจะเก็บเป็นใบซ้ำ ใช้อัปดาวการ์ดใบนั้น": "Duplicates are kept as copies and used to star up that card", "เปิดแพ็คแล้วการ์ดจะขึ้นตรงนี้": "Cards from the pack appear here", "ใบซ้ำ": "copies", "อัปดาว": "Star up", "ดาวละ ATK/DEF +3% · เลเวลสูงสุด": "Each star: ATK/DEF +3% · max level", "โบนัสชนะบอสครั้งแรก": "First boss win bonus", "โบนัสบอส": "boss bonus", "ฟาร์มออฟไลน์": "Offline farm", "สะสม": "Earns", "Gold ต่อชั่วโมง สูงสุด": "Gold per hour, up to", "ชั่วโมง ยิ่งผ่านด่านสูงยิ่งได้มาก": "hours. Higher stages earn more.", "เก็บ": "Collect", "ภารกิจรีเซ็ตทุกวัน": "Quests reset daily", "ภารกิจ": "Quests", "ชนะ 10 ด่าน": "Win 10 stages", "ชนะด่านบอส 1 ครั้ง": "Win 1 boss stage", "เก็บ Gold ออฟไลน์ 1 ครั้ง": "Collect offline Gold once", "รับแล้ว": "Claimed", "รับรางวัล": "Claim", "ยังไม่ครบ": "In progress", "ออฟไลน์": "Offline", "แลก Gold เป็นเพชร": "Trade Gold for diamonds", "แลกได้ไม่จำกัด · คุณมี": "No limit · you have", "แลกแล้ววันนี้": "Done today", "แลก": "Exchange", "การ์ดเริ่มต้น": "Starter", "ยินดีต้อนรับ": "Welcome", "ของขวัญล็อกอินครั้งแรก: การ์ดเริ่มต้น 3 ใบ": "First-login gift: 3 Starter cards", "รับการ์ด": "Claim cards", "รายการขายจากผู้เล่นอื่น": "Listings from other players", "ยังไม่มีรายการขาย ของในตลาดมาจากผู้เล่นตั้งขายเท่านั้น และจะเห็นของกันได้เมื่อเกมมีเซิร์ฟเวอร์ฐานข้อมูล": "No listings yet. Everything in the market is listed by players, and listings become visible to others once the game has a database server.", "เติมเพชร": "Top up diamonds", "เพชรใช้เปิดแพ็คการ์ด": "Diamonds open card packs", "โหมดทดสอบ: ยังไม่เชื่อมระบบชำระเงิน กดซื้อแล้วได้เพชรโดยไม่ตัดเงินจริง": "Test mode: no payment system is connected yet. Buying grants diamonds without charging real money.", "รายการที่เลือก": "Selected", "ยืนยัน (ทดสอบ ไม่ตัดเงิน)": "Confirm (test, no charge)", "ชำระเงิน": "Pay", "แตะแพ็กเพชรที่ต้องการ": "Tap a diamond pack", "ตอนนี้เพชรไม่พอ": "Not enough diamonds yet.", "ร้านเพชร": "Diamond Shop", "ยังไม่มีผู้เล่นอื่นในห้อง ผู้เล่นจริงจะเห็นกันเมื่อเกมมีเซิร์ฟเวอร์ฐานข้อมูล": "No other players here yet. Real players will see each other once the game has a database server.", "แตะพื้นเพื่อเดิน · ยังไม่มีผู้เล่นอื่นในห้อง": "Tap the ground to walk · no other players here yet", "เข้าสู่ระบบด้วย Google": "Sign in with Google", "เล่นแบบ Guest": "Play as Guest", "ล็อกอินด้วย Gmail เพื่อแยกเซฟตามบัญชี": "Sign in with Gmail to keep a separate save per account", "ล็อกอิน Google จะเปิดใช้เมื่อเกมอยู่บนเซิร์ฟเวอร์ของตัวเอง ตอนนี้เข้าเล่นแบบ Guest ได้": "Google sign-in turns on once the game runs on its own server. For now, play as a guest.", "บัญชี:": "Account:", "เซฟเก็บในเครื่องนี้ แยกตามบัญชีที่ล็อกอิน ยังไม่ซิงก์ข้ามเครื่อง": "Saves stay on this device, one per signed-in account. No cross-device sync yet.", "การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ": "Only cards in the winning team gain Exp", "ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า": "Boss stages come every 10 stages, always drop Gold and drop amulets more often", "การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน": "Each rank has its own max level", "ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้": "Check the recommended Lv on the stage screen before a fight", "การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง": "A trade is a gift: every transfer asks you to confirm sender or receiver", "Lv แนะนำ": "Recommended Lv", "ทีมคุณ": "your team", "เลเวลทีมต่ำกว่าที่แนะนำ ลองเก็บเลเวลจากด่านก่อนหน้า": "Your team is under the recommended level. Level up on earlier stages first.", "ส่งแล้ว:": "Sent:", "รับแล้ว:": "Received:", "ผู้ส่งเป็นคนจ่าย": "paid by the sender", "คุณมี": "you have", "Gold ไม่พอจ่ายภาษี": "Not enough Gold for the tax", "ฉันเป็นผู้ส่ง": "I'm sending", "ฉันเป็นผู้รับ": "I'm receiving", "การเทรดคือการให้ของ ไม่ต้องมีของมาแลก": "A trade is a gift. Nothing has to come back.", "เลือกของที่จะส่ง": "Pick the item to send", "ถัดไป": "Next", "ผู้ส่ง": "Sender", "ผู้รับ": "Receiver", "(คุณ)": "(you)", "ยืนยันการส่งของ": "Confirm sending", "ยืนยันการรับของ": "Confirm receiving", "คุณเป็นผู้ส่ง ของชิ้นนี้จะออกจากกระเป๋าคุณ และคุณจะไม่ได้อะไรตอบแทน": "You are the sender. This item leaves your bag and you get nothing back.", "คุณเป็นผู้รับ คุณไม่ต้องให้อะไรตอบแทน ผู้ส่งเป็นคนจ่ายภาษี": "You are the receiver. You give nothing back. The sender pays the tax.", "ยืนยัน ฉันเป็นผู้ส่ง": "Confirm: I'm the sender", "ยืนยัน ฉันเป็นผู้รับ": "Confirm: I'm the receiver", "ไม่รับ": "Decline", "ส่งของให้": "Send to", "เทรดไอเท็ม": "Trade items", "ด่านถัดไป:": "Next stage:", "ตะลุยด่าน": "Stages", "รอผู้ซื้อ": "waiting for a buyer", "ออกจากทีม": "from the team", "ตลาดกลาง": "Market", "ผ่านแล้ว": "Cleared", "ภาษีเทรด": "Trade tax", "ร้านเพชร": "Diamond Shop", "ร้านแพ็ค": "Pack Shop", "หน้าหลัก": "Home", "ห้องอื่น": "Rooms", "ห้องเทรด": "Trade Room", "เลเวลอัป!": "Level up!", "ตัวละคร": "Character", "ตั้งขาย": "List", "ทั้งหมด": "All", "เข้าสู้": "Fight", "เทรดกับ": "Trade with", "(เล่นซ้ำ)": "(replay)", "(สุ่มดรอป)": "(random drop)", "รอบนี้ Gold ไม่ดรอป": "No Gold dropped this time", "คุณให้": "You give", "บันทึก": "Save", "ยกเลิก": "Cancel", "ต่อครั้ง · คุณมี": "per trade · you have", "เทรดสำเร็จ ได้": "Trade done. Got", "จ่ายภาษี": "tax paid", "ใส่อยู่": "equipped", "ว่าง": "spare", "เครื่องราง": "Amulets", "ทุกใบ Lv +5": "All cards Lv +5", "ต่อใบ": "per card", "ออโต้": "Auto", "ถอย": "Retreat", "กลับ": "Back", "ปิด": "Close", "เต็ม": "full", "เพชร": "Diamonds", "ใหม่!": "New!", "ซ้ำ →": "Duplicate →", "ชนะ!": "Victory!", "แพ้": "Defeat", "ออก": "Leave", "เปิด": "Open", "ซื้อ": "Buy", "บอส": "Boss", "ผู้เล่น": "Player", "ตั้งค่า": "Settings", "เสียงกดปุ่ม": "Button sound", "เสียงต่อสู้": "Battle sounds", "ภาษา": "Language", "ออกจากระบบ": "Log out", "เข้าเล่น": "Start", "ปิดอยู่": "Off", "เปิดอยู่": "On", "ออกจากระบบแล้ว": "You are logged out", "เกมยังไม่มีระบบบัญชี ข้อมูลเซฟยังอยู่ในเครื่องนี้": "There are no accounts yet. Your save stays on this device.", "เกมยังไม่มีระบบบัญชี ออกจากระบบจะกลับไปหน้าเริ่มเกม เซฟยังอยู่ในเครื่อง": "There are no accounts yet. Logging out returns to the title screen; your save stays on this device.", "พัก": "rest", "โจมตีศัตรู 1 ตัว": "Hit one enemy for", "โจมตีศัตรูทุกตัว": "Hit all enemies for", "ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of ATK, doubled if the target is below half DEF", "ของ MATK แรงเป็น 2 เท่าถ้าเป้าหมาย DEF เหลือไม่ถึงครึ่ง": "of MATK, doubled if the target is below half DEF", "ของ ATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of ATK and heal self for half the damage", "ของ MATK แล้วฟื้น DEF ตัวเองครึ่งหนึ่งของดาเมจ": "of MATK and heal self for half the damage", "ฟื้น DEF ให้เพื่อนที่เจ็บสุด": "Heal the most hurt ally for", "ฟื้น DEF ให้ทั้งทีม": "Heal the whole team for", "ฟื้น DEF ตัวเอง": "Heal self for", "ของ DEF สูงสุด": "of max DEF", "ของตัวเองเพิ่มเป็น": "of self rises to", "จนจบด่าน": "until the stage ends", "ของ MATK": "of MATK", "ของ ATK": "of ATK", "ใช้": "uses", "โจมตี": "attacks", "ฟันขวาน": "Axe Chop", "ขวานคลั่ง": "Frenzy Axe", "ศึกเผ่าก๊อบลิน": "Goblin War Cry", "พุ่งชน": "Body Slam", "เมือกหุ้มตัว": "Slime Coat", "คลื่นเมือก": "Slime Wave", "แทงเงา": "Shadow Stab", "ลอบแทง": "Backstab", "ระบำเงา": "Shadow Dance", "ยิงธนู": "Arrow Shot", "ศรเจาะเกราะ": "Piercing Arrow", "ห่าฝนธนู": "Arrow Rain", "ฟันดาบ": "Slash", "จุดตาย": "Vital Point", "พันคมดาบ": "Thousand Cuts", "แสงศักดิ์สิทธิ์": "Holy Light", "รักษา": "Heal", "พรแห่งแสง": "Blessing of Light", "ลูกไฟ": "Fireball", "เสาเพลิง": "Flame Pillar", "อุกกาบาต": "Meteor", "ลำแสงจันทร์": "Moonbeam", "คำสาปจันทรา": "Lunar Curse", "จันทร์ดับ": "Eclipse", "ตะปบ": "Claw", "ลมหายใจไฟ": "Fire Breath", "เพลิงล้างโลก": "World Burner", "ฟาดขวาน": "Axe Swing", "ขวานกวาด": "Axe Sweep", "ตั้งโล่": "Shield Up", "บุกทะลวง": "Charge", "เคียวเงา": "Shadow Scythe", "ดูดวิญญาณ": "Soul Drain", "เก็บเกี่ยว": "Reap", "ดาบแสง": "Light Blade", "โล่ศรัทธา": "Shield of Faith", "พิพากษา": "Judgement", "หมัดหิน": "Stone Fist", "ผิวศิลา": "Stone Skin", "แผ่นดินไหว": "Earthquake", "ศรมรณะ": "Death Bolt", "ดูดชีพ": "Life Drain", "กองทัพกระดูก": "Bone Army", "เขี้ยวเสือ": "Tiger Fang", "กระดองเต่า": "Turtle Shell", "ตาเหยี่ยว": "Hawk Eye", "หัวใจมังกร": "Dragon Heart", "หินผา": "Bedrock", "เอา": "Remove", "เลือก": "Selected", "ให้": "gives", "คน": "players", "ด่าน": "Stage", "รอบ": "Round", "ห้อง": "Room", "ตา": "turns", "ใบ": "cards"};
 const EN_RX=[["ผ่านแล้ว (\\d+)/(\\d+) ด่าน · มีการ์ด (\\d+)/(\\d+) ใบ", "Cleared $1/$2 stages · $3/$4 cards"], ["Exp (\\d+) ต่อใบ", "Exp $1 per card"], ["· พัก (\\d+) ตา", "· $1-turn cooldown"], ["ใส่อยู่ (\\d+) · ว่าง (\\d+)", "$1 equipped · $2 spare"], ["เลือก \"(.+?)\" อยู่ แตะการ์ดที่จะใส่", "\"$1\" selected. Tap a card to equip it."], ["ตั้งขาย (.+)$", "List $1"], ["เข้าสู้ \\((\\d)/3\\)", "Fight ($1/3)"], ["เอา (.+?) ออกจากทีม", "Remove $1 from the team"], ["(.+?) ให้$", "$1 gives"], ["^ซื้อ (\\d+) Gold", "Buy for $1 Gold"], ["ใบซ้ำ \\+1 \\(มี (\\d+)\\)", "Copy +1 (have $1)"], ["เปิด (\\d+) Gold", "Open for $1 Gold"], ["เปิด (\\d+) เพชร", "Open for $1 diamonds"], ["(\\d+)/(\\d+) คน", "$1/$2 players"], ["ซ้ำ → Exp", "Duplicate → Exp"]].map(([a,b])=>[new RegExp(a),b]),EN_KEYS=Object.keys(EN).sort((a,b)=>b.length-a.length),THAI=/[\u0e00-\u0e7f]/;
 function tr(x){if(!THAI.test(x))return x;for(const [r,b] of EN_RX)x=x.replace(r,b);for(const k of EN_KEYS){if(x.includes(k))x=x.split(k).join(EN[k]);if(!THAI.test(x))break}return x}
 function trNode(n){if(n.nodeType===3){if(n.parentNode&&n.parentNode.closest&&n.parentNode.closest('.nt'))return;const v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v;return}
@@ -1316,7 +1285,7 @@ function settings(){
     <p class="sub">${USER&&USER.sub?'เซฟเก็บบนคลาวด์ตามบัญชี Google เปลี่ยนเครื่องแล้วเล่นต่อได้':'Guest เก็บเซฟในเครื่องนี้เท่านั้น ล็อกอิน Google เพื่อเก็บเซฟบนคลาวด์'}</p>
     <div class="row"><span style="flex:1">เซฟ</span><button class="btn red sm" data-act="reset">${armed?'แตะอีกครั้งเพื่อลบเซฟ':'เริ่มใหม่ทั้งหมด'}</button></div>
     ${TEST?`<p class="sub">โหมดเทส: ปลดล็อกครบทุกใบ</p><div class="row"><button class="btn alt sm" data-act="tgold">Gold +10000</button><button class="btn alt sm" data-act="tlv">ทุกใบ Lv +5</button><button class="btn alt sm" data-act="tam">เครื่องราง +1 ทุกชิ้น</button></div>`:''}</div></div>`)}
-const COVER_BG='bg/39.webp',CAST=[['c45',78,24,0,1],['c41',66,2,0,1],['c14',66,50,0,1],['c50',60,14,0,0],['c03',58,38,0,0],['c37',60,62,0,0]];
+const COVER_BG='bg/39.webp',CAST=[['h03',78,24,0,1],['h07',66,2,0,1],['h19',66,50,0,1],['h22',60,14,0,0],['h13',58,38,0,0],['h09',60,62,0,0]];
 function titleScreen(){
   const emb=Array.from({length:16},(_,i)=>`<i class="emb" style="--x:${(i*37+11)%100}%;--t:${4+i%5}s;--d:${-(i*.7)}s;--dx:${(i%2?1:-1)*(10+i*3)}px;--c:${['#ffb04a','#ff6a3a','#ffe45c'][i%3]}"></i>`).join('');
   view(`<div class="cover" style="--bg:url(${COVER_BG})"><div class="cbg"></div>${emb}
@@ -1334,7 +1303,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b64';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b65';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
@@ -1355,7 +1324,7 @@ function signIn(u){const lang=S&&S.lang;USER=u;try{localStorage.setItem(SESSION,
   if(u.sub){loading(cloudPull().then(fin,fin))}else{fin();loading()}}
 function welcome(){
   view(`<div class="loadv" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
-   <h2 style="font-size:24px">ยินดีต้อนรับ</h2><p>ของขวัญล็อกอินครั้งแรก: การ์ดเริ่มต้น 3 ใบ</p>
+   <h2 style="font-size:24px">ยินดีต้อนรับ</h2><p>${S.mig!=null?'อัปเดตใหญ่: ตัวละครชุดใหม่ทั้งหมด เริ่มด่าน 1 ใหม่ · Gold เพชร และเครื่องรางยังอยู่ครบ'+(S.mig?` · <b class="nt gold">+${S.mig.toLocaleString('en')} Gold</b> ชดเชยการ์ดชุดเก่า`:'')+'<br>':''}ของขวัญล็อกอิน: การ์ดเริ่มต้น 3 ใบ</p>
    <div class="gift">${GIFT.map(id=>`<div>${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}</div>`).join('')}</div>
    <button class="btn go" data-act="claim">รับการ์ด</button></div>`)}
 const TIPS=['การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ','ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า','การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน','ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้','การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง'];
