@@ -28,5 +28,14 @@ service cloud.firestore {
         && request.resource.data.gold >= 0 && request.resource.data.gold <= 5000000;
       allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
     }
+    // manual top-up: only the owner's account may create a grant; the receiving player reads and deletes their own
+    // replace OWNER_EMAIL with the owner's Google address in the Firebase console (do not commit the real address here)
+    match /grants/{id} {
+      allow create: if request.auth != null
+        && request.auth.token.email == 'OWNER_EMAIL'
+        && request.resource.data.dia is int
+        && request.resource.data.dia > 0 && request.resource.data.dia <= 100000;
+      allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
+    }
   }
 }
