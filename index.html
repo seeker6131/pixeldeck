@@ -438,6 +438,15 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .cnote{font-size:11px;color:#aeb9ee;max-width:250px}
 .cfoot{position:absolute!important;left:16px;bottom:8px;font-size:10px;color:rgba(255,255,255,.6)}
 .clang{position:absolute!important;right:14px;top:10px;display:flex;gap:6px}
+/* painted cover: the art already carries the logo, so the screen only adds a strip of controls along the bottom */
+.cover{display:grid;grid-template-columns:1fr;align-items:end}
+.cover .cbg,.loadv.art .cbg{background:var(--bg) center 100%/cover;image-rendering:auto;filter:none}
+.cover .cbg::after,.loadv.art .cbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,11,31,.35) 0,transparent 16%,transparent 74%,rgba(8,11,31,.92) 96%)}
+.cover .cpanel{position:static!important;padding:0 16px 7px;gap:0}.cover .cbtns{position:relative;z-index:2}.cover .cnote{z-index:2}
+.cover .cbtns{display:flex;justify-content:center;gap:10px;width:auto;margin:0}.cover .cbtns .btn,.cover .gbtn{width:auto;min-width:180px;min-height:34px;padding-top:3px;padding-bottom:3px;font-size:13px;box-shadow:0 4px 0 #080b1f,0 0 18px rgba(0,0,0,.6)}
+.cover .cnote{position:absolute!important;left:14px;top:9px;max-width:56%;text-align:left;font-size:10px;color:#dfe6ff;text-shadow:0 1px 0 #080b1f,0 0 6px #080b1f}
+.loadv.art{width:calc(100% + 32px);place-content:end center;padding-bottom:5px;gap:1px}
+.loadv.art .ltip{font-size:11px}.loadv.art .lpct{font-size:12px;line-height:1.2}.loadv.art .lbar{height:11px;border-width:2px;box-shadow:0 0 0 2px rgba(255,220,120,.7),0 0 16px rgba(0,0,0,.7)}.loadv.art .ltip{min-height:0;color:#fff;text-shadow:0 1px 0 #080b1f,0 0 6px #080b1f}.loadv.art .lpct{text-shadow:0 2px 0 #080b1f}
 .emb{position:absolute;z-index:1;bottom:-6px;left:var(--x);width:4px;height:4px;background:var(--c,#ffb04a);opacity:0;animation:emb var(--t,5s) linear infinite;animation-delay:var(--d,0s);pointer-events:none}
 @keyframes emb{0%{transform:translate(0,0);opacity:0}12%{opacity:.95}100%{transform:translate(var(--dx,20px),calc(var(--H)*-.9));opacity:0}}
 .loadv{position:relative;height:calc(100% + 20px);margin:-10px -16px;overflow:hidden;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center}
@@ -1285,14 +1294,11 @@ function settings(){
     <p class="sub">${USER&&USER.sub?'เซฟเก็บบนคลาวด์ตามบัญชี Google เปลี่ยนเครื่องแล้วเล่นต่อได้':'Guest เก็บเซฟในเครื่องนี้เท่านั้น ล็อกอิน Google เพื่อเก็บเซฟบนคลาวด์'}</p>
     <div class="row"><span style="flex:1">เซฟ</span><button class="btn red sm" data-act="reset">${armed?'แตะอีกครั้งเพื่อลบเซฟ':'เริ่มใหม่ทั้งหมด'}</button></div>
     ${TEST?`<p class="sub">โหมดเทส: ปลดล็อกครบทุกใบ</p><div class="row"><button class="btn alt sm" data-act="tgold">Gold +10000</button><button class="btn alt sm" data-act="tlv">ทุกใบ Lv +5</button><button class="btn alt sm" data-act="tam">เครื่องราง +1 ทุกชิ้น</button></div>`:''}</div></div>`)}
-const COVER_BG='bg/39.webp',CAST=[['h03',78,24,0,1],['h07',66,2,0,1],['h19',66,50,0,1],['h22',60,14,0,0],['h13',58,38,0,0],['h09',60,62,0,0]];
+const COVER_BG='cover.webp',CAST=[['h03',78,24,0,1],['h07',66,2,0,1],['h19',66,50,0,1],['h22',60,14,0,0],['h13',58,38,0,0],['h09',60,62,0,0]];
 function titleScreen(){
   const emb=Array.from({length:16},(_,i)=>`<i class="emb" style="--x:${(i*37+11)%100}%;--t:${4+i%5}s;--d:${-(i*.7)}s;--dx:${(i%2?1:-1)*(10+i*3)}px;--c:${['#ffb04a','#ff6a3a','#ffe45c'][i%3]}"></i>`).join('');
   view(`<div class="cover" style="--bg:url(${COVER_BG})"><div class="cbg"></div>${emb}
-   <div class="cast">${CAST.map(([id,h,x,d,b])=>sprite(id,b?'back':'',`--h:${h}%;--x:${x}%`)).join('')}</div>
    <div class="cpanel">
-    <h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1>
-    <p class="ctag nt">COLLECT · BATTLE · TRADE</p>
     <div class="cbtns">
      <button class="gbtn" id="gbtn" data-act="glogin" ${FB_CFG?'':'disabled'}><i class="nt">G</i>เข้าสู่ระบบด้วย Google</button>
      <button class="btn go" data-act="guest">เล่นแบบ Guest</button>
@@ -1303,7 +1309,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b65';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b66';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
@@ -1330,10 +1336,8 @@ function welcome(){
 const TIPS=['การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ','ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า','การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน','ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้','การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง'];
 // loading screen: really preloads every card, fighter and the next map so nothing pops in during play
 function loading(wait){
-  const next=Math.min(MAXST,S.cleared+1),list=[mapImg(next),...Object.keys(C).flatMap(id=>[img(id),`spr/${id}.webp`])];
-  view(`<div class="loadv" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
-   <h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1>
-   <div class="lrun">${(S.team.length?S.team:GIFT).map((id,i)=>sprite(id,'',`--d:${-i*.17}s`)).join('')}</div>
+  const next=Math.min(MAXST,S.cleared+1),list=[COVER_BG,mapImg(next),...Object.keys(C).flatMap(id=>[img(id),`spr/${id}.webp`])];
+  view(`<div class="loadv art" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
    <div class="lbar"><i id="lbi"></i></div><p class="lpct nt" id="lpc">0%</p>
    <p class="ltip">${TIPS[Math.floor(Math.random()*TIPS.length)]}</p></div>`);
   let done=0,fin=false;const t0=performance.now(),total=list.length;
