@@ -452,6 +452,10 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 #zoom .skl{gap:5px 12px;margin-top:2px}#zoom .skl .sk{width:36px}#zoom .skl p{font-size:11px;line-height:1.25}#zoom .skl b{font-size:12px}#zoom h2{font-size:20px;line-height:1}.stb i small{font-size:11px;color:#aeb9ee;font-family:var(--body)}.strow small{flex-basis:100%;margin-top:-6px}
 .strow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--display);font-weight:700;font-size:15px;color:#ffe45c}.strow .tx{font-family:var(--body);font-size:12px;color:#c8d2ff}
 .strow .btn{display:inline-block;font-size:13px}.strow .btn i{font-style:normal}.strow .btn.off{--b1:#5a6082;--b2:#3d4260;--tx:#aab0cc;opacity:.85}
+/* upright name editor: the phone keyboard always follows the device, so when the stage is rotated the text field is shown unrotated above it */
+#kb{position:fixed;inset:0;z-index:99;background:rgba(8,11,31,.94);display:grid;align-content:start;justify-items:center;gap:12px;padding:28px 18px}
+#kb label{font-size:15px;color:#c8d2ff}#kb input{font:inherit;font-size:20px;padding:10px 12px;border:3px solid #080b1f;background:#fff1e8;color:#121a36;width:min(100%,340px);text-align:center}
+#kb .row{justify-content:center;gap:10px}
 </style>
 
 <div id="stage"><div id="view"></div><div id="ov"></div><button id="zoom" hidden></button></div>
@@ -1267,6 +1271,10 @@ function loading(){
 }
 function fit(){const w=innerWidth,h=innerHeight,p=h>w,s=$('stage');s.style.width=(p?h:w)+'px';s.style.height=(p?w:h)+'px';s.style.setProperty('--H',(p?w:h)+'px');s.style.transform=p?'rotate(90deg) translateY(-100%)':'none'}
 fit();addEventListener('resize',fit);
+document.addEventListener('focusin',ev=>{const n=ev.target;if(n.id!=='nm'||innerHeight<=innerWidth||$('kb'))return;n.blur();
+  const k=document.createElement('div');k.id='kb';k.innerHTML=`<label for="kbi">${S.lang==='en'?'Name (up to 12 characters)':'ชื่อ (ไม่เกิน 12 ตัวอักษร)'}</label><input id="kbi" maxlength="12" enterkeyhint="done"><div class="row"><button class="btn go" id="kbo">${S.lang==='en'?'OK':'ตกลง'}</button><button class="btn alt" id="kbc">${S.lang==='en'?'Cancel':'ยกเลิก'}</button></div>`;
+  document.body.append(k);const i=$('kbi');i.value=n.value;const done=ok=>{if(ok)n.value=i.value.slice(0,12);k.remove()};
+  $('kbo').onclick=()=>done(true);$('kbc').onclick=()=>done(false);i.onkeydown=e=>{if(e.key==='Enter')done(true)};setTimeout(()=>i.focus(),30)});
 S=load();try{const l=localStorage.getItem('pdb_lang');if(l&&!USER)S.lang=l}catch(e){}document.documentElement.lang=S.lang||'th';USER?loading():titleScreen();
 </script>
 
