@@ -58,6 +58,8 @@ p{margin:0}
 .pvrow{display:grid;grid-template-columns:minmax(90px,1fr) auto auto auto;align-items:center;gap:10px;padding:6px 10px;margin-bottom:7px;border:3px solid #080b1f;background:linear-gradient(180deg,#2c3884,#1d2560);box-shadow:inset 0 2px 0 rgba(150,200,255,.25)}
 .pvn{display:grid;min-width:0}.pvn b{font-family:var(--display);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pvn small{font-size:11px}.pvn .bot{font-style:normal;font-size:9px;background:#5a6aa0;padding:0 4px;justify-self:start}
 .pvt{display:flex;gap:5px}.pvc{position:relative;display:block;width:40px;border:2px solid var(--gl,#6f7cc0)}.pvc .art{aspect-ratio:1}.pvc i{position:absolute;left:0;right:0;bottom:0;font-style:normal;font-size:9px;line-height:1.2;text-align:center;background:rgba(8,11,31,.8)}
+.pvc.hid{aspect-ratio:1;display:grid;place-items:center;border-style:dashed;background:rgba(8,11,31,.6)}.pvc.hid b{font-family:var(--display);font-size:20px;color:#8f9be0}
+.bn.cd{height:calc(var(--H)*.46)}.bn.cd span{font-size:calc(var(--H)*.34);line-height:1}
 .pvw{font-family:var(--display);font-size:12px;color:#c8d2ff;white-space:nowrap}
 .ibtn.qb{font-family:var(--display);font-weight:700;font-size:20px;color:#ffe45c;line-height:1}
 .guide{font-size:13px;line-height:1.5}.guide h3{font-family:var(--display);font-size:20px;color:#ffe45c;margin:0 0 10px}
@@ -1091,10 +1093,12 @@ const fighter=(id,lv,o)=>{const v=stat(id,lv,o);return{id,lv,atk:v.atk,base:v.at
 // opp = an arena opponent {name,pts,team:[{id,lv,star,am}]}: its cards fight with their own skills instead of stage monsters
 async function startBattle(n,opp){
   bt={n,round:1,sel:0,log:'',pvp:opp||null,
-    al:S.team.map(id=>fighter(id,S.cards[id].lv)),
+    al:(opp?pvTeam():S.team).map(id=>fighter(id,S.cards[id].lv)),
     en:opp?opp.team.map(c=>fighter(c.id,c.lv,c)):stageDef(n).map(e=>({...e,max:e.hp}))};
   if(opp)[...bt.al,...bt.en].forEach(f=>{f.hp=f.max=f.max*PV_HP}); // cards hit each other far harder than stage monsters do, so arena fights give everyone more life
-  const my=bt;busy=true;draw();await vsIntro();if(bt!==my)return;sfx('start');await banner('START');if(bt!==my)return;
+  const my=bt;busy=true;draw();await vsIntro();if(bt!==my)return;
+  if(opp)for(const n of[3,2,1]){beep();ov(`<div class="bn cd"><span>${n}</span></div>`);await sleep(RM?600:1000);if(bt!==my)return}
+  sfx('start');await banner('START');if(bt!==my)return;
   busy=false;my.log='เลือกสกิล แล้วแตะศัตรู';draw();if(S.auto)autoAct();
 }
 const actor=()=>bt.al.find(a=>a.hp>0&&!a.done);
@@ -1241,7 +1245,10 @@ $('view').onclick=ev=>{
   else if(a==='prep'){if(bt&&bt.pvp){const o=bt.pvp;bt=null;busy=false;$('ov').innerHTML='';pvpResult(false,o);return}prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;$('ov').innerHTML='';prep()}
   else if(a==='pvp'){arena();pvpFetch()}
   else if(a==='pvref'){pvpFetch()}
-  else if(a==='pvgo'){const o=pv.opp&&pv.opp[+t.dataset.i],me=pvGet();if(o&&S.team.length&&(isDev()||me.n<PV_DAILY)){me.n++;save();startBattle(PV_STAGE,o)}}
+  else if(a==='pvgo'){pv.sel=+t.dataset.i;if(pv.opp&&pv.opp[pv.sel])pvPick()}
+  else if(a==='pvpick'){const tm=pvTeam(),k=tm.indexOf(id);if(k>=0)tm.splice(k,1);else if(tm.length<3)tm.push(id);save();pvPick()}
+  else if(a==='pvauto'){S.auto=!S.auto;save();pvPick()}
+  else if(a==='pvstart'){const o=pv.opp&&pv.opp[pv.sel],me=pvGet();if(o&&pvTeam().length&&(isDev()||me.n<PV_DAILY)){me.n++;save();pvpPush();startBattle(PV_STAGE,o)}}
   else if(a==='stg'){prepN+=+t.dataset.d;prep()}
   else if(a==='pick'){const k=S.team.indexOf(id);if(k>=0)S.team.splice(k,1);else if(S.team.length<3)S.team.push(id);save();const m=document.querySelector('.main'),y=m?m.scrollTop:0;prep();const n=document.querySelector('.main');if(n){n.scrollTop=y;requestAnimationFrame(()=>{n.scrollTop=y})}}
   else if(a==='ctab'){collTab=t.dataset.r;coll();const m=document.querySelector('.main');if(m){m.scrollTop=0;requestAnimationFrame(()=>{m.scrollTop=0})}}
@@ -1387,11 +1394,12 @@ $('stage').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('b
 /* ---------- PvP arena: fight another player's saved team (it plays itself); arena/{uid} = {name,look,team,pts,w,l,at} ---------- */
 const T=(a,b)=>S&&S.lang==='en'?b:a,esc=x=>String(x==null?'':x).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 const PV_HP=3,PV_CAP=15,PV_DAILY=5,PV_WIN=150,PV_LOSE=30,PV_START=1000,PV_STAGE=MAPSEQ.indexOf(8)>0?MAPSEQ.indexOf(8):1;
-const TIERS=[[2000,'Diamond','#7fe8ff'],[1600,'Platinum','#dfe6f2'],[1300,'Gold','#ffd23a'],[1100,'Silver','#aab2c0'],[0,'Bronze','#d99a66']],tierOf=p=>TIERS.find(t=>p>=t[0]);
+const TIERS=[[2500,'King','#ff5a3c'],[2000,'Master','#d59bff'],[1600,'Diamond','#7fe8ff'],[1300,'Gold','#ffd23a'],[1100,'Silver','#aab2c0'],[0,'Bronze','#d99a66']],tierOf=p=>TIERS.find(t=>p>=t[0]);
 const tierTag=p=>{const t=tierOf(p);return `<b style="color:${t[2]}">${t[1]}</b> ${p}`};
 let pv={list:[],state:'idle',opp:[]};
 function pvGet(){if(!S.pv)S.pv={pts:PV_START,w:0,l:0,d:today(),n:0};if(S.pv.d!==today()){S.pv.d=today();S.pv.n=0}return S.pv}
-const myDef=()=>S.team.filter(id=>S.cards[id]).map(id=>({id,lv:S.cards[id].lv,star:starOf(id),am:S.cards[id].am||''}));
+const pvTeam=()=>{if(!S.pvt)S.pvt=[...S.team];S.pvt=S.pvt.filter(id=>S.cards[id]&&C[id]).slice(0,3);return S.pvt};
+const myDef=()=>pvTeam().map(id=>({id,lv:S.cards[id].lv,star:starOf(id),am:S.cards[id].am||''}));
 // what other players post is not trusted: unknown cards are dropped and levels, stars and amulets are clamped to what the game allows
 function pvClean(d,uid){const team=(Array.isArray(d.team)?d.team:[]).filter(c=>c&&C[c.id]).slice(0,3).map(c=>{const star=Math.max(0,Math.min(5,c.star|0));return{id:c.id,star,am:AM[c.am]?c.am:'',lv:Math.max(1,Math.min(RAR[C[c.id].r].cap+capBonus(C[c.id].r)*star,c.lv|0))}});
   return{uid,name:String(d.name||'Player').slice(0,12),look:C[d.look]?d.look:(team[0]&&team[0].id),team,pts:Math.max(0,Math.min(9999,d.pts|0)),w:d.w|0,l:d.l|0}}
@@ -1401,28 +1409,39 @@ function pvpFetch(){if(!mkOn()){pv.state='guest';if(document.querySelector('.are
    .then(q=>{pv.list=q.docs.map(d=>pvClean(d.data(),d.id)).filter(o=>o.team.length);pv.state='ok'}).catch(e=>{pv.state='err';pv.err=e&&(e.code||e.message)||'?'}).then(()=>{if(document.querySelector('.arenav'))arena()})}
 // bots fill the list so there is always someone to fight: same ranks as my team, levels around mine, fixed for the day
 const BOTN=['Kraken','Mako','Barracuda','Marlin','Tsunami','Leviathan','Coral','Riptide'];
-function pvBots(n){const me=pvGet(),mine=myDef();let x=0;for(const ch of today()+(USER&&USER.sub||'g'))x=(Math.imul(x,31)+ch.charCodeAt(0))>>>0;const R=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296};
+function pvBots(n){const me=pvGet(),own=byRank(Object.keys(S.cards).filter(id=>C[id])),mine=[...new Set([...pvTeam(),...own])].slice(0,3).map(id=>({id,lv:S.cards[id].lv,star:starOf(id)}));let x=0;for(const ch of today()+(USER&&USER.sub||'g'))x=(Math.imul(x,31)+ch.charCodeAt(0))>>>0;const R=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296};
   return Array.from({length:n},(_,i)=>{const team=mine.map(c=>{const ids=Object.keys(C).filter(id=>C[id].r===C[c.id].r),id=ids[Math.floor(R()*ids.length)];return{id,star:c.star,am:'',lv:Math.max(1,Math.min(RAR[C[id].r].cap+capBonus(C[id].r)*c.star,Math.round(c.lv*(.82+.3*R()))))}});
     return{bot:1,uid:'bot'+i,name:BOTN[Math.floor(R()*BOTN.length)],look:team[0]&&team[0].id,team,pts:Math.max(0,me.pts+Math.round((R()-.45)*160)),w:0,l:0}})}
-function pvOpps(){const me=pvGet(),real=pv.state==='ok'?pv.list.filter(o=>o.uid!==(USER&&USER.sub)).sort((a,b)=>Math.abs(a.pts-me.pts)-Math.abs(b.pts-me.pts)).slice(0,4):[];
-  return pv.opp=S.team.length?[...real,...pvBots(Math.max(1,4-real.length))]:[]}
+function pvOpps(){pvTeam();const me=pvGet(),real=pv.state==='ok'?pv.list.filter(o=>o.uid!==(USER&&USER.sub)).sort((a,b)=>Math.abs(a.pts-me.pts)-Math.abs(b.pts-me.pts)).slice(0,4):[];
+  return pv.opp=(S.pvt.length||S.team.length)?[...real,...pvBots(Math.max(1,4-real.length))]:[]}
 const pvDelta=(won,opp)=>{const d=Math.round((opp.pts-pvGet().pts)/25);return won?Math.max(8,Math.min(40,20+d)):-Math.max(4,Math.min(24,12-d))};
 function arena(){const me=pvGet(),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),opp=pvOpps(),can=isDev()||me.n<PV_DAILY;
-  const tm=o=>`<span class="pvt">${o.team.map(c=>`<span class="pvc r-${C[c.id].r}">${art(c.id)}<i>Lv${c.lv}</i></span>`).join('')}</span>`;
+  const tm=o=>`<span class="pvt">${[0,1,2].map(()=>'<span class="pvc hid"><b>?</b></span>').join('')}</span>`;
   const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริงและขึ้นตารางอันดับ ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players and enter the ranking. Bots are available now.'),load:T('กำลังโหลดรายชื่อ…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้: ','Arena offline: ')+esc(pv.err||''),ok:'',idle:''}[pv.state];
   const top=pv.state==='ok'?pv.list.slice(0,10):[];
   view(`<div class="cols arenav"><div class="rail nt"><div class="row"><button class="btn alt sm" data-act="home">${T('กลับ','Back')}</button><h2>PvP</h2></div>
     <p class="num" style="font-size:18px">${tierTag(me.pts)}</p><p class="sub">${T('ชนะ','Wins')} ${me.w} · ${T('แพ้','Losses')} ${me.l}</p>
     <p class="sub">${T('สู้ได้อีก','Fights left today')}: <b style="color:#ffe45c">${left}${isDev()?'':'/'+PV_DAILY}</b></p>
     <p class="sub">${T(`ชนะ +${PV_WIN} Gold · แพ้ +${PV_LOSE} Gold`,`Win +${PV_WIN} Gold · lose +${PV_LOSE} Gold`)}</p>
-    <p class="sub">${T('ทีมป้องกันของคุณคือทีมที่จัดไว้ล่าสุด ผู้เล่นอื่นจะสู้กับทีมนี้ตอนคุณไม่อยู่','Your defence team is your current team. Other players fight it while you are away.')}</p>
-    <div class="pvsq">${S.team.map(id=>`<span>${sprite(id,'front')}</span>`).join('')}</div>
-    <button class="btn alt sm" data-act="prep">${T('จัดทีม','Edit team')}</button><button class="btn alt sm" data-act="pvref">${T('รีเฟรช','Refresh')}</button></div>
+    <p class="sub">${T('ทีมป้องกันคือทีม PvP ที่ใช้ล่าสุด คู่ต่อสู้จะไม่เห็นการ์ดของคุณก่อนเริ่ม','Your defence team is your last PvP team. Opponents cannot see your cards before the fight.')}</p>
+    <div class="pvsq">${pvTeam().map(id=>`<span>${sprite(id,'front')}</span>`).join('')}</div>
+    <button class="btn alt sm" data-act="pvref">${T('รีเฟรช','Refresh')}</button></div>
    <div class="main nt"><h3 class="pvh">${T('คู่ต่อสู้','Opponents')}</h3>${st?`<p class="sub" style="margin-bottom:8px">${st}</p>`:''}
-    ${opp.length?opp.map((o,i)=>{const d=pvDelta(true,o);return `<div class="pvrow"><span class="pvn"><b>${esc(o.name)}</b>${o.bot?'<i class="bot">BOT</i>':''}<small>${tierTag(o.pts)}</small></span>${tm(o)}<span class="pvw">+${d} / ${pvDelta(false,o)}</span><button class="btn go sm" data-act="pvgo" data-i="${i}" ${can?'':'disabled'}>${T('ท้าสู้','Fight')}</button></div>`}).join(''):`<p class="sub">${T('จัดทีมก่อนถึงจะเข้าอารีน่าได้','Build a team first')}</p>`}
+    ${opp.length?opp.map((o,i)=>{const d=pvDelta(true,o);return `<div class="pvrow"><span class="pvn"><b>${esc(o.name)}</b>${o.bot?'<i class="bot">BOT</i>':''}<small>${tierTag(o.pts)}</small></span>${tm(o)}<span class="pvw">+${d} / ${pvDelta(false,o)}</span><button class="btn go sm" data-act="pvgo" data-i="${i}" ${can?'':'disabled'}>${T('ท้าสู้','Fight')}</button></div>`}).join(''):`<p class="sub">${T('ยังไม่มีการ์ดสำหรับเข้าอารีน่า','You have no cards for the arena yet')}</p>`}
     ${can?'':`<p class="sub" style="color:#ff8492">${T('วันนี้สู้ครบแล้ว กลับมาใหม่พรุ่งนี้','No fights left today. Come back tomorrow.')}</p>`}
     <h3 class="pvh" style="margin-top:14px">${T('อันดับสูงสุด','Top ranking')}</h3>
     ${top.length?`<table class="gt"><tr><th>#</th><th>${T('ผู้เล่น','Player')}</th><th>${T('คะแนน','Points')}</th><th>${T('ชนะ/แพ้','W/L')}</th></tr>${top.map((o,i)=>`<tr${o.uid===(USER&&USER.sub)?' style="outline:2px solid #ffe45c"':''}><td>${i+1}</td><td><b>${esc(o.name)}</b></td><td>${tierTag(o.pts)}</td><td>${o.w}/${o.l}</td></tr>`).join('')}</table>`:`<p class="sub">${T('ยังไม่มีข้อมูลอันดับ','No ranking data yet')}</p>`}</div></div>`)}
+// pick screen: the opponent's cards stay hidden; choose up to 3 of your own, set auto or manual, then start
+function pvPick(){const o=pv.opp[pv.sel],me=pvGet(),tm=pvTeam(),can=isDev()||me.n<PV_DAILY;
+  view(`<div class="cols arenav"><div class="rail nt"><div class="row"><button class="btn alt sm" data-act="pvp">${T('กลับ','Back')}</button><h2>${T('เลือกการ์ด','Pick cards')}</h2></div>
+    <p class="num">vs <b>${esc(o.name)}</b>${o.bot?' <i class="bot" style="font-style:normal;font-size:9px;background:#5a6aa0;padding:0 4px">BOT</i>':''}</p><p class="sub">${tierTag(o.pts)} · ${T('การ์ดฝ่ายตรงข้าม','Their cards')}: ? ? ?</p>
+    <p class="sub">${T('ชนะ','Win')} <b style="color:#6cf586">+${pvDelta(true,o)}</b> · ${T('แพ้','Lose')} <b style="color:#ff8492">${pvDelta(false,o)}</b></p>
+    <p class="sub">${T('ทีมของคุณ (แตะช่องเพื่อเอาออก)','Your team (tap a slot to remove)')}</p>
+    <div class="picks">${[0,1,2].map(k=>tm[k]?full(tm[k],`data-act="pvpick" data-id="${tm[k]}"`,'glow'):`<span class="empty">${k+1}</span>`).join('')}</div>
+    <div class="row"><span style="flex:1" class="sub">${T('โหมดเล่น','Play mode')}</span><button class="btn sm ${S.auto?'on':'alt'}" data-act="pvauto">${S.auto?T('ออโต้','Auto'):T('กดสกิลเอง','Manual')}</button></div>
+    <button class="btn go" data-act="pvstart" ${tm.length&&can?'':'disabled'}>${T('เริ่ม','Start')} (${tm.length}/3)</button></div>
+   <div class="main"><p class="sub nt" style="margin-bottom:14px">${T('แตะการ์ดเพื่อเลือกเข้าทีม สูงสุด 3 ใบ','Tap cards to add them, up to 3')}</p><div class="grid big">
+    ${byRank(Object.keys(C).filter(id=>S.cards[id])).map(id=>{const k=tm.indexOf(id);return `<div>${full(id,`data-act="pvpick" data-id="${id}" aria-pressed="${k>=0}"`,'glow'+(k>=0?' sel':'')).replace('</button>',(k>=0?`<span class="ord">${k+1}</span>`:'')+'</button>')}<p class="sub cap nt">Lv ${S.cards[id].lv}</p></div>`}).join('')}</div></div></div>`)}
 function pvpResult(won,opp){const me=pvGet(),d=pvDelta(won,opp),was=me.pts,g=won?PV_WIN:PV_LOSE;me.pts=Math.max(0,me.pts+d);won?me.w++:me.l++;S.gold+=g;save();pvpPush();
   view(`<div class="cols arenav"><div class="rail nt"><h1>${won?T('ชนะ!','Victory!'):T('แพ้','Defeat')}</h1><p class="num">PvP · vs ${esc(opp.name)}</p>
     <p class="num" style="font-size:18px">${tierTag(me.pts)} <b style="color:${d>=0?'#6cf586':'#ff8492'}">(${d>=0?'+':''}${me.pts-was})</b></p><p class="num gold">Gold +${g}</p>
@@ -1491,7 +1510,8 @@ function guide(){
      T('เกมไม่มีระบบซื้อขายด้วยเงินจริงระหว่างผู้เล่น','The game has no real-money trading between players')])],
    pvp:['PvP',()=>ul([
      T('สู้กับทีมของผู้เล่นคนอื่นที่บันทึกไว้ ทีมฝั่งตรงข้ามเล่นเองอัตโนมัติและใช้สกิลครบเหมือนเรา','Fight another player\'s saved team. It plays itself and uses its full skills'),
-     T('ทีมป้องกันของเราคือทีมที่จัดไว้ล่าสุด รวมเลเวล ดาว และเครื่องราง','Your defence team is your current team, with its levels, stars and amulets'),
+     T('ก่อนสู้จะไม่เห็นการ์ดของฝ่ายตรงข้าม เห็นแค่ชื่อและระดับ กดท้าสู้แล้วเลือกการ์ดของเรา 3 ใบ เลือกออโต้หรือกดสกิลเอง แล้วกดเริ่ม มีนับถอยหลัง 3 วินาที','You cannot see the opponent\'s cards beforehand, only the name and rank. Tap Fight, pick your 3 cards, choose auto or manual, then Start; a 3-second countdown follows'),
+     T('ทีมป้องกันของเราคือทีม PvP ที่ใช้ล่าสุด รวมเลเวล ดาว และเครื่องราง','Your defence team is the last PvP team you used, with its levels, stars and amulets'),
      T(`ผลัดกันเดินทีละตัว ทุกตัวมีเลือด x${PV_HP} ในอารีน่า ถ้าครบ ${PV_CAP} รอบยังไม่จบ ฝั่งที่เลือดเหลือมากกว่าชนะ`,`Turns alternate one fighter at a time; everyone has x${PV_HP} life in the arena. After ${PV_CAP} rounds the side with more life left wins`),
      T(`สู้ได้วันละ ${PV_DAILY} ครั้ง · ชนะได้ ${PV_WIN} Gold แพ้ได้ ${PV_LOSE} Gold · กดถอยระหว่างสู้นับเป็นแพ้`,`${PV_DAILY} fights a day · ${PV_WIN} Gold for a win, ${PV_LOSE} for a loss · retreating counts as a loss`),
      T(`เริ่มที่ ${PV_START} คะแนน ชนะได้ 8–40 แพ้เสีย 4–24 ขึ้นกับคะแนนคู่ต่อสู้ ทีมป้องกันไม่เสียคะแนน`,`Start at ${PV_START} points; a win gives 8–40 and a loss costs 4–24 depending on the opponent. Defence teams never lose points`),
@@ -1537,7 +1557,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b83';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b84';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
