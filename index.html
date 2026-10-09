@@ -560,6 +560,41 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .bub{position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);z-index:5;width:max-content;max-width:170px;padding:3px 8px 4px;background:#fff;color:#121a36;border:2px solid #080b1f;font-family:var(--body);font-weight:600;font-size:12px;line-height:1.25;text-align:center;white-space:normal;overflow-wrap:anywhere;animation:bubin .18s steps(3)}
 .bub::after{content:"";position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:#080b1f}
 @keyframes bubin{from{transform:translateX(-50%) scale(.4);opacity:0}}
+
+/* ---------- "Dark Ages" skin: buttons, panels and dividers come from the Dark Ages UI kit by Hypnobius (9-sliced pieces in ui/); palette: honey gold, tan, camel, charcoal, powder blue, dark blue ---------- */
+:root{--yellow:#f2d98a;--panel:#232a33;--deep:#0d141d;--dim:#b9ad98}
+#stage{background:radial-gradient(120% 90% at 50% -10%,#2a4563 0,#15202f 48%,#0a1019 100%)}
+h1{color:#f2d98a;text-shadow:0 3px 0 #7a4a1c,0 6px 0 #0a1019}h2{color:#f2d98a;text-shadow:0 2px 0 #0a1019}
+.btn,.btn.alt,.btn.go,.btn.on,.btn.red,.btn:disabled,.tab,.tab.am,.roomb,.roomb.px,.play,.dk,.ibtn{
+  clip-path:none;box-shadow:none;border-radius:0;background:none;image-rendering:pixelated;color:var(--tx);text-shadow:0 1px 0 rgba(0,0,0,.7);
+  border-style:solid;border-color:transparent;border-width:8px 13px;border-image:url(ui/b1.png) 18 30 fill/8px 13px stretch;padding:1px 3px 2px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
+.btn{--tx:#f2e3b4}.btn.alt,.roomb,.roomb.px,.dk,.ibtn{--tx:#e9dcc0}
+.btn:not(.alt):not(.red):not(.on),.btn.go,.play{border-image-source:url(ui/b3n.png);--tx:#fff}
+.btn.on{border-image-source:url(ui/b1g.png);--tx:#b9ffc4}.btn.red{border-image-source:url(ui/b1r.png);--tx:#ffd0d0}
+.btn.sm{border-width:6px 8px;border-image-width:6px 8px;padding:0 2px 1px}
+.btn:disabled,.dk:disabled{border-image-source:url(ui/b2.png);--tx:#8d877b;opacity:.75;filter:none}
+.btn:active,.tab:active,.roomb:active,.play:active,.dk:active,.ibtn:active{transform:translateY(2px);filter:brightness(.82);box-shadow:none}
+.play{border-width:14px 24px;border-image-width:14px 24px;padding:0 4px 3px;animation:none}.play b{color:#fff;text-shadow:0 2px 0 #15202f}.play small,.play span{color:#e6eefc}
+.dk{border-width:8px 12px;border-image-width:8px 12px;padding:0 1px 1px}.dk.c1,.dk.c2,.dk.c3,.dk.c4,.dk.c5{box-shadow:none}
+.ibtn{border-width:7px 9px;border-image:url(ui/m1.png) 12 fill/7px 9px stretch;width:38px;height:34px;padding:0}
+.tab,.tab.am,.tab:not([class*="r-"]){border-width:5px 7px;border-image:url(ui/m2.png) 12 fill/5px 7px stretch;padding:0 5px;opacity:.8;--tx:color-mix(in srgb,var(--gl,#e9dcc0) 80%,#fff);color:var(--tx)}
+.tab.am{--tx:#f2d98a}.tab.on{opacity:1;border-image-source:url(ui/m3.png);border-image-slice:24 12 12 12 fill;border-top-width:9px;border-image-width:9px 7px 5px 7px;margin-top:-4px;box-shadow:none;outline:0}
+.px,.amrow,.chb,.tmenu,.lookb,.rkrow,.pvrow{border-radius:0;box-shadow:none;background:none;image-rendering:pixelated;border:11px solid transparent;border-image:url(ui/fb.png) 33 fill/11px stretch;padding:2px 6px}
+.chb{padding:0 0 2px;border-width:9px;border-image-width:9px}.amrow{padding:2px 6px}
+.chb.on,.amrow.on,.rkrow.me{outline:0;border-image-source:url(ui/gold.png);border-image-slice:60 fill;filter:drop-shadow(0 0 4px rgba(242,217,138,.5))}
+.tmenu{border-width:18px;border-image:url(ui/gold.png) 60 fill/18px stretch;padding:4px 8px}
+.pill,.pchip{border:6px solid transparent;border-image:url(ui/m1.png) 12 fill/6px stretch;background:none;box-shadow:none;image-rendering:pixelated;height:auto;padding:1px 8px 1px 2px}
+.pchip{border-width:9px 12px;border-image:url(ui/b1.png) 18 30 fill/9px 12px stretch;padding:0 6px 0 0}.pchip small{color:#f2d98a}
+.pill .plus{background:#406c91}
+.abar{border:8px solid transparent;border-image:url(ui/fb.png) 33 fill/8px stretch;background:none;box-shadow:none;image-rendering:pixelated;padding:1px 8px 1px 2px}
+.gt th{background:#1b2531;color:#f2d98a}.gt td{background:rgba(27,37,49,.6)}.gt th,.gt td{border-color:#0a1019}
+.atop{background:rgba(10,16,25,.7)!important}
+.row.avsel{border:11px solid transparent;border-image:url(ui/fb.png) 33 fill/11px stretch;background:none;box-shadow:none;padding:8px 0 2px}
+.pvfight{border-width:11px 20px!important;border-image-width:11px 20px!important}
+#zoom{background:rgba(10,16,25,.95)}
+.guide h3,.pvh{color:#f2d98a}
+.rail>.row:first-child{padding-bottom:6px;margin-bottom:2px;background:url(ui/div.png) 50% 100%/100% 8px no-repeat;image-rendering:pixelated}
+.gbtn{border:3px solid #0a1019}
 </style>
 
 <div id="stage"><div id="view"></div><div id="ov"></div><button id="zoom" hidden></button></div>
@@ -1568,7 +1603,8 @@ function guide(){
      T('Guest: เซฟอยู่ในเครื่องนี้เท่านั้น ล้างข้อมูลเบราว์เซอร์แล้วเซฟหาย','Guest: the save stays on this device only and is lost if browser data is cleared'),
      T('ตั้งค่า: เสียง ภาษา ขนาด UI เต็มจอแนวนอน และเริ่มใหม่ทั้งหมด','Settings: sound, language, UI size, fullscreen landscape, and a full reset'),
      T('ติดตั้งเป็นแอป: เมนูเบราว์เซอร์ > เพิ่มลงในหน้าจอหลัก จะเปิดเต็มจอไม่มีแถบ URL','Install as an app: browser menu > Add to Home screen, for fullscreen with no address bar'),
-     `Build ${BUILD} · Toey Seafishingclub`])]};
+     `Build ${BUILD} · Toey Seafishingclub`,
+     'UI: Dark Ages UI by Hypnobius (hypnobius.itch.io)'])]};
   if(!SEC[gTab])gTab='start';
   view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2 class="nt">${T('วิธีเล่น','How to play')}</h2></div>
     ${Object.keys(SEC).map(k=>`<button class="tab nt ${gTab===k?'on':''}" data-act="guide" data-g="${k}">${SEC[k][0]}</button>`).join('')}</div>
@@ -1602,7 +1638,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b88';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b89';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
