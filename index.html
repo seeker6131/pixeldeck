@@ -955,7 +955,7 @@ const PRO={dia:1000,gold:2000000,n:5,odds:{R:.88,L:.105,SL:.015}};
 // Limited Pack: one card, Legend or better only, the only pack that can hold a Limited. Opened with dismantle points (S.dp) or diamonds;
 // while OBT is true the diamond price is switched off, so points from dismantled duplicates are the only way in. Guaranteed Limited after LTD.pity opens.
 const OBT=true,DIS={C:1,UC:3,R:15,L:60,SL:300};
-const LTD={dia:100,pts:300,n:1,pity:300,odds:{LT:.003,SL:.04,L:.957}};
+const LTD={dia:100,pts:1500,n:1,pity:300,odds:{LT:.003,SL:.015,L:.982}};
 const VIPS=[[7,120,59],[30,400,199],[365,3000,1490]],VIP_DROP=1.5;
 const vipOn=()=>!!S&&(isDev()||(S.vip||0)>Date.now()),VX=()=>vipOn()?2:1,vipLeft=()=>Math.max(0,Math.ceil(((S.vip||0)-Date.now())/864e5));
 // cards also drop from stages: rare overall, and the higher ranks only appear deeper in
@@ -1719,7 +1719,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b92';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b93';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
