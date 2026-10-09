@@ -104,10 +104,8 @@ p{margin:0}
 .troom{position:relative;height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:4px;padding:5px 10px 8px}
 .tfloor{position:relative;overflow:hidden;border:3px solid var(--deep);background:#35603f}
 /* the plaza is wider than the screen; the camera slides it so the player stays near the middle */
-.tworld{position:absolute;left:0;top:0;height:100%;cursor:pointer;background:
-  linear-gradient(90deg,transparent 0 0),repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 2px,transparent 2px 56px),repeating-linear-gradient(0deg,rgba(0,0,0,.08) 0 2px,transparent 2px 56px),
-  linear-gradient(#6b5a48 0 40px,#3d6b4a 40px)}
-.tworld::before{content:"";position:absolute;left:0;right:0;top:54%;height:34px;background:repeating-linear-gradient(90deg,#c9b48a 0 28px,#bda67a 28px 56px);box-shadow:0 0 0 3px rgba(0,0,0,.25);pointer-events:none}
+/* trade plaza: one painted picture and its mirror image, tiled sideways; shops fill the top, avatars walk on the paving below */
+.tworld{position:absolute;left:0;top:0;height:100%;cursor:pointer;background:#5a4d44 url(bg/plaza.webp) 0 0/auto 100% repeat-x;image-rendering:pixelated}
 .tworld .deco{position:absolute;pointer-events:none}
 .stall{width:74px;height:46px;background:linear-gradient(#b5793f 0 30%,#7a4a22 30%);box-shadow:0 0 0 3px #0a0e22}
 .stall::before{content:"";position:absolute;left:-6px;right:-6px;top:-20px;height:22px;background:repeating-linear-gradient(90deg,var(--aw,#ff004d) 0 12px,#fff1e8 12px 24px);box-shadow:0 0 0 3px #0a0e22}
@@ -675,7 +673,7 @@ function charMake(){ensureMe();
     <div class="main"><div class="chgrid">${byRank(Object.keys(S.cards).filter(id=>C[id])).map(id=>`<button class="chb r-${C[id].r} ${id===S.me.look?'on':''}" data-act="dress" data-i="${id}">${hero(id)}<span class="nt">${C[id].n}</span></button>`).join('')}</div></div></div>`)}
 // ---------- trade rooms: live presence on Firebase Realtime Database, rooms/{room}/{uid} = {n,l,tx,ty,gift?,ack?,dec?} ----------
 // a gift is offered in the sender's own node, the receiver answers in theirs (ack / dec); the item waits in S.pg until then
-const ROOM_CAP=10,ROOMS=3,WORLD_W=1500;
+const FLOOR_TOP=.43,ROOM_CAP=10,ROOMS=3,WORLD_W=1500;
 let rt=null,rtCounts=null;
 const tn=()=>room&&room.npcs.find(n=>n.uid===room.menu);
 const rtDb=()=>firebase.database();
@@ -703,11 +701,11 @@ function refundGift(why){const g=S.pg;if(!g)return;S.am[g.k]=(S.am[g.k]||0)+1;S.
 function rtSync(data){const R=room,wd=$('tworld');if(!R||!wd||!rt)return;const meId=USER.sub;R.seen=R.seen||{};
   const ids=Object.keys(data).filter(u=>u!==meId&&data[u]&&typeof data[u].tx==='number').slice(0,ROOM_CAP-1);
   R.npcs=R.npcs.filter(n=>{if(ids.includes(n.uid))return true;n.el.remove();if(R.menu===n.uid){R.menu=null;const t=$('tui');if(t)t.innerHTML=''}if(R.target===n.uid)R.target=null;return false});
-  ids.forEach(u=>{const o=data[u],look=C[o.l]?o.l:GIFT[0],name=String(o.n||'?').slice(0,12),tx=Math.max(20,Math.min(R.W-20,o.tx)),ty=Math.max(60,Math.min(R.H-6,(+o.ty||.7)*R.H));let n=R.npcs.find(x=>x.uid===u);
+  ids.forEach(u=>{const o=data[u],look=C[o.l]?o.l:GIFT[0],name=String(o.n||'?').slice(0,12),tx=Math.max(20,Math.min(R.W-20,o.tx)),ty=Math.max(R.H*FLOOR_TOP,Math.min(R.H-6,(+o.ty||.7)*R.H));let n=R.npcs.find(x=>x.uid===u);
     if(n&&n.look!==look){n.el.remove();R.npcs=R.npcs.filter(x=>x!==n);n=null}
     if(!n){n={uid:u,name,look,x:tx,y:ty};R.npcs.push(n);R.mk(n,'',{'data-act':'tnpc','data-u':u})}
     if(o.mt&&o.mt!==n.mt){const fresh=n.mt!==undefined||Date.now()-o.mt<8000;n.mt=o.mt;if(fresh&&o.m)bubble(n,String(o.m).slice(0,40))}else if(n.mt===undefined)n.mt=0;
-    n.tx=tx;n.ty=ty;if(n.name!==name){n.name=name;n.el.lastChild.textContent=name}
+    n.tx=tx;n.ty=ty;if(n.name!==name){n.name=name;n.el.querySelector('.nm').textContent=name}
     const g=o.gift&&o.gift.to===meId&&AM[o.gift.k]&&!R.seen[o.gift.id]?o.gift:null;n.item=g?g.k:null;n.gid=g?g.id:null;n.el.classList.toggle('gift',!!g);
     if(g&&R.menu==null){R.menu=u;R.target=null;recvConfirm()}});
   const c=$('rcount');if(c)c.textContent=(R.npcs.length+1)+'/'+ROOM_CAP;
@@ -716,18 +714,14 @@ function enterRoom(){
   ensureMe();const r=roomNo,on=mkOn();
   view(`<div class="troom px"><div class="atop"><span class="num">ห้องเทรด ${r+1} · <span class="nt" id="rcount">1/${ROOM_CAP}</span> คน <small class="nt" id="rstat" style="font-size:11px"></small></span><span class="alog" id="tlog">${on?'แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อส่งของ':'แตะพื้นเพื่อเดิน · ล็อกอิน Google เพื่อเห็นผู้เล่นอื่น'}</span>
     <span class="row"><span class="num gold">Gold ${S.gold.toLocaleString('en')}</span><button class="btn alt sm" data-act="charedit">ตัวละคร</button><button class="btn alt sm" data-act="troom">ห้องอื่น</button><button class="btn alt sm" data-act="home">ออก</button></span></div>
-    <div class="tfloor" id="tfloor"><div class="tworld" id="tworld" style="width:${WORLD_W}px">
-      ${[120,430,760,1080,1360].map((x,i)=>`<span class="deco stall" style="left:${x}px;top:30px;--aw:${['#ff004d','#29adff','#ffa300','#00e436','#b06cff'][i]}"></span>`).join('')}
-      ${[300,620,930,1240].map(x=>`<span class="deco tree" style="left:${x}px;top:14px"></span>`).join('')}
-      ${[240,560,1000,1300].map(x=>`<span class="deco lamp" style="left:${x}px;top:calc(54% - 50px)"></span>`).join('')}
-      <span class="deco fount" style="left:${WORLD_W/2-32}px;top:calc(78% - 32px)"></span></div>
+    <div class="tfloor" id="tfloor"><div class="tworld" id="tworld" style="width:${WORLD_W}px"></div>
       <div class="chat"><input id="chi" class="nt" maxlength="40" autocomplete="off" enterkeyhint="send" placeholder="${S.lang==='en'?'Say something…':'พิมพ์แชท…'}"><button class="btn sm" data-act="chsend">ส่ง</button></div><div id="tui"></div></div></div>`);
   const fl=$('tfloor'),wd=$('tworld'),W=WORLD_W,H=fl.clientHeight;$('chi').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();chatSend()}};
-  if(!room||room.no!==r)room={no:r,me:{x:W*.5,y:H*.7},npcs:[]};
+  if(!room||room.no!==r)room={no:r,me:{x:W*.5,y:H*.72},npcs:[]};
   const R=room;R.W=W;R.H=H;R.target=null;R.menu=null;R.me.tx=R.me.x;R.me.ty=R.me.y;R.npcs=[];
   const mk=R.mk=(c,cls,attr)=>{const b=document.createElement('button');b.className='av '+cls+' r-'+C[c.look].r;b.innerHTML=`<span class="wk">${hero(c.look)}</span><span class="nt nm"></span>`;b.lastChild.textContent=c.name;Object.entries(attr).forEach(([k,v])=>b.setAttribute(k,v));wd.append(b);c.el=b};
   mk(Object.assign(R.me,{name:S.me.name,look:S.me.look}),'me',{tabindex:-1});
-  wd.onclick=e=>{if(e.target!==wd||R.menu!=null)return;R.me.tx=e.offsetX;R.me.ty=Math.max(60,e.offsetY);R.target=null;rtSend()};
+  wd.onclick=e=>{if(e.target!==wd||R.menu!=null)return;R.me.tx=e.offsetX;R.me.ty=Math.max(H*FLOOR_TOP,e.offsetY);R.target=null;rtSend()};
   rtJoin(r);
   let last=performance.now();
   (function loop(t){if($('tfloor')!==fl){if(!$('tfloor'))rtLeave();return}const dt=Math.min(.05,(t-last)/1000);last=t;
@@ -1374,7 +1368,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b78';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b79';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
