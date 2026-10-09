@@ -708,7 +708,7 @@ const RORD=['C','UC','R','L','SL','LT'],STARTERS=['h06','h20','h11'],POOL=Object
 const FB_CFG={"apiKey": "AIzaSyBxPtaSzWfEWeLUZffrgB5cbr1Mhtdpj7M", "authDomain": "pixeldeck-battle-1a625.firebaseapp.com", "projectId": "pixeldeck-battle-1a625", "storageBucket": "pixeldeck-battle-1a625.firebasestorage.app", "messagingSenderId": "520020450750", "appId": "1:520020450750:web:c54dadd6f487038ab22def", "databaseURL": "https://pixeldeck-battle-1a625-default-rtdb.asia-southeast1.firebasedatabase.app"};
 // stars: each one adds 3% ATK/HP/DEF and raises the card's max level by 3% of its rank cap (at least 1); costs are [Gold, duplicate copies] per star
 const STAR_STAT=.03,STAR_COST=[[500,1],[1000,1],[2000,2],[4000,2],[8000,3]],STAR_COST_ST=[[200,0],[400,0],[800,0],[1500,0],[3000,0]];
-const GPACK=1500,GODDS={SL:.001,L:.004,R:.03,UC:.22,C:.745};
+const GPACK=5000,GN=3,GODDS={SL:.001,L:.004,R:.03,UC:.22,C:.745};
 const PACK=200,ST_GIVE=['R','R','UC'],DUP=50,MAXST=500,KEY='pdb_save4';
 let S,bt=null,busy=false,fx=[],prepN=1,pull=null,armed=false;
 
@@ -976,7 +976,7 @@ const PRO={dia:600,gold:1200000,n:3,odds:{R:.77,L:.2,SL:.03}};
 // Event cards below Limited can only be dismantled into points; an event Limited is kept (it is what survives the OBT wipe and becomes playable in the CBT).
 // Opened with dismantle points (S.dp) or diamonds; while OBT is true the diamond price is off. Guaranteed Limited after LTD.pity opens.
 const OBT=true,DIS={C:1,UC:3,R:15,L:60,SL:300};
-const LTD={pts:200,n:1,pity:300,odds:{LT:.002,SL:.006,L:.032,R:.11,UC:.25}};const LT_RK=['C','UC','R','L','SL','LT'];
+const LTD={dia:100,pts:200,n:1,pity:300,odds:{LT:.002,SL:.006,L:.032,R:.11,UC:.25}};const LT_RK=['C','UC','R','L','SL','LT'];
 const VIPS=[[7,120,59],[30,400,199],[365,3000,1490]],VIP_DROP=1.5;
 const vipOn=()=>!!S&&(isDev()||(S.vip||0)>Date.now()),VX=()=>vipOn()?2:1,vipLeft=()=>Math.max(0,Math.ceil(((S.vip||0)-Date.now())/864e5));
 // cards also drop from stages: rare overall, and the higher ranks only appear deeper in
@@ -1095,7 +1095,7 @@ function shop(){const d=S.dia||0;
   view(`<div class="cols"><div class="rail">
     <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ร้านแพ็ค</h2></div>
     <p class="num gold nt">Gold ${S.gold.toLocaleString('en')}</p><p class="num dia">เพชร <span class="nt">${d.toLocaleString('en')}</span></p>
-    <div class="pk2 px g"><b class="nt">GOLD PACK</b><small>การ์ด 1 ใบ · <span class="nt">${pct(GODDS)}</span></small>
+    <div class="pk2 px g"><b class="nt">GOLD PACK</b><small>การ์ด ${GN} ใบ ลุ้นทุกใบ · <span class="nt">${pct(GODDS)}</span></small>
      <button class="btn sm" data-act="opengold" ${S.gold<GPACK?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${GPACK.toLocaleString('en')} Gold</i></button></div>
     <div class="pk2 px"><b class="nt">STARTER PACK</b><small>ได้แน่นอน <span class="nt">Rare 2</span> ใบ + <span class="nt">Uncommon 1</span> ใบ · สุ่มแค่ว่าได้ตัวไหน</small>
      <button class="btn go sm" data-act="open" ${d<PACK?'disabled':''}>เปิด ${PACK} เพชร</button></div>
@@ -1104,6 +1104,7 @@ function shop(){const d=S.dia||0;
      <button class="btn sm" data-act="openpro" data-c="g" ${S.gold<PRO.gold?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${PRO.gold.toLocaleString('en')} Gold</i></button>`}</div>
     ${OBT?`<div class="pk2 px ltd"><b class="nt">LIMITED PACK <i style="font-style:normal;font-size:11px;color:#ffd84a">OBT EVENT</i></b><small style="color:#6fd8ff">มีเฉพาะช่วง OBT เท่านั้น จบ OBT แล้วแพ็คนี้จะหายไป</small><small>การ์ดอีเวนต์ 1 ใบ · <span class="nt">${LT_RK.map(r=>RAR[r].n+' '+P2(ltdP(r))).join(' · ')}</span></small><small style="color:#ffd84a">การ์ดอีเวนต์ใช้ลงด่านและ PvP ไม่ได้ ย่อยเป็นแต้มได้อย่างเดียว ยกเว้น <span class="nt">Limited</span> เก็บไว้ใช้ได้ตอน CBT</small><small>การันตี Limited ภายใน <span class="nt">${LTD.pity}</span> แพ็ค · เปิดไปแล้ว <span class="nt">${S.lp||0}/${LTD.pity}</span> · แต้ม <b class="nt" style="font-size:13px">${(S.dp||0).toLocaleString('en')}</b></small>
      <button class="btn go sm" data-act="openltd" data-c="p" ${(S.dp||0)<LTD.pts?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.pts}</i> แต้ม</button>
+     <button class="btn sm" data-act="openltd" data-c="d" ${d<LTD.dia?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.dia}</i> เพชร</button>
      <button class="btn alt sm" data-act="dis">ย่อยการ์ดแลกแต้ม</button></div>`:''}
     <button class="btn alt sm" data-act="vip">บัตร VIP${vipOn()&&!isDev()?` <i class="nt" style="font-style:normal">(${vipLeft()}d)</i>`:''}</button>
     <button class="btn alt sm" data-act="topup">เติมเพชร / แลก Gold</button>
@@ -1113,7 +1114,7 @@ function shop(){const d=S.dia||0;
 }
 const ltdP=r=>r==='C'?1-Object.values(LTD.odds).reduce((a,b)=>a+b,0):LTD.odds[r],P2=v=>+(v*100).toFixed(v<.01?2:1)+'%';
 function ltdRoll(){S.lp=(S.lp||0)+1;let x=Math.random(),r='C';if(S.lp>=LTD.pity)r='LT';else for(const k of['LT','SL','L','R','UC'])if((x-=LTD.odds[k])<0){r=k;break}if(r==='LT')S.lp=0;return r}
-function openLtd(){if(!OBT||(S.dp||0)<LTD.pts)return;S.dp-=LTD.pts;
+function openLtd(cur){if(!OBT)return;if(cur==='d'){if((S.dia||0)<LTD.dia)return;S.dia-=LTD.dia}else{if((S.dp||0)<LTD.pts)return;S.dp-=LTD.pts}
   const id=randOf(ltdRoll());S.ev=S.ev||{};S.ev[id]=(S.ev[id]||0)+1;pull=[{id,ev:true}];save();sfx('win');shop()}
 // An event card: the card picture and name only, with a stamp. No fire, lightning, sparkles, stars, level or stats.
 const evCard=id=>`<div class="cf evc r-${C[id].r}"><img src="${img(id)}" alt="${C[id].n}"><span class="cnm nt">${C[id].n}</span><span class="evst"><b class="nt">EVENT CARD</b><i>ใช้เล่นไม่ได้</i></span></div>`;
@@ -1157,7 +1158,7 @@ function openPack(){
 }
 const gr=(b,id)=>+(b*RAR[C[id].r].g).toFixed(1);
 function openGold(){
-  if(S.gold<GPACK)return;S.gold-=GPACK;pull=[giveCard(randOf(rollRank(GODDS)))];save();shop();
+  if(S.gold<GPACK)return;S.gold-=GPACK;pull=Array.from({length:GN},()=>giveCard(randOf(rollRank(GODDS))));save();shop();
 }
 function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),z=$('zoom');
   z.innerHTML=`${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}<div class="inf"><h2>${C[id].n}</h2><span class="rib r-${C[id].r}">${RAR[C[id].r].n} · ${ROLE[C[id].role]}</span>
@@ -1464,7 +1465,7 @@ $('view').onclick=ev=>{
   else if(a==='open')openPack();
   else if(a==='opengold')openGold();
   else if(a==='openpro')openPro(t.dataset.c);
-  else if(a==='openltd')openLtd();
+  else if(a==='openltd')openLtd(t.dataset.c);
   else if(a==='dis'){disSel=null;dis()}
   else if(a==='dissel'){disSel=t.dataset.k;dis()}
   else if(a==='disone'||a==='disall'){const g=disSel&&disDo(disSel,a==='disone'?1:1e9);if(g){save();sfx('win');fx.push(['view','+'+g,'g'])}dis()}
@@ -1661,9 +1662,9 @@ function guide(){
      T('ใบซ้ำจากแพ็คเก็บไว้ใช้อัปดาวของการ์ดใบนั้น','Duplicate pulls are kept as copies for that card\'s stars')])
      +tb([T('ดาวที่','Star'),'1','2','3','4','5'],[[T('การ์ดทั่วไป','Normal cards'),...STAR_COST.map(([g,c])=>N(g)+' Gold + '+c+T(' ใบซ้ำ',' copies'))],[T('การ์ดเริ่มต้น','Starter cards'),...STAR_COST_ST.map(([g])=>N(g)+' Gold')]])],
    packs:[T('แพ็คการ์ด','Packs'),()=>tb([T('แพ็ค','Pack'),T('ราคา','Price'),T('ได้','Gives'),...['C','UC','R','L','SL'].map(rn)],
-     [['Gold Pack',N(GPACK)+' Gold',T('1 ใบ','1 card'),...['C','UC','R','L','SL'].map(r=>P(GODDS[r]))],['Starter Pack',PACK+T(' เพชร',' diamonds'),T('3 ใบ','3 cards'),'–',T('1 ใบ','1 card'),T('2 ใบ','2 cards'),'–','–'],['Pro Pack',N(PRO.dia)+T(' เพชร หรือ ',' diamonds or ')+N(PRO.gold)+' Gold',PRO.n+T(' ใบ',' cards'),'–','–',...['R','L','SL'].map(r=>P(PRO.odds[r]))]])
+     [['Gold Pack',N(GPACK)+' Gold',GN+T(' ใบ',' cards'),...['C','UC','R','L','SL'].map(r=>P(GODDS[r]))],['Starter Pack',PACK+T(' เพชร',' diamonds'),T('3 ใบ','3 cards'),'–',T('1 ใบ','1 card'),T('2 ใบ','2 cards'),'–','–'],['Pro Pack',N(PRO.dia)+T(' เพชร หรือ ',' diamonds or ')+N(PRO.gold)+' Gold',PRO.n+T(' ใบ',' cards'),'–','–',...['R','L','SL'].map(r=>P(PRO.odds[r]))]])
      +`<p>${T('การ์ดดรอปจากด่านได้ด้วย: โอกาส ','Cards also drop from stages: ')}${P(CDROP)}${T(' ต่อการชนะ ด่านบอส ',' per win, boss stages ')}${P(CDROP_BOSS)} · ${CD_ODDS.slice().reverse().map(([r,pr,min])=>rn(r)+' '+P(pr)+(min>1?T(' (ด่าน ',' (stage ')+min+'+)':'')).join(' · ')}${T(' ที่เหลือเป็น Common',', the rest Common')}</p>`
-     +ul([T('Starter Pack ไม่มีการสุ่มระดับ: ได้ Rare 2 ใบ (ไม่ซ้ำกัน) และ Uncommon 1 ใบทุกกล่อง สุ่มแค่ตัวการ์ด','The Starter Pack has no rank roll: every box holds 2 different Rare cards and 1 Uncommon; only which cards is random'),T('Pro Pack เปิดขายตอน CBT ช่วง OBT ยังเปิดไม่ได้','The Pro Pack goes on sale in the CBT; it is closed during the OBT'),T(`Limited Pack (อีเวนต์ OBT): ${LTD.pts} แต้มย่อยการ์ด ได้การ์ดอีเวนต์ 1 ใบ · ${LT_RK.map(r=>RAR[r].n+' '+P2(ltdP(r))).join(' · ')} · เปิดด้วยแต้มเท่านั้น และมีเฉพาะช่วง OBT พอเข้า CBT แพ็คนี้จะไม่มีแล้ว`,`Limited Pack (OBT event): ${LTD.pts} dismantle points for 1 event card · ${LT_RK.map(r=>RAR[r].n+' '+P2(ltdP(r))).join(' · ')} · points only, and only during the OBT; it is gone in the CBT`),T('การ์ดอีเวนต์มีป้าย EVENT CARD ไม่มีเอฟเฟกต์ ไม่มีเลเวลและค่าสเตตัส ใช้ลงด่านและ PvP ไม่ได้ ขายหรือส่งต่อไม่ได้ ทำได้อย่างเดียวคือย่อยเป็นแต้ม','Event cards carry an EVENT CARD stamp, have no effects, level or stats, cannot enter stages or PvP, cannot be sold or gifted, and can only be dismantled into points'),T('การ์ดอีเวนต์ระดับ Limited ย่อยไม่ได้ ระบบเก็บไว้ให้ และจะใช้เล่นได้จริงตอน CBT','An event card of Limited rank cannot be dismantled; it is kept for you and becomes playable in the CBT'),T(`Limited Pack การันตี Limited 1 ใบ ภายใน ${LTD.pity} แพ็ค ตัวนับรีเซ็ตเมื่อได้ Limited`,`A Limited Pack guarantees a Limited within ${LTD.pity} packs; the counter resets when one drops`),T(`ย่อยการ์ด (ในร้านแพ็ค): การ์ดอีเวนต์และใบซ้ำของการ์ดจริงแลกเป็นแต้ม ${Object.keys(DIS).map(r=>RAR[r].n+' '+DIS[r]).join(' · ')} · ย่อยแล้วเอาคืนไม่ได้ การ์ดเริ่มต้นและ Limited ย่อยไม่ได้`,`Dismantle (in the pack shop): event cards and duplicate copies of real cards become points — ${Object.keys(DIS).map(r=>RAR[r].n+' '+DIS[r]).join(' · ')} · it cannot be undone; Starter and Limited cards cannot be dismantled`),T('การ์ดเริ่มต้นไม่มีในแพ็ค · Limited ตัวจริงดรอปจากด่าน 400 ขึ้นไปเท่านั้น','Starter cards are not in packs · a real Limited only drops from stage 400+'),T('จบช่วง OBT ข้อมูลทั้งหมดจะถูกล้าง (การ์ด Gold เพชร เลเวล ด่าน แรงก์) ยกเว้นการ์ด Limited ที่ครอบครองอยู่ ซึ่งจะได้คืนตอน CBT','When the OBT ends everything is wiped (cards, Gold, diamonds, levels, stages, rank) except Limited cards you own, which are returned in the CBT')])],
+     +ul([T('Starter Pack ไม่มีการสุ่มระดับ: ได้ Rare 2 ใบ (ไม่ซ้ำกัน) และ Uncommon 1 ใบทุกกล่อง สุ่มแค่ตัวการ์ด','The Starter Pack has no rank roll: every box holds 2 different Rare cards and 1 Uncommon; only which cards is random'),T('Pro Pack เปิดขายตอน CBT ช่วง OBT ยังเปิดไม่ได้','The Pro Pack goes on sale in the CBT; it is closed during the OBT'),T(`Limited Pack (อีเวนต์ OBT): ${LTD.pts} แต้มย่อยการ์ด หรือ ${LTD.dia} เพชร ได้การ์ดอีเวนต์ 1 ใบ · ${LT_RK.map(r=>RAR[r].n+' '+P2(ltdP(r))).join(' · ')} · มีเฉพาะช่วง OBT พอเข้า CBT แพ็คนี้จะไม่มีแล้ว`,`Limited Pack (OBT event): ${LTD.pts} dismantle points or ${LTD.dia} diamonds for 1 event card · ${LT_RK.map(r=>RAR[r].n+' '+P2(ltdP(r))).join(' · ')} · only during the OBT; it is gone in the CBT`),T('การ์ดอีเวนต์มีป้าย EVENT CARD ไม่มีเอฟเฟกต์ ไม่มีเลเวลและค่าสเตตัส ใช้ลงด่านและ PvP ไม่ได้ ขายหรือส่งต่อไม่ได้ ทำได้อย่างเดียวคือย่อยเป็นแต้ม','Event cards carry an EVENT CARD stamp, have no effects, level or stats, cannot enter stages or PvP, cannot be sold or gifted, and can only be dismantled into points'),T('การ์ดอีเวนต์ระดับ Limited ย่อยไม่ได้ ระบบเก็บไว้ให้ และจะใช้เล่นได้จริงตอน CBT','An event card of Limited rank cannot be dismantled; it is kept for you and becomes playable in the CBT'),T(`Limited Pack การันตี Limited 1 ใบ ภายใน ${LTD.pity} แพ็ค ตัวนับรีเซ็ตเมื่อได้ Limited`,`A Limited Pack guarantees a Limited within ${LTD.pity} packs; the counter resets when one drops`),T(`ย่อยการ์ด (ในร้านแพ็ค): การ์ดอีเวนต์และใบซ้ำของการ์ดจริงแลกเป็นแต้ม ${Object.keys(DIS).map(r=>RAR[r].n+' '+DIS[r]).join(' · ')} · ย่อยแล้วเอาคืนไม่ได้ การ์ดเริ่มต้นและ Limited ย่อยไม่ได้`,`Dismantle (in the pack shop): event cards and duplicate copies of real cards become points — ${Object.keys(DIS).map(r=>RAR[r].n+' '+DIS[r]).join(' · ')} · it cannot be undone; Starter and Limited cards cannot be dismantled`),T('การ์ดเริ่มต้นไม่มีในแพ็ค · Limited ตัวจริงดรอปจากด่าน 400 ขึ้นไปเท่านั้น','Starter cards are not in packs · a real Limited only drops from stage 400+'),T('จบช่วง OBT ข้อมูลทั้งหมดจะถูกล้าง (การ์ด Gold เพชร เลเวล ด่าน แรงก์) ยกเว้นการ์ด Limited ที่ครอบครองอยู่ ซึ่งจะได้คืนตอน CBT','When the OBT ends everything is wiped (cards, Gold, diamonds, levels, stages, rank) except Limited cards you own, which are returned in the CBT')])],
    money:[T('Gold และเพชร','Gold and diamonds'),()=>ul([
      T('ชนะด่านครั้งแรก: Gold 100–300% ของค่าฐาน (ค่าฐาน = 6 + ด่าน÷3) · เล่นซ้ำ: 40–110%','First clear: 100–300% of the base (base = 6 + stage÷3) · replays: 40–110%'),
      T('ทุกครั้งที่ชนะมีโอกาส 5% ได้ JACKPOT x4','Every win has a 5% chance of a x4 JACKPOT'),
@@ -1741,7 +1742,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b102';
+const BUILD='b103';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
