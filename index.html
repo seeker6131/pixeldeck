@@ -534,7 +534,7 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .ltip{font-size:12px;color:#c8d2ff;max-width:420px;min-height:2.6em}
 @media (prefers-reduced-motion:reduce){.emb,.lrun .spr,.spr img{animation:none}}
 
-.pk2.pro b{color:#f2d98a}.evc{position:relative;filter:saturate(.8)}.evc img{display:block;width:100%}.evst{position:absolute;left:6%;right:6%;bottom:7%;display:grid;gap:1px;padding:3px 2px;background:rgba(8,10,16,.88);border:2px dashed #ffd84a;color:#ffd84a;line-height:1.1;text-align:center}.evst b{font-family:var(--display);font-size:9cqw;letter-spacing:.5px}.evst i{font-style:normal;font-size:7cqw;color:#fff}.evb{position:absolute;left:-4px;top:-6px;font-style:normal;font-size:9px;font-weight:700;padding:0 3px;background:#ffd84a;color:#111}.pk2.ltd{border-color:#3aa8ff}.pk2.ltd b{color:#6fd8ff;text-shadow:0 0 6px #2a8cff}.dlrow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0}.dlrow span{display:grid;justify-items:center;padding:3px 0;background:rgba(10,16,25,.6);border:2px solid #0a1019;line-height:1.15}.dlrow small{font-size:9px;color:#b9ad98}.dlrow b{font-family:var(--display);font-size:14px;color:#f2d98a}.dlrow i{font-style:normal;font-size:9px}.dlrow .done{opacity:.4}.dlrow .now{border-color:#f2d98a;background:rgba(64,108,145,.6)}
+.pk2.pro b{color:#f2d98a}.evc{position:relative;filter:saturate(.8)}.evc img{display:block;width:100%}.evst{position:absolute;left:6%;right:6%;bottom:7%;display:grid;gap:1px;padding:3px 2px;background:rgba(8,10,16,.88);border:2px dashed #ffd84a;color:#ffd84a;line-height:1.1;text-align:center}.evst b{font-family:var(--display);font-size:9cqw;letter-spacing:.5px}.evst i{font-style:normal;font-size:7cqw;color:#fff}.evb{position:absolute;left:-4px;top:-6px;font-style:normal;font-size:9px;font-weight:700;padding:0 3px;background:#ffd84a;color:#111}#upd{position:fixed;z-index:9999;left:50%;top:max(6px,env(safe-area-inset-top));transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:min(94vw,560px);padding:8px 14px;background:#101826;border:2px solid #f2d98a;box-shadow:0 4px 0 #05080e,0 0 18px rgba(242,217,138,.45);color:#fff;font-family:var(--body);animation:updin .35s ease-out}#upd b{font-family:var(--display);font-size:15px;color:#f2d98a}#upd b span{color:#6fd8ff}#upd small{font-size:12px;color:#d6dcea}#upd i{font-style:normal;font-weight:700;font-size:16px;color:#ffd84a}#upd button{font:700 12px var(--body);padding:5px 10px;background:#3d6f9c;border:2px solid #f2d98a;color:#fff}@keyframes updin{from{transform:translate(-50%,-140%)}to{transform:translate(-50%,0)}}.pk2.ltd{border-color:#3aa8ff}.pk2.ltd b{color:#6fd8ff;text-shadow:0 0 6px #2a8cff}.dlrow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0}.dlrow span{display:grid;justify-items:center;padding:3px 0;background:rgba(10,16,25,.6);border:2px solid #0a1019;line-height:1.15}.dlrow small{font-size:9px;color:#b9ad98}.dlrow b{font-family:var(--display);font-size:14px;color:#f2d98a}.dlrow i{font-style:normal;font-size:9px}.dlrow .done{opacity:.4}.dlrow .now{border-color:#f2d98a;background:rgba(64,108,145,.6)}
 .pk2{display:grid;gap:4px;padding:7px 9px 9px;color:var(--ink)}.pk2 b{font-family:var(--display);font-size:16px;color:#6fd8ff}.pk2.g b{color:#ffd84a}.pk2 small{font-size:11px;color:#c8d2ff;line-height:1.3}
 .row2{display:grid;grid-template-columns:1.25fr 1fr;gap:8px}.row2 .btn{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;padding:5px 4px 7px;white-space:nowrap}.row2 img{width:16px;height:16px;image-rendering:pixelated}.row2 i{font-style:normal}
 .badge{display:inline-grid;place-items:center;min-width:17px;height:17px;background:#f0324a;color:#fff;font-size:12px}
@@ -1722,7 +1722,24 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b96';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b97';
+// Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
+// a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
+const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
+function updCheck(){if(updAt||updBusy||!/^https?:$/.test(location.protocol)||document.hidden)return;updBusy=true;
+  fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(v=>{updBusy=false;if(!v||!v.b||v.b===BUILD)return;
+    let seen='';try{seen=sessionStorage.getItem('pdb_upd')||''}catch(e){}if(seen===v.b)return; // already reloaded for this build once: the host is still serving the old page, do not loop
+    updShow(v.b,v.note||'')}).catch(()=>{updBusy=false})}
+function updShow(nb,note){updNew=nb;updAt=Date.now()+UPD_WAIT*1000;const el=document.createElement('div');el.id='upd';el.setAttribute('role','alert');document.body.appendChild(el);
+  try{sfx('win')}catch(e){}
+  const tick=()=>{const left=Math.ceil((updAt-Date.now())/1000),th=!S||S.lang!=='en';
+    if(left<=0&&!bt)return updGo();
+    el.innerHTML=`<b>${th?'มีอัปเดตใหม่':'New update'} <span>${nb}</span></b><small>${note?note+' · ':''}${left>0?(th?`เกมจะบันทึกและรีโหลดใน <i>${left}</i> วินาที`:`The game will save and reload in <i>${left}</i>s`):(th?'จบการต่อสู้นี้แล้วเกมจะรีโหลดทันที':'Reloading as soon as this battle ends')}</small>${bt?'':`<button type="button" id="updgo">${th?'อัปเดตเลย':'Update now'}</button>`}`;
+    const b=el.querySelector('#updgo');if(b)b.onclick=updGo;setTimeout(tick,500)};tick()}
+function updGo(){if(updAt<0)return;updAt=-1;try{sessionStorage.setItem('pdb_upd',updNew)}catch(e){}try{save();if(typeof cloudFlush==='function')cloudFlush()}catch(e){}
+  const el=document.getElementById('upd');if(el)el.innerHTML=`<b>${!S||S.lang!=='en'?'กำลังอัปเดต…':'Updating…'}</b>`;
+  setTimeout(()=>location.replace(location.pathname+'?v='+updNew.replace(/\D/g,'')),900)}
+setTimeout(updCheck,8000);setInterval(updCheck,UPD_POLL);document.addEventListener('visibilitychange',()=>{if(!document.hidden)updCheck()});const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
