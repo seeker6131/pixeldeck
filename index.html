@@ -988,25 +988,31 @@ function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),
 /* ---------- battle ---------- */
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* ---------- stage maps: 50 paintings, one per 10 stages, each with its own weather ---------- */
-const MAPS=["Meadow", "Deep Forest", "Old Ruins", "Rainy Woods", "Firefly Night", "Autumn Grove", "Misty Maples", "Harvest Castle", "Autumn Storm", "Withered Dusk", "Murky Swamp", "Glowcap Marsh", "Drowned Woods", "Sunken Temple", "Acid Bog", "Dungeon Gate", "Flooded Sewer", "Castle Hall", "Arcane Prison", "Crimson Throne", "Pyramid Plains", "Dune Sea", "Sunset Tombs", "Cracked Wastes", "Moonlit Sands", "Snowfield", "Aurora Lake", "Blizzard Pass", "Ice Cavern", "Frost Citadel", "Twilight Graves", "Moonlit Cemetery", "Storm Burial", "Bone Crypt", "Blood Moon", "Ashlands", "Lava Fields", "Magma Cavern", "Midnight Caldera", "Inferno Core", "Amethyst Cave", "Azure Grotto", "Starlit Shards", "Emerald Hollow", "Ruby Sanctum", "Sky Palace", "Citadel Court", "Storm Ramparts", "Void Bridge", "Final Gate"];
-// p = particle sets [type,colour?], volc = volcano mouths in % of the picture
-const FX={1:{sway:1,p:[['dust']]},2:{sway:1,fog:1,p:[['spore','#d8ffd0']]},3:{sway:1,p:[['dust','#ffe0a0']]},4:{sway:1,fog:1,p:[['rain']]},5:{sway:1,p:[['fly','#eaff6b']]},
- 6:{sway:1,p:[['leaf']]},7:{sway:1,fog:1,p:[['leaf']]},8:{p:[['leaf'],['dust','#ffd9a0']]},9:{sway:1,flash:1,p:[['rain'],['leaf']]},10:{fog:'#c9a0e0',p:[['ash','#b89ad0']]},
- 11:{sway:1,fog:'#b8e0a0',p:[['bubble','#9ad06a']]},12:{glow:'#29adff',p:[['spore','#7ae8ff']]},13:{fog:1,p:[['rain']]},14:{fog:'#d0a0e8',p:[['fly','#e7a8ff']]},15:{glow:'#7dff3a',p:[['bubble','#b6ff5a'],['spore','#c8ff7a']]},
- 16:{p:[['dust'],['ember','#ffb04a',8]]},17:{glow:'#3ddc5a',p:[['drip','#8fffb0']]},18:{p:[['dust','#ffffff']]},19:{glow:'#b06cff',p:[['spark','#e2b8ff']]},20:{glow:'#ff2a4d',p:[['ember','#ff5a5a']]},
- 21:{p:[['sand']]},22:{p:[['sand']]},23:{p:[['sand','#ffc98a']]},24:{p:[['sand'],['dust','#e8c890']]},25:{p:[['sand','#cfd8ff',30],['spark','#ffffff']]},
- 26:{sway:1,p:[['snow']]},27:{aur:1,p:[['snow','#ffffff',35]]},28:{sway:1,fog:1,p:[['bliz']]},29:{p:[['spark','#bff3ff'],['snow','#ffffff',25]]},30:{p:[['snow'],['spark','#bff3ff']]},
- 31:{fog:'#d8b0e8',p:[['fly','#d8a0ff']]},32:{fog:'#c8d8ff',p:[['dust','#c8d8ff']]},33:{flash:1,p:[['rain']]},34:{glow:'#3ddc5a',p:[['dust','#a0ffb8']]},35:{fog:'#ff8a8a',p:[['ember','#ff4a4a']]},
- 36:{glow:'#ff7a1a',p:[['ash']]},37:{glow:'#ff7a1a',volc:[[17,6],[52,4],[89,8]],p:[['ember']]},38:{glow:'#ff7a1a',p:[['ember','#ffb04a',60]]},39:{glow:'#ff7a1a',volc:[[17,6],[88,8]],p:[['ember']]},40:{glow:'#ff5a00',volc:[[17,6],[50,5],[88,8]],p:[['ember','#ffd23a',70]]},
- 41:{glow:'#d86cff',p:[['spark','#f0c0ff']]},42:{glow:'#3de8e0',p:[['spark','#b0fff8'],['spore','#7af0e8']]},43:{glow:'#b06cff',p:[['spark','#ffffff']]},44:{glow:'#3dff8a',p:[['spark','#b8ffd0']]},45:{glow:'#ff3a6a',p:[['spark','#ffc0d0']]},
- 46:{fog:1,p:[['spark','#ffffff'],['snow','#ffffff',20]]},47:{p:[['dust','#ffd9a0'],['fly','#ffd23a']]},48:{flash:1,p:[['rain']]},49:{glow:'#4aa8ff',p:[['spark','#c0d8ff'],['spore','#b06cff']]},50:{glow:'#ff5a00',flash:'#ff5a00',volc:[[8,12],[96,12]],p:[['ember','#ffd23a',60]]}};
-// every stage gets a different map, mixed across zones; each run of 50 stages uses all 50 maps once in a new order
-const mapOf=n=>{const c=Math.floor((n-1)/50),i=(n-1)%50;return (i*[7,13,17,23,9,11,19,21,27,29][c%10]+c*7)%50+1},mapImg=n=>`bg/${String(mapOf(n)).padStart(2,'0')}.webp`;
+// five painted arenas; each appears in a few moods (name + weather), so the 500 stages cycle through 13 variants: VAR = [picture, name, effects]
+// p = particle sets [type,colour?,count?], volc = volcano mouths in % of the picture
+const VAR=[
+ [1,'Infernal Citadel',{glow:'#ff6a1a',volc:[[28,5]],p:[['ember','#ffb04a',46]]}],
+ [1,'Ashfall Bastion',{fog:'#ff9a7a',p:[['ash','#c9b0a8',60],['ember','#ff7a3a',14]]}],
+ [1,'Crimson Eclipse',{glow:'#ff2a2a',flash:'#ff5a00',p:[['ember','#ffd23a',60],['spark','#ffe0a0',10]]}],
+ [2,'Moonlit Keep',{fog:'#b8c8ff',p:[['fly','#ffc46b',14],['dust','#c8d8ff',30]]}],
+ [2,'Stormwatch Keep',{fog:1,flash:1,p:[['rain']]}],
+ [2,'Silent Courtyard',{aur:1,p:[['spark','#dfe8ff',18],['snow','#ffffff',26]]}],
+ [3,'Sky Sanctuary',{fog:'#ffffff',p:[['spark','#ffffff',22],['dust','#ffe9a0',30]]}],
+ [3,'Radiant Court',{glow:'#ffd76a',p:[['spore','#fff0b0',34],['spark','#bfe6ff',12]]}],
+ [4,'Ancient Grove',{p:[['gleaf'],['dust','#fff3b0',34]]}],
+ [4,'Misty Grove',{fog:'#d8ffe0',p:[['fly','#eaff6b',22],['spore','#d8ffd0',22]]}],
+ [4,'Rainy Grove',{fog:1,p:[['rain','#bcd8ff',70],['gleaf','#5fd03a',8]]}],
+ [5,'Abyss Cavern',{glow:'#2ad8ff',p:[['spark','#9ff3ff',26],['drip','#8fe8ff',12]]}],
+ [5,'Hollow Forge',{fog:'#b08ad8',p:[['ember','#ff6a4a',26],['spore','#7ae8ff',22]]}]];
+const MAPS=VAR.map(v=>v[1]),FX={};VAR.forEach((v,i)=>FX[i+1]=v[2]);
+// stage order: a fixed pseudo-random walk over the variants that never shows the same picture twice in a row
+const MAPSEQ=[0];{let x=20261009,prev=0;for(let n=1;n<=MAXST;n++){let k;do{x=(Math.imul(x,1103515245)+12345)>>>0;k=(x>>>8)%VAR.length}while(VAR[k][0]===prev);prev=VAR[k][0];MAPSEQ[n]=k+1}}
+const mapOf=n=>MAPSEQ[Math.max(1,Math.min(MAXST,n))],mapImg=n=>`bg/m${VAR[mapOf(n)-1][0]}.webp`;
 function bgLayers(n){const m=mapOf(n),f=FX[m]||{},u=`style="background-image:url(${mapImg(n)})"`,d=k=>`animation-delay:-${((performance.now()/1000)%k).toFixed(2)}s`;
   return `<div class="bgl ${f.sway?'lowr':''}" ${u}></div>${f.sway?`<div class="bgl top" style="background-image:url(${mapImg(n)});${d(5.6)}"></div>`:''}
    ${f.aur?`<div class="baur" style="${d(10)}"></div>`:''}${f.glow?`<div class="bglow" style="--gc:${f.glow};${d(13.2)}"></div>`:''}${f.fog?`<div class="bfog" style="${f.fog===1?'':'--fc:'+f.fog+';'}${d(32)}"></div>`:''}<canvas id="bgfx" data-m="${m}"></canvas>`}
 // particle weather drawn at half resolution; state lives here so re-rendering the arena does not restart it
-const PT={rain:[90,'#bcd8ff'],drip:[10,'#8fffb0'],snow:[70,'#ffffff'],bliz:[170,'#ffffff'],leaf:[26,'#ff8a2a'],ember:[36,'#ff9a2a'],ash:[55,'#9a9a9a'],fly:[20,'#eaff6b'],spore:[30,'#ffffff'],spark:[26,'#ffffff'],sand:[70,'#f0d8a0'],dust:[26,'#ffffff'],bubble:[12,'#9ad06a']};
+const PT={rain:[90,'#bcd8ff'],drip:[10,'#8fffb0'],snow:[70,'#ffffff'],bliz:[170,'#ffffff'],leaf:[26,'#ff8a2a'],gleaf:[24,'#5fd03a'],ember:[36,'#ff9a2a'],ash:[55,'#9a9a9a'],fly:[20,'#eaff6b'],spore:[30,'#ffffff'],spark:[26,'#ffffff'],sand:[70,'#f0d8a0'],dust:[26,'#ffffff'],bubble:[12,'#9ad06a']};
 let fxM=0,fxP=[],fxB=[],fxNext=0,fxFlash=0,fxFlashAt=0;
 function fxInit(m,W,H){fxM=m;fxP=[];fxB=[];fxFlash=0;fxFlashAt=performance.now()+3000;const f=FX[m]||{};
   (f.p||[]).forEach(([t,col,cnt])=>{for(let i=0;i<(cnt||PT[t][0]);i++)fxP.push({t,c:col||PT[t][1],x:Math.random()*W,y:Math.random()*H,s:Math.random(),ph:Math.random()*6.28})})}
@@ -1016,7 +1022,7 @@ function fxStep(c,t){
     if(p.t==='rain'||p.t==='drip'){p.y+=7+s*3;p.x-=1.2;if(p.y>H){p.y=-8;p.x=R()*(W+30)}x.globalAlpha=.55;x.fillRect(p.x,p.y,1,p.t==='drip'?3:6)}
     else if(p.t==='snow'){p.y+=.4+s*.7;p.x+=Math.sin(t/900+p.ph)*.35;if(p.y>H){p.y=-2;p.x=R()*W}x.globalAlpha=.9;x.fillRect(p.x,p.y,s>.7?2:1,s>.7?2:1)}
     else if(p.t==='bliz'){p.x-=4+s*4;p.y+=1+s*1.5;if(p.x<-4||p.y>H){p.x=W+R()*40;p.y=R()*H-20}x.globalAlpha=.8;x.fillRect(p.x,p.y,2+s*3,1)}
-    else if(p.t==='leaf'){p.y+=.5+s*.6;p.x+=Math.sin(t/600+p.ph)*.9-.4;if(p.y>H||p.x<-4){p.y=-3;p.x=R()*(W+40)}x.fillStyle=s>.6?'#ffd23a':s>.3?p.c:'#d9480f';x.fillRect(p.x,p.y,3,Math.sin(t/200+p.ph)>0?2:1)}
+    else if(p.t==='leaf'||p.t==='gleaf'){p.y+=.5+s*.6;p.x+=Math.sin(t/600+p.ph)*.9-.4;if(p.y>H||p.x<-4){p.y=-3;p.x=R()*(W+40)}x.fillStyle=p.t==='gleaf'?(s>.6?'#c6ff6a':s>.3?p.c:'#2f9a3a'):s>.6?'#ffd23a':s>.3?p.c:'#d9480f';x.fillRect(p.x,p.y,3,Math.sin(t/200+p.ph)>0?2:1)}
     else if(p.t==='ember'){p.y-=.5+s*1.1;p.x+=Math.sin(t/500+p.ph)*.4;if(p.y<H*.1){p.y=H+R()*20;p.x=R()*W}x.globalAlpha=.5+.5*Math.sin(t/120+p.ph);x.fillRect(p.x,p.y,s>.6?2:1,s>.6?2:1)}
     else if(p.t==='ash'){p.y+=.3+s*.4;p.x+=Math.sin(t/1100+p.ph)*.3-.15;if(p.y>H){p.y=-2;p.x=R()*W}x.globalAlpha=.6;x.fillRect(p.x,p.y,s>.7?2:1,1)}
     else if(p.t==='fly'){p.x+=Math.sin(t/700+p.ph)*.5;p.y+=Math.cos(t/900+p.ph*2)*.35;x.globalAlpha=Math.max(0,Math.sin(t/400+p.ph*3));x.fillRect(p.x,H*.2+p.y%(H*.8),2,2)}
@@ -1345,7 +1351,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b71';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b72';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
