@@ -843,12 +843,21 @@ function quests(){const q=qDay(),a=afkGold();
     <p class="sub">ภารกิจรีเซ็ตทุกวัน</p></div>
    <div class="main"><div class="amlist">${QUESTS.map(([k,l,t,g])=>{const n=Math.min(t,q.n[k]||0),ok=n>=t,got=q.got[k];
      return `<div class="amrow" style="grid-template-columns:1fr"><span><b>${l}</b><small class="nt">${n}/${t}</small><small class="gold nt">+${g} Gold</small></span><div class="hp xp"><i style="width:${n/t*100}%"></i></div><button class="btn ${ok&&!got?'go':'alt'} sm" data-act="qget" data-k="${k}" ${ok&&!got?'':'disabled'}>${got?'รับแล้ว':ok?'รับรางวัล':'ยังไม่ครบ'}</button></div>`}).join('')}</div></div></div>`)}
+// developer account: recognised by a hash of its Google e-mail (the address itself is not in the source); it is topped up to everything maxed each time the lobby opens
+const DEVH='38ee325cd572325c',h32=(s,k)=>{let h=k;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619)>>>0;return h.toString(16)};
+const isDev=()=>{if(!USER||!USER.sub||!USER.email)return false;const e=String(USER.email).toLowerCase();return h32(e,2166136261)+h32(e,40389)===DEVH};
+function devGrant(){if(!isDev())return;let ch=0;
+  if(S.gold<1e7){S.gold=1e7;ch=1}if((S.dia||0)<1e6){S.dia=1e6;ch=1}if(S.cleared<MAXST){S.cleared=MAXST;ch=1}if(!S.gift){S.gift=true;ch=1}
+  Object.keys(C).forEach(id=>{const c=S.cards[id]||(ch=1,S.cards[id]={lv:1,exp:0});if((c.star||0)<5){c.star=5;ch=1}const cap=capOf(id);if(c.lv<cap){c.lv=cap;c.exp=0;ch=1}});
+  S.am=S.am||{};Object.keys(AM).forEach(k=>{if((S.am[k]||0)<30){S.am[k]=30;ch=1}});
+  if(!S.team.length){S.team=['h03','h22','h07'];ch=1}
+  if(ch)save()}
 function home(){
-  bt=null;busy=false;ensureMe();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
+  bt=null;busy=false;devGrant();ensureMe();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
   const dk=(act,ic,c,t,sub,dis)=>`<button class="dk ${c}" ${dis?'disabled':`data-act="${act}"`}><img src="${ic}" alt=""><span>${t}<small>${sub}</small></span></button>`;
   view(`<div class="lobby" style="--bg:url(${mapImg(next)})"><div class="lbg"></div>
    <div class="hud">
-    <button class="pchip" data-act="profile">${hero(S.me.look)}<span><b class="nt">${S.me.name.replace(/</g,'&lt;')}</b><small class="nt">${C[S.me.look].n}</small></span></button>
+    <button class="pchip" data-act="profile">${hero(S.me.look)}<span><b class="nt">${S.me.name.replace(/</g,'&lt;')}</b><small class="nt">${isDev()?'<b style="color:#ff5a3c">DEV</b> · ':''}${C[S.me.look].n}</small></span></button>
     <span class="hgap"></span>
     <span class="pill gold nt" title="Gold"><img src="${UI.coin}" alt="Gold">${S.gold.toLocaleString('en')}</span>
     <button class="pill dia nt" data-act="topup" title="Diamond"><img src="${UI.gem}" alt="Diamond">${(S.dia||0).toLocaleString('en')}<b class="plus">+</b></button>
@@ -880,7 +889,7 @@ function prep(){
   S.team=S.team.filter(id=>S.cards[id]);
   view(`<div class="cols"><div class="rail">
     <div class="row"><button class="btn alt sm" data-act="home">กลับ</button><h2>ด่าน ${prepN}</h2></div>
-    <div class="row"><button class="btn alt sm" data-act="stg" data-d="-10">-10</button><button class="btn alt sm" data-act="stg" data-d="-1">-1</button><button class="btn alt sm" data-act="stg" data-d="1">+1</button><button class="btn alt sm" data-act="stg" data-d="10">+10</button></div>
+    <div class="row"><button class="btn alt sm" data-act="stg" data-d="-10">-10</button><button class="btn alt sm" data-act="stg" data-d="-1">-1</button><button class="btn alt sm" data-act="stg" data-d="1">+1</button><button class="btn alt sm" data-act="stg" data-d="10">+10</button></div>${isDev()?'<div class="row"><button class="btn alt sm" data-act="stg" data-d="-100">-100</button><button class="btn alt sm" data-act="stg" data-d="100">+100</button><button class="btn alt sm" data-act="stg" data-d="-999">1</button><button class="btn alt sm" data-act="stg" data-d="999">500</button></div>':''}
     <div class="mapth" style="background-image:url(${mapImg(prepN)})" role="img" aria-label="${MAPS[mapOf(prepN)-1]}"></div>
     <p class="sub">แผนที่: ${MAPS[mapOf(prepN)-1]}</p>
     <p class="sub">ศัตรู: ${en.map(e=>(e.boss?'บอส ':'')+C[e.id].n).join(', ')}</p>
@@ -1309,7 +1318,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b66';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b67';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
