@@ -150,7 +150,7 @@ p{margin:0}
 .tfloor{position:relative;overflow:hidden;border:3px solid var(--deep);background:#35603f}
 /* the plaza is wider than the screen; the camera slides it so the player stays near the middle */
 /* trade plaza: one painted picture and its mirror image, tiled sideways; shops fill the top, avatars walk on the paving below */
-#tfx{position:absolute;inset:0;width:100%;height:100%;z-index:9000;pointer-events:none;image-rendering:pixelated}.av.amb{pointer-events:none}.av.amb .nm{color:#c9cfdb;font-size:9px;opacity:.85}.tworld{position:absolute;left:0;top:0;height:100%;cursor:pointer;background:#5a4d44 url(bg/plaza.webp) 0 0/auto 100% repeat-x;image-rendering:pixelated}
+#tfx{position:absolute;inset:0;width:100%;height:100%;z-index:9000;pointer-events:none;image-rendering:pixelated}.lgl{position:absolute;z-index:1;width:var(--s);height:var(--s);margin:calc(var(--s)/-2) 0 0 calc(var(--s)/-2);border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(255,236,170,.95) 0 9%,rgba(255,190,90,.6) 22%,rgba(255,150,50,.24) 48%,transparent 70%);animation:lampa 2s ease-in-out infinite,lampb 4s ease-in-out infinite}@keyframes lampa{0%,100%{opacity:.62}18%{opacity:.95}31%{opacity:.7}47%{opacity:1}58%{opacity:.55}73%{opacity:.9}86%{opacity:.68}}@keyframes lampb{0%,100%{transform:scale(.9)}40%{transform:scale(1.08)}65%{transform:scale(.96)}80%{transform:scale(1.12)}}.tworld{position:absolute;left:0;top:0;height:100%;cursor:pointer;background:#5a4d44 url(bg/plaza.webp) 0 0/auto 100% repeat-x;image-rendering:pixelated}
 .tworld .deco{position:absolute;pointer-events:none}
 .stall{width:74px;height:46px;background:linear-gradient(#b5793f 0 30%,#7a4a22 30%);box-shadow:0 0 0 3px #0a0e22}
 .stall::before{content:"";position:absolute;left:-6px;right:-6px;top:-20px;height:22px;background:repeating-linear-gradient(90deg,var(--aw,#ff004d) 0 12px,#fff1e8 12px 24px);box-shadow:0 0 0 3px #0a0e22}
@@ -818,9 +818,9 @@ function enterRoom(){
   const R=room;R.W=W;R.H=H;R.target=null;R.menu=null;R.me.tx=R.me.x;R.me.ty=R.me.y;R.npcs=[];
   const mk=R.mk=(c,cls,attr)=>{const b=document.createElement('button');b.className='av '+cls+' r-'+C[c.look].r;b.innerHTML=`<span class="wk">${hero(c.look)}</span><span class="nt nm"></span>`;b.lastChild.textContent=c.name;Object.entries(attr).forEach(([k,v])=>b.setAttribute(k,v));wd.append(b);c.el=b};
   mk(Object.assign(R.me,{name:S.me.name,look:S.me.look}),'me',{tabindex:-1});
-  // townsfolk: not players, cannot be tapped; they stroll between random spots so the plaza never stands still
-  {const pool=Object.keys(C).filter(id=>['ST','C','UC'].includes(C[id].r)),rx=()=>40+Math.random()*(W-80),ry=()=>H*(FLOOR_TOP+.04)+Math.random()*H*(.92-FLOOR_TOP);
-   R.amb=Array.from({length:5},(_,i)=>{const c={amb:1,look:pool[(i*3+r)%pool.length],name:'NPC',x:rx(),y:ry(),k:.3+Math.random()*.18,wait:0};c.tx=c.x;c.ty=c.y;mk(c,'amb',{tabindex:-1,'aria-hidden':'true'});return c});R.rx=rx;R.ry=ry}
+  // shop lanterns: a warm glow sits on every lantern painted in the plaza picture (3168x672, its right half mirrors the left) and flickers like candlelight
+  {const k=H/672,TW=3168*k,half=[[57,131],[401,47],[484,127],[695,127],[797,95],[818,126],[986,126],[1285,130],[1366,101],[1554,111]],all=half.concat(half.map(([x,y])=>[3168-x,y]));
+   for(let b=0;b<W;b+=TW)for(const [x,y] of all){const px=b+x*k;if(px>W)continue;const d=document.createElement('i');d.className='lgl';d.style.cssText=`left:${px.toFixed(1)}px;top:${(y*k).toFixed(1)}px;--s:${(54*k).toFixed(1)}px;animation-duration:${(1.3+Math.random()*1.5).toFixed(2)}s,${(3.1+Math.random()*2.4).toFixed(2)}s;animation-delay:-${(Math.random()*3).toFixed(2)}s,-${(Math.random()*4).toFixed(2)}s`;wd.append(d)}}
   // ambience canvas (screen space, half resolution): leaves drift across and butterflies flutter
   {const cv=$('tfx'),rn=Math.random;R.fx={cv,leaf:Array.from({length:9},()=>({x:rn(),y:rn(),s:.5+rn()*.7,ph:rn()*6,c:['#d98a2b','#b5c94a','#e2b93b','#c45a2a'][Math.floor(rn()*4)]})),fly:Array.from({length:4},()=>({x:rn()*W,y:.5+rn()*.4,ph:rn()*6,c:['#fff3a0','#ffb3d9','#a8e6ff'][Math.floor(rn()*3)]}))}}
   // joystick: drag the thumb to walk; the avatar keeps a short lead target in that direction, and its position is shared a few times a second
@@ -834,10 +834,9 @@ function enterRoom(){
   let last=performance.now();
   (function loop(t){if($('tfloor')!==fl){if(!$('tfloor'))rtLeave();return}const dt=Math.min(.05,(t-last)/1000);last=t;
     if(R.joyTick)R.joyTick(t);
-    for(const c of [R.me,...R.npcs,...(R.amb||[])]){
-      if(c.amb&&t>c.wait&&Math.hypot(c.tx-c.x,c.ty-c.y)<2){c.tx=Math.max(40,Math.min(W-40,c.x+(Math.random()-.5)*520));c.ty=R.ry();c.wait=t+2500+Math.random()*7000}
+    for(const c of [R.me,...R.npcs]){
       if(c===R.me&&R.target!=null){const n=R.npcs.find(x=>x.uid===R.target);if(!n)R.target=null;else{c.tx=n.x+(c.x<n.x?-40:40);c.ty=n.y;if(Math.hypot(n.x-c.x,n.y-c.y)<54){R.menu=R.target;R.target=null;c.tx=c.x;c.ty=c.y;c.face=n.x<c.x;rtSend();npcMenu()}}}
-      const dx=c.tx-c.x,dy=c.ty-c.y,d=Math.hypot(dx,dy),sp=150*dt*(c.k||1),mv=d>1.5;
+      const dx=c.tx-c.x,dy=c.ty-c.y,d=Math.hypot(dx,dy),sp=150*dt,mv=d>1.5;
       if(mv){c.x+=dx/d*Math.min(sp,d);c.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>1)c.face=dx<0}
       c.el.style.left=c.x+'px';c.el.style.top=c.y+'px';c.el.style.transform=`scale(${(.8+.35*c.y/R.H).toFixed(3)})`;c.el.classList.toggle('walk',mv);c.el.style.zIndex=Math.round(c.y);c.el.classList.toggle('flip',!!c.face);
       }
@@ -1742,7 +1741,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b101';
+const BUILD='b102';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
