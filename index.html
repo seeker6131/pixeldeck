@@ -230,10 +230,10 @@ p{margin:0}
 .bfog{position:absolute;inset:8% -40% 30% -40%;pointer-events:none;opacity:.55;animation:fogm 16s ease-in-out infinite alternate;
   background:radial-gradient(ellipse 22% 42% at 15% 45%,var(--fc,#fff),transparent 70%),radial-gradient(ellipse 26% 36% at 48% 60%,var(--fc,#fff),transparent 70%),radial-gradient(ellipse 20% 44% at 80% 40%,var(--fc,#fff),transparent 70%)}
 @keyframes fogm{from{transform:translateX(-18%)}to{transform:translateX(18%)}}
-.bglow{position:absolute;inset:24% 0 0 0;pointer-events:none;mix-blend-mode:screen;background:repeating-linear-gradient(105deg,transparent 0 10%,var(--gc) 17%,transparent 25%);background-size:200% 100%;animation:glowm 6s linear infinite,glowp 2.2s ease-in-out infinite alternate}
+.bglow{position:absolute;inset:24% 0 0 0;pointer-events:none;background:repeating-linear-gradient(105deg,transparent 0 10%,var(--gc) 17%,transparent 25%);background-size:200% 100%;animation:glowm 6s linear infinite,glowp 2.2s ease-in-out infinite alternate}
 @keyframes glowm{to{background-position:-200% 0}}
-@keyframes glowp{from{opacity:.12}to{opacity:.5}}
-.baur{position:absolute;inset:0 0 70% 0;pointer-events:none;mix-blend-mode:screen;opacity:.5;background:linear-gradient(90deg,#3dffb0,#4aa8ff,#b06cff,#3dffb0,#4aa8ff);background-size:300% 100%;-webkit-mask:linear-gradient(#000 30%,transparent);mask:linear-gradient(#000 30%,transparent);animation:glowm 10s linear infinite}
+@keyframes glowp{from{opacity:.08}to{opacity:.34}}
+.baur{position:absolute;inset:0 0 70% 0;pointer-events:none;opacity:.38;background:linear-gradient(90deg,#3dffb0,#4aa8ff,#b06cff,#3dffb0,#4aa8ff);background-size:300% 100%;-webkit-mask:linear-gradient(#000 30%,transparent);mask:linear-gradient(#000 30%,transparent);animation:glowm 10s linear infinite}
 #bgfx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;image-rendering:pixelated}
 .mapth{width:100%;aspect-ratio:2;border:3px solid var(--deep);background-size:cover}
 .atop{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -307,11 +307,11 @@ p{margin:0}
 .imp{position:absolute;z-index:4;left:50%;top:45%;width:80%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,60% 35%,100% 20%,70% 50%,100% 80%,60% 65%,50% 100%,40% 65%,0 80%,30% 50%,0 20%,40% 35%);animation:imp .35s steps(5) forwards}
 @keyframes imp{from{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}to{transform:translate(-50%,-50%) scale(1.5) rotate(25deg);opacity:0}}
 /* overlays: VS intro, START / FINISH banners, skill cut-ins */
-#ov{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}
-.bn{position:absolute;left:0;right:0;top:50%;height:84px;transform:translateY(-50%);display:grid;place-items:center;background:linear-gradient(90deg,transparent,rgba(10,14,34,.92) 18% 82%,transparent);animation:bn .85s both}
+#ov{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}#ov:empty{display:none}.ovon .bgl.top,.ovon .bfog,.ovon .bglow,.ovon .baur{animation-play-state:paused}
+.bn{position:absolute;left:0;right:0;top:50%;height:84px;transform:translateY(-50%);display:grid;place-items:center;background:linear-gradient(90deg,transparent,rgba(10,14,34,.92) 18% 82%,transparent);animation:bn calc(.85s/var(--sp,1)) both}
 .bn span{font-family:var(--display);font-weight:700;font-style:italic;font-size:58px;letter-spacing:.08em;color:var(--yellow);text-shadow:4px 4px 0 var(--red),0 0 20px #ff8a00;animation:pop .3s both}
 .bn.lose span{color:var(--dim);text-shadow:4px 4px 0 #0a0e22}
-@keyframes bn{0%{clip-path:inset(50% 0)}16%,82%{clip-path:inset(0)}100%{clip-path:inset(50% 0)}}
+@keyframes bn{0%{transform:translateY(-50%) scaleY(0);opacity:0}16%,82%{transform:translateY(-50%) scaleY(1);opacity:1}100%{transform:translateY(-50%) scaleY(0);opacity:0}}
 @keyframes pop{from{transform:scale(3);opacity:0}}
 @keyframes slideL{from{transform:translateX(-140%)}}
 @keyframes slideR{from{transform:translateX(140%)}}
@@ -321,14 +321,14 @@ p{margin:0}
 .vs b{font-family:var(--display);font-style:italic;font-size:76px;line-height:1;color:var(--yellow);text-shadow:5px 5px 0 var(--red),0 0 22px #ff8a00;animation:pop .35s .25s both}
 .dim{position:absolute;inset:0;background:rgba(10,14,34,.6)}
 .cut{--k1:#ff7a6b;--k2:#b3122f;position:absolute;left:-6%;right:-6%;top:50%;height:46%;transform:translateY(-50%) rotate(-4deg);display:flex;align-items:center;gap:26px;padding-left:14%;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 3px,transparent 3px 46px),linear-gradient(90deg,var(--k2),var(--k1));box-shadow:0 0 0 4px #0a0e22,0 0 0 9px var(--k1),0 0 0 13px #0a0e22;animation:cut .75s both}
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 3px,transparent 3px 46px),linear-gradient(90deg,var(--k2),var(--k1));box-shadow:0 0 0 4px #0a0e22,0 0 0 9px var(--k1),0 0 0 13px #0a0e22;animation:cut calc(.75s/var(--sp,1)) both}
 .cut.t-aoe{--k1:#ffc04d;--k2:#d9480f}.cut.t-exec{--k1:#d59bff;--k2:#6a1fb5}.cut.t-drain{--k1:#ff7ab8;--k2:#8a1158}
 .cut.t-heal,.cut.t-healall{--k1:#8dffa0;--k2:#118a3c}.cut.t-guard{--k1:#8fd3ff;--k2:#1f58b5}.cut.t-buff{--k1:#ffe98a;--k2:#c98a00}
-.cut.ult{height:74%;animation-duration:1s;box-shadow:0 0 0 4px #0a0e22,0 0 0 9px #ffd23a,0 0 0 13px #0a0e22,0 0 40px 18px rgba(255,210,58,.6)}
+.cut.ult{height:74%;animation-duration:calc(1s/var(--sp,1));box-shadow:0 0 0 4px #0a0e22,0 0 0 9px #ffd23a,0 0 0 13px #0a0e22,0 0 0 20px rgba(255,210,58,.3)}
 .cutart{width:min(200px,24vmax);flex:none;border:4px solid #0a0e22;box-shadow:6px 6px 0 rgba(10,14,34,.6);animation:slideL .28s both}
 .cutname{font-family:var(--display);font-weight:700;font-style:italic;font-size:42px;line-height:1.1;color:#fff;text-shadow:3px 3px 0 #0a0e22,-2px -2px 0 #0a0e22;animation:slideR .28s both}
 .cutname small{display:block;font-size:15px;font-style:normal;letter-spacing:.06em}
-@keyframes cut{0%{clip-path:inset(50% 0)}14%,84%{clip-path:inset(-20% 0)}100%{clip-path:inset(-20% 0 -20% 100%)}}
+@keyframes cut{0%{transform:translateY(-50%) rotate(-4deg) scaleY(0);opacity:0}14%,84%{transform:translateY(-50%) rotate(-4deg) scaleY(1);opacity:1}100%{transform:translate(60%,-50%) rotate(-4deg) scaleY(1);opacity:0}}
 /* hollow star slots */
 .stars{position:absolute;z-index:2;left:0;right:0;display:flex;justify-content:center;gap:1.5%;pointer-events:none}
 .cf .stars{top:55.8%}.cf .stars svg{width:7.5%}
@@ -1207,7 +1207,7 @@ function fxStep(c,t){
 if(!RM)(function loop(t){const c=$('bgfx');if(c){const w=Math.max(1,c.clientWidth>>1),h=Math.max(1,c.clientHeight>>1);if(c.width!==w||c.height!==h){c.width=w;c.height=h;fxM=0}fxStep(c,t)}requestAnimationFrame(loop)})(0);
 const W=ms=>sleep(ms/(S.spd||1));
 const art=id=>`<div class="art"><img src="${artSrc(id)}" alt=""></div>`;
-const ov=h=>{$('ov').innerHTML=h};
+const ov=h=>{const o=$('ov');o.style.setProperty('--sp',S&&S.spd||1);o.innerHTML=h;$('stage').classList.toggle('ovon',!!h)};
 let ret=null,quake=false;const hits=new Set();
 async function banner(t,cls=''){ov(`<div class="bn ${cls}"><span>${t}</span></div>`);await W(RM?400:850);ov('')}
 async function vsIntro(){const P=u=>`<div class="vp">${art(u.id)}</div>`;
@@ -1374,7 +1374,7 @@ $('view').onclick=ev=>{
   const t=ev.target.closest('[data-act]');if(!t||t.disabled)return;const a=t.dataset.act,id=t.dataset.id;
   if(a!=='reset')armed=false;
   if(a==='home')home();
-  else if(a==='prep'){if(bt&&bt.pvp){const o=bt.pvp;bt=null;busy=false;$('ov').innerHTML='';pvpResult(false,o);return}prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;$('ov').innerHTML='';prep()}
+  else if(a==='prep'){if(bt&&bt.pvp){const o=bt.pvp;bt=null;busy=false;ov('');pvpResult(false,o);return}prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;ov('');prep()}
   else if(a==='pvp'){pv.tab='hub';arena();pvpFetch()}
   else if(a==='pvtab'){pv.tab=t.dataset.t;arena()}
   else if(a==='pvfind'){const o=pvOpps();if(o.length){const near=o.slice(0,Math.min(3,o.length));pv.sel=o.indexOf(near[Math.floor(Math.random()*near.length)]);pvPick()}}
@@ -1723,7 +1723,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b98';
+const BUILD='b99';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
