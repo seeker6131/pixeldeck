@@ -52,6 +52,8 @@ p{margin:0}
 .num{font-family:var(--display);font-size:17px;font-variant-numeric:tabular-nums}
 .gold{color:var(--yellow)}.dia{color:var(--blue)}
 .sub{font-size:12px;color:var(--dim)}
+.pvsq{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;align-items:end;padding:10px 0 2px;overflow:hidden}.pvsq>span{display:block;height:46px}.pvsq .spr{height:100%;transform:scaleX(-1)}
+.arenav .rail{overflow-x:hidden}
 .pvh{font-family:var(--display);font-size:17px;color:#ffe45c;margin:0 0 8px}
 .pvrow{display:grid;grid-template-columns:minmax(90px,1fr) auto auto auto;align-items:center;gap:10px;padding:6px 10px;margin-bottom:7px;border:3px solid #080b1f;background:linear-gradient(180deg,#2c3884,#1d2560);box-shadow:inset 0 2px 0 rgba(150,200,255,.25)}
 .pvn{display:grid;min-width:0}.pvn b{font-family:var(--display);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pvn small{font-size:11px}.pvn .bot{font-style:normal;font-size:9px;background:#5a6aa0;padding:0 4px;justify-self:start}
@@ -1414,7 +1416,7 @@ function arena(){const me=pvGet(),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),o
     <p class="sub">${T('สู้ได้อีก','Fights left today')}: <b style="color:#ffe45c">${left}${isDev()?'':'/'+PV_DAILY}</b></p>
     <p class="sub">${T(`ชนะ +${PV_WIN} Gold · แพ้ +${PV_LOSE} Gold`,`Win +${PV_WIN} Gold · lose +${PV_LOSE} Gold`)}</p>
     <p class="sub">${T('ทีมป้องกันของคุณคือทีมที่จัดไว้ล่าสุด ผู้เล่นอื่นจะสู้กับทีมนี้ตอนคุณไม่อยู่','Your defence team is your current team. Other players fight it while you are away.')}</p>
-    <div class="squad" style="height:54px;margin:2px 0;justify-content:flex-start;gap:26px;padding-left:18px">${S.team.map(id=>sprite(id,'front')).join('')}</div>
+    <div class="pvsq">${S.team.map(id=>`<span>${sprite(id,'front')}</span>`).join('')}</div>
     <button class="btn alt sm" data-act="prep">${T('จัดทีม','Edit team')}</button><button class="btn alt sm" data-act="pvref">${T('รีเฟรช','Refresh')}</button></div>
    <div class="main nt"><h3 class="pvh">${T('คู่ต่อสู้','Opponents')}</h3>${st?`<p class="sub" style="margin-bottom:8px">${st}</p>`:''}
     ${opp.length?opp.map((o,i)=>{const d=pvDelta(true,o);return `<div class="pvrow"><span class="pvn"><b>${esc(o.name)}</b>${o.bot?'<i class="bot">BOT</i>':''}<small>${tierTag(o.pts)}</small></span>${tm(o)}<span class="pvw">+${d} / ${pvDelta(false,o)}</span><button class="btn go sm" data-act="pvgo" data-i="${i}" ${can?'':'disabled'}>${T('ท้าสู้','Fight')}</button></div>`}).join(''):`<p class="sub">${T('จัดทีมก่อนถึงจะเข้าอารีน่าได้','Build a team first')}</p>`}
@@ -1535,7 +1537,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b82';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b83';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
