@@ -409,7 +409,8 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .hud{display:flex;align-items:center;gap:8px}
 .pchip{display:flex;align-items:center;gap:8px;padding:2px 12px 2px 4px;border:3px solid #080b1f;background:linear-gradient(180deg,rgba(60,76,160,.92),rgba(30,38,96,.92));color:var(--ink);text-align:left;box-shadow:inset 0 2px 0 rgba(150,200,255,.35)}
 .pchip .spr{height:40px;margin:-2px 0}
-.chb .spr{height:58px}.chb span{color:var(--gl,var(--ink))}.avsel .spr{height:60px}
+.chb .spr{height:58px}.chb span{color:var(--gl,var(--ink))}.avsel .spr{height:74px}
+.row.avsel{display:grid;justify-items:center;gap:4px;padding:16px 0 6px;background:linear-gradient(180deg,#2c3884,#1d2560);border:3px solid #080b1f;box-shadow:inset 0 2px 0 rgba(150,200,255,.25)}.row.avsel b{font-family:var(--display);font-size:15px;color:var(--gl,var(--ink))}
 .pchip b{display:block;font-family:var(--display);font-size:15px;line-height:1.1;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pchip small{font-size:11px;color:#ffe45c}
 .pill{display:flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 4px;border:3px solid #080b1f;background:rgba(8,11,31,.78);font-family:var(--display);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
 .pill img,.dk img,.ibtn img,.play img{image-rendering:pixelated}.pill img{width:18px;height:18px}
@@ -667,7 +668,7 @@ function ensureMe(){if(!S.me)S.me={name:'ผู้เล่น'};if(!C[S.me.look
 let room=null,dressBack='home',roomNo=0;
 function charMake(){ensureMe();
   view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="dressdone">กลับ</button><h2>ตัวละคร</h2></div>
-    <div class="row avsel">${hero(S.me.look)}<b class="nt">${C[S.me.look].n}</b></div>
+    <div class="row avsel r-${C[S.me.look].r}">${hero(S.me.look)}<b class="nt">${C[S.me.look].n}</b></div>
     <label for="nm" class="sub">ชื่อ (ไม่เกิน 12 ตัวอักษร)</label><input id="nm" maxlength="12" value="${S.me.name.replace(/"/g,'')}">
     <button class="btn go sm" data-act="dressdone">บันทึก</button><p class="sub">เลือกได้เฉพาะตัวละครของการ์ดที่คุณมี ได้การ์ดใหม่ก็ได้ตัวละครเพิ่ม</p></div>
     <div class="main"><div class="chgrid">${byRank(Object.keys(S.cards).filter(id=>C[id])).map(id=>`<button class="chb r-${C[id].r} ${id===S.me.look?'on':''}" data-act="dress" data-i="${id}">${hero(id)}<span class="nt">${C[id].n}</span></button>`).join('')}</div></div></div>`)}
@@ -1372,7 +1373,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b76';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b77';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
