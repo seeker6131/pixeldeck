@@ -598,7 +598,7 @@ h1{color:#f2d98a;text-shadow:0 3px 0 #7a4a1c,0 6px 0 #0a1019}h2{color:#f2d98a;te
 .pvfight{border-width:11px 20px!important;border-image-width:11px 20px!important}
 #zoom{background:rgba(10,16,25,.95)}
 .guide h3,.pvh{color:#f2d98a}
-.rail>.row:first-child{padding-bottom:6px;margin-bottom:2px;background:url(ui/div.png) 50% 100%/100% 8px no-repeat;image-rendering:pixelated}
+.rail>.row:first-child{position:sticky;top:0;z-index:8;padding:2px 0 8px;margin-bottom:2px;background:url(ui/div.png) 50% 100%/100% 8px no-repeat,var(--railbg,#13223a);image-rendering:pixelated}
 .gbtn{border:3px solid #0a1019}
 </style>
 
@@ -1722,7 +1722,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b95';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b96';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
