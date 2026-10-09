@@ -1635,7 +1635,7 @@ const shield=(st,cls='')=>{const r=rankOf(st),i=r.i,big=cls.includes('xl'),n=[0,
 const starRow=st=>{const r=rankOf(st);return `<span class="rst big" style="color:${r.t[1]}">${'★'.repeat(r.k)}<i>${'★'.repeat(r.per-r.k)}</i></span>`};
 // arena hub: just the rank shield with its stars and a Fight button; the rank list and the ranking table open from the two small buttons
 // Arena shop: arena coins buy three boxes. AS_PACK odds are deliberately NOT shown anywhere in the game (owner's decision); the rest of a pack is Legend / Rare / Uncommon.
-const AS_COST={pack:200,gem:100,vip:100},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[[1,5,.5],[6,10,.28],[11,20,.15],[21,35,.055],[36,50,.015]],AS_VIP=7;
+const AS_COST={pack:400,gem:120,vip:1500},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[[1,5,.5],[6,10,.28],[11,20,.15],[21,35,.055],[36,50,.015]],AS_VIP=7;
 function asBuy(k){const c=AS_COST[k];if(!c||(S.ac||0)<c)return;S.ac-=c;let got;
   if(k==='pack'){let x=Math.random(),r='UC';for(const q of['SL','L','R'])if((x-=AS_PACK[q])<0){r=q;break}got={k,card:giveCard(randOf(r))}}
   else if(k==='gem'){let x=Math.random(),b=AS_GEM[0];for(const g of AS_GEM)if((x-=g[2])<0){b=g;break}const n=b[0]+Math.floor(Math.random()*(b[1]-b[0]+1));S.dia=(S.dia||0)+n;got={k,n}}
@@ -1798,7 +1798,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b112';
+const BUILD='b113';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
