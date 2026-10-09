@@ -706,7 +706,7 @@ function roomList(noFetch){ensureMe();const on=mkOn(),cnt=i=>rtCounts?rtCounts[i
 function bubble(c,text){if(!c||!c.el)return;const old=c.el.querySelector('.bub');if(old)old.remove();const b=document.createElement('span');b.className='bub nt';b.textContent=text;c.el.append(b);clearTimeout(c.bt);c.bt=setTimeout(()=>b.remove(),5500)}
 function chatSend(txt){const i=$('chi'),t=String(txt!=null?txt:i?i.value:'').replace(/\s+/g,' ').trim().slice(0,40);if(i)i.value='';if(!t||!room)return;bubble(room.me,t);beep&&beep();if(rt)rt.me.update({m:t,mt:Date.now()}).catch(()=>{})}
 // connection status shown in the room header, so a failed link is visible instead of silent
-function rtStat(t,err){const e=$('rstat');if(!e)return;e.textContent=t;e.style.color=err?'#ff8492':'#6cf586'}
+function rtStat(t,err){const e=$('rstat');if(!e)return;e.textContent=BUILD+' · '+t;e.style.color=err?'#ff8492':'#6cf586'}
 const rtErr=e=>rtStat((S.lang==='en'?'offline: ':'เชื่อมต่อไม่ได้: ')+(e&&(e.code||e.message)||'?'),1);
 function rtSend(){if(!rt||!room)return;const m=room.me;rt.me.update({n:S.me.name,l:S.me.look,tx:Math.round(m.tx),ty:+(m.ty/room.H).toFixed(3)}).catch(rtErr)}
 function rtJoin(r){if(!mkOn()){rtStat(S.lang==='en'?'offline (guest)':'ออฟไลน์ (Guest)',1);return}if(rt&&rt.r===r){rtSend();rtSync(rt.data||{});return}rtLeave();rtStat(S.lang==='en'?'connecting…':'กำลังเชื่อมต่อ…');
@@ -1331,10 +1331,10 @@ function titleScreen(){
     <p class="cnote"><span id="gmsg"></span>${FB_CFG?'ล็อกอินด้วย Gmail เซฟจะเก็บบนคลาวด์ เปลี่ยนเครื่องก็เล่นต่อได้ · Guest เก็บเซฟในเครื่องนี้เท่านั้น':'ล็อกอิน Google จะเปิดใช้เมื่อเกมอยู่บนเซิร์ฟเวอร์ของตัวเอง ตอนนี้เข้าเล่นแบบ Guest ได้'}</p>
    </div>
    <div class="clang"><button class="btn sm nt ${S.lang==='en'?'alt':'on'}" data-act="tlang" data-l="th">ไทย</button><button class="btn sm nt ${S.lang==='en'?'on':'alt'}" data-act="tlang" data-l="en">EN</button></div>
-   <p class="cfoot nt">Toey Seafishingclub · test build</p></div>`);
+   <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b64';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
