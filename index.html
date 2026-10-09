@@ -104,8 +104,8 @@ p{margin:0}
 .chs{display:block;width:56px;height:52px;background:url(chars.png) 0 0/168px 2600px;image-rendering:pixelated}
 .av{position:absolute;width:64px;margin:-74px 0 0 -32px;padding:0;border:0;background:none;color:#fff;display:grid;justify-items:center}
 .av .spr{height:68px;transform:scaleX(-1);filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
-.av>span:not(.spr){font-size:10px;line-height:1.3;padding:0 4px;background:rgba(10,14,34,.8);white-space:nowrap;margin-top:1px}
-.av.me{pointer-events:none}.av.me>span:not(.spr){color:var(--yellow)}
+.av>span.nm{font-size:10px;line-height:1.3;padding:0 4px;background:rgba(10,14,34,.8);white-space:nowrap;margin-top:1px}
+.av.me{pointer-events:none}.av.me>span.nm{color:var(--yellow)}
 .av.flip .spr{transform:none}
 .rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
 .roomb{display:grid;gap:4px;text-align:left;padding:10px 12px;color:var(--ink);font-family:var(--display);font-size:20px;font-weight:700}
@@ -470,7 +470,13 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .av.r-L::before,.av.r-SL::before{width:74px;height:26px;margin-left:-37px;top:46px;animation:ring 1s ease-in-out infinite alternate}
 .av.r-SL::before{background:radial-gradient(closest-side,#ffec27,#ff5a00 55%,transparent)}
 @keyframes ring{from{transform:scale(.85);opacity:.65}to{transform:scale(1.1);opacity:1}}
-.av>span:not(.spr){border-bottom:2px solid var(--gl,transparent)}
+.av>span.nm{border-bottom:2px solid var(--gl,transparent)}
+/* walk cycle: the body hops and waddles from the feet while the idle frames run faster */
+.av .wk{display:block;transform-origin:50% 100%}
+.av.walk .wk{animation:wk .34s linear infinite}
+.av.walk .spr img{animation-duration:.3s}
+@keyframes wk{0%{transform:translateY(0) rotate(-7deg) scale(1.04,.96)}25%{transform:translateY(-7px) rotate(-2deg) scale(.97,1.04)}50%{transform:translateY(0) rotate(7deg) scale(1.04,.96)}75%{transform:translateY(-7px) rotate(2deg) scale(.97,1.04)}100%{transform:translateY(0) rotate(-7deg) scale(1.04,.96)}}
+@media (prefers-reduced-motion:reduce){.av.walk .wk{animation:none}}
 @media (prefers-reduced-motion:reduce){.spr.au,.av::before{animation:none}}
 </style>
 
@@ -695,7 +701,7 @@ function enterRoom(){
   const fl=$('tfloor'),wd=$('tworld'),W=WORLD_W,H=fl.clientHeight,ks=Object.keys(AM);
   if(!room||room.no!==r)room={no:r,me:{x:W*.5,y:H*.7},npcs:Array.from({length:nb},(_,i)=>({name:BOTN[(r*9+i)%BOTN.length],look:GIFT[0],x:80+(i+.5)*(W-160)/nb,y:H*(.42+.4*((i*37)%10)/10),wait:i*.5,item:ks[(i*2+r)%ks.length]}))};
   const R=room;R.W=W;R.H=H;R.target=null;R.menu=null;R.me.tx=R.me.x;R.me.ty=R.me.y;
-  const mk=(c,cls,attr)=>{const b=document.createElement('button');b.className='av '+cls+' r-'+C[c.look].r;b.innerHTML=`${hero(c.look)}<span class="nt"></span>`;b.lastChild.textContent=c.name;Object.entries(attr).forEach(([k,v])=>b.setAttribute(k,v));wd.append(b);c.el=b;c.f=0};
+  const mk=(c,cls,attr)=>{const b=document.createElement('button');b.className='av '+cls+' r-'+C[c.look].r;b.innerHTML=`<span class="wk">${hero(c.look)}</span><span class="nt nm"></span>`;b.lastChild.textContent=c.name;Object.entries(attr).forEach(([k,v])=>b.setAttribute(k,v));wd.append(b);c.el=b;c.f=0};
   R.npcs.forEach((n,i)=>{n.tx=n.x;n.ty=n.y;mk(n,'',{'data-act':'tnpc','data-i':i})});mk(Object.assign(R.me,{name:S.me.name,look:S.me.look}),'me',{tabindex:-1});
   wd.onclick=e=>{if(e.target!==wd||R.menu!=null)return;R.me.tx=e.offsetX;R.me.ty=Math.max(60,e.offsetY);R.target=null};
   let last=performance.now();
@@ -705,7 +711,7 @@ function enterRoom(){
       if(c===R.me&&R.target!=null){const n=R.npcs[R.target];c.tx=n.x+(c.x<n.x?-40:40);c.ty=n.y;if(Math.hypot(n.x-c.x,n.y-c.y)<54){R.menu=R.target;R.target=null;c.tx=c.x;c.ty=c.y;n.tx=n.x;n.ty=n.y;c.face=n.x<c.x;n.face=c.x<n.x;npcMenu()}}
       const dx=c.tx-c.x,dy=c.ty-c.y,d=Math.hypot(dx,dy),sp=(c===R.me?150:55)*dt,mv=d>1.5&&!(R.menu!=null&&c!==R.me);
       if(mv){c.x+=dx/d*Math.min(sp,d);c.y+=dy/d*Math.min(sp,d);if(Math.abs(dx)>1)c.face=dx<0}
-      c.el.style.left=c.x+'px';c.el.style.top=(c.y-(mv&&Math.floor(t/160)%2?2:0))+'px';c.el.style.zIndex=Math.round(c.y);c.el.classList.toggle('flip',!!c.face);
+      c.el.style.left=c.x+'px';c.el.style.top=c.y+'px';c.el.classList.toggle('walk',mv);c.el.style.zIndex=Math.round(c.y);c.el.classList.toggle('flip',!!c.face);
       }
     wd.style.transform=`translateX(${-Math.max(0,Math.min(W-fl.clientWidth,R.me.x-fl.clientWidth/2))}px)`;
     requestAnimationFrame(loop)})(last);
