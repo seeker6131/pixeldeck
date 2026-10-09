@@ -821,7 +821,11 @@ const canStar=id=>{const c=starCost(id),o=S.cards[id];return !!(c&&o&&S.gold>=c[
 const _capOld=id=>RAR[C[id].r].cap,maxed=id=>S.cards[id]&&S.cards[id].lv>=capOf(id);
 const lvTxt=id=>{const o=S.cards[id];return maxed(id)?`Lv ${o.lv} · MAX`:`Lv ${o.lv} · Exp ${o.exp}/${need(o.lv)}`};
 function addExp(id,x){const c=S.cards[id],cap=capOf(id);if(c.lv>=cap){c.lv=cap;c.exp=0;return 0}c.exp+=x;let up=0;while(c.lv<cap&&c.exp>=need(c.lv)){c.exp-=need(c.lv);c.lv++;up++}if(c.lv>=cap)c.exp=0;return up}
-function view(h){$('view').innerHTML=h;fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[]}
+// re-drawing the same screen (picking a card, equipping an amulet, opening a pack) keeps both panels scrolled where they were
+const scrKey=()=>{const h=document.querySelector('#view .rail h2');return h?h.textContent.replace(/[0-9]/g,''):''};
+function view(h){const k0=scrKey(),sc=k0?['.rail','.main'].map(q=>{const e=document.querySelector('#view '+q);return e?e.scrollTop:0}):null;$('view').innerHTML=h;
+  if(sc&&scrKey()===k0){const put=()=>['.rail','.main'].forEach((q,i)=>{const e=document.querySelector('#view '+q);if(e)e.scrollTop=sc[i]});put();requestAnimationFrame(put)}
+  fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[]}
 const q=(el,t,cls)=>fx.push([el,t,cls]);
 const rib=id=>`<span class="rib">${RAR[C[id].r].n}</span>`;
 const fr=id=>RAR[C[id].r].fire?'fire f-'+RAR[C[id].r].fire:'';
@@ -1207,7 +1211,7 @@ $('view').onclick=ev=>{
   else if(a==='prep'){prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;$('ov').innerHTML='';prep()}
   else if(a==='stg'){prepN+=+t.dataset.d;prep()}
   else if(a==='pick'){const k=S.team.indexOf(id);if(k>=0)S.team.splice(k,1);else if(S.team.length<3)S.team.push(id);save();const m=document.querySelector('.main'),y=m?m.scrollTop:0;prep();const n=document.querySelector('.main');if(n){n.scrollTop=y;requestAnimationFrame(()=>{n.scrollTop=y})}}
-  else if(a==='ctab'){collTab=t.dataset.r;coll()}
+  else if(a==='ctab'){collTab=t.dataset.r;coll();const m=document.querySelector('.main');if(m){m.scrollTop=0;requestAnimationFrame(()=>{m.scrollTop=0})}}
   else if(a==='amtab'){collTab='am';coll()}
   else if(a==='market'){mkSel=null;mk.msg='';market();mkFetch()}
   else if(a==='mkref'){mk.msg='';market();mkFetch()}
@@ -1374,7 +1378,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b74';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b75';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
