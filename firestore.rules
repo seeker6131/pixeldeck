@@ -11,7 +11,7 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.seller == request.auth.uid
         && request.resource.data.p is int
-        && request.resource.data.p >= 100 && request.resource.data.p <= 99900;
+        && request.resource.data.p >= 100 && request.resource.data.p <= 5000000;
       allow delete: if request.auth != null;
     }
     // PvP arena: everyone signed in can read the teams, each player writes only their own entry
@@ -25,7 +25,7 @@ service cloud.firestore {
     match /payouts/{id} {
       allow create: if request.auth != null
         && request.resource.data.gold is int
-        && request.resource.data.gold >= 0 && request.resource.data.gold <= 99900;
+        && request.resource.data.gold >= 0 && request.resource.data.gold <= 5000000;
       allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
     }
   }
