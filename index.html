@@ -195,7 +195,7 @@ p{margin:0}
 .spr{position:relative;display:block;aspect-ratio:176/216;height:100%;flex:none}
 /* one sheet per character: 6 frames across, rows = idle, walk, attack, front idle */
 .spr>i{position:absolute;left:50%;bottom:-3%;height:128%;aspect-ratio:336/272;margin-left:calc(128%*-.5*336/272*216/176);overflow:hidden;pointer-events:none}
-.spr img{position:absolute;left:0;top:0;display:block;width:600%;height:400%;max-width:none;--ry:0%;transform:translate(0,var(--ry));animation:fr6 .84s steps(6) infinite;will-change:transform}
+.spr img{position:absolute;left:0;top:0;display:block;width:600%;height:400%;max-width:none;image-rendering:pixelated;--ry:0%;transform:translate(0,var(--ry));animation:fr6 .84s steps(6) infinite;will-change:transform}
 @keyframes fr6{from{transform:translate(0,var(--ry))}to{transform:translate(-100%,var(--ry))}}
 .spr.walk img{--ry:-25%}.spr.front img{--ry:-75%}
 .spr.atk img{--ry:-50%;animation:fr6 var(--ad,.5s) steps(6) 1}
@@ -399,7 +399,7 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .heroz{display:grid;justify-items:center;align-content:end;gap:2px;min-height:0;height:100%}
 .logo{font-family:var(--display);font-weight:700;font-size:calc(var(--H)*.105);line-height:.86;text-align:center;letter-spacing:.04em;color:#fff;text-shadow:0 3px 0 #3d6bff,0 6px 0 #080b1f,0 0 22px rgba(90,140,255,.7);margin:0}
 .logo b{display:block;font-size:1.28em;color:#ffe45c;text-shadow:0 3px 0 #ff5a36,0 6px 0 #080b1f,0 0 26px rgba(255,150,40,.75)}
-.squad{display:flex;align-items:flex-end;justify-content:center;gap:calc(var(--H)*.03);height:calc(var(--H)*.3);min-height:0;margin-top:calc(var(--H)*.03)}
+.squad{display:flex;align-items:flex-end;justify-content:center;gap:calc(var(--H)*.075);height:calc(var(--H)*.21);min-height:0;margin-top:calc(var(--H)*.07)}
 .squad .spr{height:100%;transform:scaleX(-1);filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
 @keyframes sq{from{transform:scaleY(1)}to{transform:scaleY(1.045)}}
 .side{display:grid;gap:8px;align-content:end}
@@ -1318,7 +1318,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b67';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b68';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
