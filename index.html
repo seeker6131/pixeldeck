@@ -64,11 +64,19 @@ p{margin:0}
 .pvhub{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:4px}
 .pvtop{display:flex;align-items:center;gap:8px}
 .pvmid{display:grid;justify-items:center;align-content:center;gap:3px;min-height:0;text-align:center}
-.shd{position:relative;display:inline-grid;place-items:center;width:var(--s,60px);aspect-ratio:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45)) drop-shadow(0 0 10px color-mix(in srgb,var(--c) 55%,transparent))}
-.shd svg{position:absolute;inset:0;width:100%;height:100%}.shd b{position:relative;top:2%;font-family:var(--display);font-weight:700;font-size:calc(var(--s,60px)*.26);color:#fff;text-shadow:2px 2px 0 #080b1f,-1px -1px 0 #080b1f,1px -1px 0 #080b1f,-1px 1px 0 #080b1f}
-.shd.xl{--s:calc(var(--H)*.36);animation:shf 2.4s ease-in-out infinite alternate}.shd.sm{--s:44px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
+.shd{position:relative;display:inline-grid;place-items:center;width:var(--s,60px);aspect-ratio:1}
+.shd>img{position:relative;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45))}
+.shd.sm{--s:46px}.shd.md{--s:calc(var(--H)*.22)}.shd.xl{--s:calc(var(--H)*.4)}.shd.xl>img{animation:shf 2.4s ease-in-out infinite alternate}
 @keyframes shf{to{transform:translateY(-4px)}}
-.shd.nod b{display:none}
+.shd.xl.t2>img,.shd.xl.t3>img,.shd.xl.t4>img,.shd.xl.t5>img{animation:shf 2.4s ease-in-out infinite alternate,shg 1.6s ease-in-out infinite alternate}
+@keyframes shg{from{filter:drop-shadow(0 4px 0 rgba(0,0,0,.45)) drop-shadow(0 0 3px var(--c))}to{filter:drop-shadow(0 4px 0 rgba(0,0,0,.45)) drop-shadow(0 0 16px var(--c))}}
+.shd>.sp{width:11%;z-index:3}.shd.t3>.sp{background:#bff6ff}.shd.t4>.sp{background:#e6c8ff}.shd.t5>.sp{background:#fff1a8}
+.shd canvas.firec{position:absolute;z-index:auto;transform:none;image-rendering:pixelated;pointer-events:none;top:auto}
+.shd canvas.shl{left:-6%;width:112%;top:-4%;height:108%;z-index:2;filter:drop-shadow(0 0 2px rgba(255,200,0,.7))}
+.shd.t4 canvas.shl{filter:hue-rotate(215deg) saturate(1.3) drop-shadow(0 0 3px #b06cff)}
+.shd canvas.shf{left:-4%;width:108%;bottom:10%;height:70%;opacity:.7;-webkit-mask:linear-gradient(90deg,transparent,#000 22% 78%,transparent);mask:linear-gradient(90deg,transparent,#000 22% 78%,transparent)}
+.shd .rays{position:absolute;inset:-22%;border-radius:50%;background:repeating-conic-gradient(rgba(255,210,58,.5) 0 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(closest-side,transparent 42%,#000 50%,transparent 100%);mask:radial-gradient(closest-side,transparent 42%,#000 50%,transparent 100%);animation:rsp 14s linear infinite}
+@keyframes rsp{to{transform:rotate(360deg)}}
 .pvname{font-family:var(--display);font-size:calc(var(--H)*.075);line-height:1;text-shadow:0 2px 0 #080b1f}
 .rst.big{font-size:calc(var(--H)*.075);line-height:1;letter-spacing:4px;text-shadow:0 2px 0 #080b1f}
 .pvfight{min-width:190px;font-size:22px;letter-spacing:.12em;margin:4px 0 2px}
@@ -76,7 +84,7 @@ p{margin:0}
 .rkrow{position:relative;display:grid;grid-template-columns:auto minmax(90px,1.2fr) 1fr 1fr 1fr;align-items:center;gap:12px;padding:5px 12px;margin-bottom:6px;border:3px solid #080b1f;background:linear-gradient(180deg,#2c3884,#1d2560);box-shadow:inset 0 2px 0 rgba(150,200,255,.25)}
 .rkrow.me{outline:3px solid #ffe45c;outline-offset:-1px}.rkrow .you{position:absolute;right:6px;top:-9px;font-style:normal;font-size:9px;background:#ffe45c;color:#121a36;padding:0 5px;font-weight:700}
 .rkn,.rkd{display:grid;line-height:1.2}.rkn b{font-family:var(--display);font-size:17px}.rkn small,.rkd small{font-size:10px;color:#aeb9ee}.rkd{font-family:var(--display);font-size:13px;color:#ffe9a8}
-@media (prefers-reduced-motion:reduce){.shd.xl{animation:none}}
+@media (prefers-reduced-motion:reduce){.shd.xl>img,.shd .rays{animation:none!important}}
 .acn{display:inline-flex;align-items:center;gap:3px;color:#d9b8ff;font-weight:700;vertical-align:middle}.acn img{width:14px;height:14px;image-rendering:pixelated}
 .rst{letter-spacing:1px;white-space:nowrap}.rst i{font-style:normal;color:rgba(255,255,255,.22)}
 .pvw{font-family:var(--display);font-size:12px;color:#c8d2ff;white-space:nowrap}
@@ -1443,22 +1451,17 @@ function pvBots(n){const me=pvGet(),own=byRank(Object.keys(S.cards).filter(id=>C
 function pvOpps(){pvTeam();const me=pvGet(),real=pv.state==='ok'?pv.list.filter(o=>o.uid!==(USER&&USER.sub)).sort((a,b)=>Math.abs(a.st-me.st)-Math.abs(b.st-me.st)).slice(0,4):[];
   return pv.opp=(S.pvt.length||S.team.length)?[...real,...pvBots(Math.max(1,4-real.length))]:[]}
 const pvPay=(won,st)=>{const t=rankOf(st).t;return won?[t[3],t[4]]:[PV_LOSE_GOLD,0]};
-// rank shield drawn in the tier's colour: wings from Diamond up, a crown for King, the division numeral in the middle
-const shield=(st,cls='')=>{const r=rankOf(st),c=r.t[1],w=r.i>=3,k=r.i>=5;
-  return `<span class="shd ${cls}" style="--c:${c}"><svg viewBox="0 0 120 120" aria-hidden="true">
-   ${w?`<path d="M34 46 4 30l8 22-10 2 12 14-8 6 26 6z" fill="${c}" stroke="#080b1f" stroke-width="3" opacity=".9"/><path d="M86 46l30-16-8 22 10 2-12 14 8 6-26 6z" fill="${c}" stroke="#080b1f" stroke-width="3" opacity=".9"/>`:''}
-   <path d="M60 14 96 26v34c0 26-16 42-36 50C40 102 24 86 24 60V26z" fill="${c}" stroke="#080b1f" stroke-width="4"/>
-   <path d="M60 24 87 33v27c0 20-12 33-27 40z" fill="rgba(0,0,0,.22)"/><path d="M60 24 33 33v27c0 20 12 33 27 40z" fill="rgba(255,255,255,.2)"/>
-   <path d="M60 14 96 26v34c0 26-16 42-36 50C40 102 24 86 24 60V26z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" transform="translate(60 62) scale(.86) translate(-60 -62)"/>
-   ${k?`<path d="M38 20l6-16 8 9 8-12 8 12 8-9 6 16z" fill="#ffd23a" stroke="#080b1f" stroke-width="3"/>`:r.i>=4?`<path d="M60 0l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#fff" stroke="#080b1f" stroke-width="2.5"/>`:''}
-  </svg><b>${DIVS[r.d]}</b></span>`};
+// rank emblem; the big one on the arena hub carries effects that grow with the rank: sparkles from Silver, a breathing glow from Gold, lightning from Master, fire and turning sun rays for King
+const SHSP=[[14,22],[86,30],[22,78],[80,74],[50,8],[8,52],[92,54],[36,92],[66,90]];
+const shield=(st,cls='')=>{const r=rankOf(st),i=r.i,big=cls.includes('xl'),n=[0,3,5,7,8,9][i];
+  return `<span class="shd t${i} ${cls}" style="--c:${r.t[1]}">${big&&i===5?'<i class="rays"></i><canvas class="firec shf" data-k="SLs" width="80" height="16"></canvas>':''}<img src="rk/${i}.webp" alt="${r.t[0]}">${big&&i>=4?'<canvas class="firec shl" data-k="Ls" width="216" height="260"></canvas>':''}${big?SHSP.slice(0,n).map(([x,y],k)=>`<b class="sp" style="left:${x}%;top:${y}%;animation-delay:${(k*.37).toFixed(2)}s"></b>`).join(''):''}</span>`};
 const starRow=st=>{const r=rankOf(st);return `<span class="rst big" style="color:${r.t[1]}">${'★'.repeat(r.k)}<i>${'★'.repeat(r.per-r.k)}</i></span>`};
 // arena hub: just the rank shield with its stars and a Fight button; the rank list and the ranking table open from the two small buttons
 function arena(){const me=pvGet(),r=rankOf(me.st),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),can=(isDev()||me.n<PV_DAILY)&&Object.keys(S.cards).length>0,tab=pv.tab||'hub';pvOpps();
   const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริง ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players. Bots are available now.'),load:T('กำลังโหลด…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้ ตอนนี้สู้กับบอทได้','Arena offline. Bots are available.'),ok:'',idle:''}[pv.state];
   const head=t=>`<div class="row" style="align-self:start;justify-self:start"><button class="btn alt sm" data-act="pvtab" data-t="hub">${T('กลับ','Back')}</button><h2>${t}</h2></div>`;
   if(tab==='ranks')return view(`<div class="pvhub list nt arenav">${head(T('ระดับแร้งค์','Ranks'))}<div class="pvlist">
-    ${TIERS.map((t,i)=>{const base=TIERS.slice(0,i).reduce((a,x)=>a+x[2]*4,0),mine=r.i===i;return `<div class="rkrow ${mine?'me':''}">${shield(base,'sm nod')}<span class="rkn"><b style="color:${t[1]}">${t[0]}</b><small>${T('ขั้น','Divisions')} IV · III · II · I</small></span><span class="rkd">${'★'.repeat(t[2])}<small>${T('ดาวต่อขั้น','stars per division')}</small></span><span class="rkd">Gold +${t[3]}<small>${T('เมื่อชนะ','per win')}</small></span><span class="rkd">${acoin('+'+t[4])}<small>${T('เมื่อชนะ','per win')}</small></span>${mine?`<i class="you">${T('คุณอยู่ที่นี่','You are here')}</i>`:''}</div>`}).join('')}
+    ${TIERS.map((t,i)=>{const base=TIERS.slice(0,i).reduce((a,x)=>a+x[2]*4,0),mine=r.i===i;return `<div class="rkrow ${mine?'me':''}">${shield(base,'sm')}<span class="rkn"><b style="color:${t[1]}">${t[0]}</b><small>${T('ขั้น','Divisions')} IV · III · II · I</small></span><span class="rkd">${'★'.repeat(t[2])}<small>${T('ดาวต่อขั้น','stars per division')}</small></span><span class="rkd">Gold +${t[3]}<small>${T('เมื่อชนะ','per win')}</small></span><span class="rkd">${acoin('+'+t[4])}<small>${T('เมื่อชนะ','per win')}</small></span>${mine?`<i class="you">${T('คุณอยู่ที่นี่','You are here')}</i>`:''}</div>`}).join('')}
     <p class="sub">${T('ชนะได้ 1 ดาว แพ้เสีย 1 ดาว ดาวเต็มขั้นแล้วเลื่อนขั้นถัดไป ทีมป้องกันไม่เสียดาว','A win adds a star and a loss removes one. Fill a division to move up. Defence teams never lose stars.')}</p></div></div>`);
   if(tab==='top'){const top=pv.state==='ok'?pv.list.slice(0,20):[];return view(`<div class="pvhub list nt arenav">${head(T('อันดับสูงสุด','Top ranking'))}<div class="pvlist">
     ${top.length?`<table class="gt"><tr><th>#</th><th>${T('ผู้เล่น','Player')}</th><th>${T('แร้งค์','Rank')}</th><th>${T('ชนะ/แพ้','W/L')}</th></tr>${top.map((o,i)=>`<tr${o.uid===(USER&&USER.sub)?' style="outline:2px solid #ffe45c"':''}><td>${i+1}</td><td><b>${esc(o.name)}</b></td><td>${tierTag(o.st)}</td><td>${o.w}/${o.l}</td></tr>`).join('')}</table>`:`<p class="sub">${st||T('ยังไม่มีข้อมูลอันดับ','No ranking data yet')}</p>`}</div></div>`)}
@@ -1483,7 +1486,7 @@ function pvPick(){const o=pv.opp[pv.sel],me=pvGet(),tm=pvTeam(),can=isDev()||me.
 function pvpResult(won,opp){const me=pvGet(),was=me.st,[g,c]=pvPay(won,was),r0=rankOf(was);me.st=Math.max(0,Math.min(ST_MAX,me.st+(won?1:-1)));won?me.w++:me.l++;S.gold+=g;S.ac=(S.ac||0)+c;save();pvpPush();
   const r1=rankOf(me.st),up=r1.i*4+r1.d>r0.i*4+r0.d,dn=r1.i*4+r1.d<r0.i*4+r0.d;
   view(`<div class="cols arenav"><div class="rail nt"><h1>${won?T('ชนะ!','Victory!'):T('แพ้','Defeat')}</h1><p class="num">PvP · vs ${esc(opp.name)}</p>
-    <p class="num" style="font-size:18px">${tierTag(me.st)} <b style="color:${me.st>was?'#6cf586':'#ff8492'}">${me.st>was?'★+1':me.st<was?'★−1':''}</b></p>
+    <div style="justify-self:center">${shield(me.st,'md')}</div><p class="num" style="font-size:18px">${tierTag(me.st)} <b style="color:${me.st>was?'#6cf586':'#ff8492'}">${me.st>was?'★+1':me.st<was?'★−1':''}</b></p>
     ${up?`<p class="num" style="color:#6cf586">${T('เลื่อนขั้น!','Promoted!')}</p>`:dn?`<p class="num" style="color:#ff8492">${T('ตกขั้น','Demoted')}</p>`:''}
     <p class="num gold">Gold +${g}</p>${c?`<p class="num">${acoin('+'+c)}</p>`:''}
     <button class="btn go" data-act="pvp">${T('กลับอารีน่า','Back to arena')}</button><button class="btn alt sm" data-act="home">${T('หน้าหลัก','Home')}</button></div>
@@ -1599,7 +1602,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b87';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b88';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
