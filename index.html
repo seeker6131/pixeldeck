@@ -1041,11 +1041,13 @@ const VAR=[
  [4,'Misty Grove',{fog:'#d8ffe0',p:[['fly','#eaff6b',22],['spore','#d8ffd0',22]]}],
  [4,'Rainy Grove',{fog:1,p:[['rain','#bcd8ff',70],['gleaf','#5fd03a',8]]}],
  [5,'Abyss Cavern',{glow:'#2ad8ff',p:[['spark','#9ff3ff',26],['drip','#8fe8ff',12]]}],
- [5,'Hollow Forge',{fog:'#b08ad8',p:[['ember','#ff6a4a',26],['spore','#7ae8ff',22]]}]];
+ [5,'Hollow Forge',{fog:'#b08ad8',p:[['ember','#ff6a4a',26],['spore','#7ae8ff',22]]}],
+ [6,'Champion Arena',{p:[['dust','#ffe9a0',46],['sand','#f0d8a0',14],['ember','#ffb04a',8]]}]]; // the last one is the PvP arena and is never used for a stage
+const NSTAGE=VAR.length-1;
 const MAPS=VAR.map(v=>v[1]),FX={};VAR.forEach((v,i)=>FX[i+1]=v[2]);
 // stage order: a fixed pseudo-random walk over the variants that never shows the same picture twice in a row
-const MAPSEQ=[0];{let x=20261009,prev=0;for(let n=1;n<=MAXST;n++){let k;do{x=(Math.imul(x,1103515245)+12345)>>>0;k=(x>>>8)%VAR.length}while(VAR[k][0]===prev);prev=VAR[k][0];MAPSEQ[n]=k+1}}
-const mapOf=n=>MAPSEQ[Math.max(1,Math.min(MAXST,n))],mapImg=n=>`bg/m${VAR[mapOf(n)-1][0]}.webp`;
+const MAPSEQ=[0];{let x=20261009,prev=0;for(let n=1;n<=MAXST;n++){let k;do{x=(Math.imul(x,1103515245)+12345)>>>0;k=(x>>>8)%NSTAGE}while(VAR[k][0]===prev);prev=VAR[k][0];MAPSEQ[n]=k+1}}
+const mapOf=n=>n===0?VAR.length:MAPSEQ[Math.max(1,Math.min(MAXST,n))],mapImg=n=>`bg/m${VAR[mapOf(n)-1][0]}.webp`;
 function bgLayers(n){const m=mapOf(n),f=FX[m]||{},u=`style="background-image:url(${mapImg(n)})"`,d=k=>`animation-delay:-${((performance.now()/1000)%k).toFixed(2)}s`;
   return `<div class="bgl ${f.sway?'lowr':''}" ${u}></div>${f.sway?`<div class="bgl top" style="background-image:url(${mapImg(n)});${d(5.6)}"></div>`:''}
    ${f.aur?`<div class="baur" style="${d(10)}"></div>`:''}${f.glow?`<div class="bglow" style="--gc:${f.glow};${d(13.2)}"></div>`:''}${f.fog?`<div class="bfog" style="${f.fog===1?'':'--fc:'+f.fog+';'}${d(32)}"></div>`:''}<canvas id="bgfx" data-m="${m}"></canvas>`}
@@ -1395,7 +1397,7 @@ function beep(){if(!S||S.snd===false)return;try{actx=actx||new (window.AudioCont
 $('stage').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button:not(:disabled)'))beep()},true);
 /* ---------- PvP arena: fight another player's saved team (it plays itself); arena/{uid} = {name,look,team,pts,w,l,at} ---------- */
 const T=(a,b)=>S&&S.lang==='en'?b:a,esc=x=>String(x==null?'':x).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-const PV_HP=3,PV_CAP=15,PV_DAILY=5,PV_STAGE=MAPSEQ.indexOf(8)>0?MAPSEQ.indexOf(8):1;
+const PV_HP=3,PV_CAP=15,PV_DAILY=5,PV_STAGE=0;
 // rank ladder: six tiers, each with divisions IV to I; a division is filled with stars (3 below Master, 4 in Master, 5 in King). A win adds a star, a loss removes one.
 // per tier: [name, colour, stars per division, Gold for a win, arena coins for a win]
 const TIERS=[['Bronze','#d99a66',3,40,5],['Silver','#aab2c0',3,60,8],['Gold','#ffd23a',3,90,12],['Diamond','#7fe8ff',3,130,16],['Master','#d59bff',4,180,22],['King','#ff5a3c',5,250,30]];
@@ -1570,7 +1572,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b85';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b86';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
