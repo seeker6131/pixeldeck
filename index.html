@@ -60,6 +60,23 @@ p{margin:0}
 .pvt{display:flex;gap:5px}.pvc{position:relative;display:block;width:40px;border:2px solid var(--gl,#6f7cc0)}.pvc .art{aspect-ratio:1}.pvc i{position:absolute;left:0;right:0;bottom:0;font-style:normal;font-size:9px;line-height:1.2;text-align:center;background:rgba(8,11,31,.8)}
 .pvc.hid{aspect-ratio:1;display:grid;place-items:center;border-style:dashed;background:rgba(8,11,31,.6)}.pvc.hid b{font-family:var(--display);font-size:20px;color:#8f9be0}
 .bn.cd{height:calc(var(--H)*.46)}.bn.cd span{font-size:calc(var(--H)*.34);line-height:1}
+/* arena hub */
+.pvhub{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:4px}
+.pvtop{display:flex;align-items:center;gap:8px}
+.pvmid{display:grid;justify-items:center;align-content:center;gap:3px;min-height:0;text-align:center}
+.shd{position:relative;display:inline-grid;place-items:center;width:var(--s,60px);aspect-ratio:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.45)) drop-shadow(0 0 10px color-mix(in srgb,var(--c) 55%,transparent))}
+.shd svg{position:absolute;inset:0;width:100%;height:100%}.shd b{position:relative;top:2%;font-family:var(--display);font-weight:700;font-size:calc(var(--s,60px)*.26);color:#fff;text-shadow:2px 2px 0 #080b1f,-1px -1px 0 #080b1f,1px -1px 0 #080b1f,-1px 1px 0 #080b1f}
+.shd.xl{--s:calc(var(--H)*.36);animation:shf 2.4s ease-in-out infinite alternate}.shd.sm{--s:44px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
+@keyframes shf{to{transform:translateY(-4px)}}
+.shd.nod b{display:none}
+.pvname{font-family:var(--display);font-size:calc(var(--H)*.075);line-height:1;text-shadow:0 2px 0 #080b1f}
+.rst.big{font-size:calc(var(--H)*.075);line-height:1;letter-spacing:4px;text-shadow:0 2px 0 #080b1f}
+.pvfight{min-width:190px;font-size:22px;letter-spacing:.12em;margin:4px 0 2px}
+.pvhub.list{grid-template-rows:auto minmax(0,1fr)}.pvlist{overflow-y:auto;padding:4px 6px 8px;min-height:0}
+.rkrow{position:relative;display:grid;grid-template-columns:auto minmax(90px,1.2fr) 1fr 1fr 1fr;align-items:center;gap:12px;padding:5px 12px;margin-bottom:6px;border:3px solid #080b1f;background:linear-gradient(180deg,#2c3884,#1d2560);box-shadow:inset 0 2px 0 rgba(150,200,255,.25)}
+.rkrow.me{outline:3px solid #ffe45c;outline-offset:-1px}.rkrow .you{position:absolute;right:6px;top:-9px;font-style:normal;font-size:9px;background:#ffe45c;color:#121a36;padding:0 5px;font-weight:700}
+.rkn,.rkd{display:grid;line-height:1.2}.rkn b{font-family:var(--display);font-size:17px}.rkn small,.rkd small{font-size:10px;color:#aeb9ee}.rkd{font-family:var(--display);font-size:13px;color:#ffe9a8}
+@media (prefers-reduced-motion:reduce){.shd.xl{animation:none}}
 .acn{display:inline-flex;align-items:center;gap:3px;color:#d9b8ff;font-weight:700;vertical-align:middle}.acn img{width:14px;height:14px;image-rendering:pixelated}
 .rst{letter-spacing:1px;white-space:nowrap}.rst i{font-style:normal;color:rgba(255,255,255,.22)}
 .pvw{font-family:var(--display);font-size:12px;color:#c8d2ff;white-space:nowrap}
@@ -1247,9 +1264,10 @@ $('view').onclick=ev=>{
   if(a!=='reset')armed=false;
   if(a==='home')home();
   else if(a==='prep'){if(bt&&bt.pvp){const o=bt.pvp;bt=null;busy=false;$('ov').innerHTML='';pvpResult(false,o);return}prepN=bt?bt.n:Math.min(MAXST,S.cleared+1);bt=null;busy=false;$('ov').innerHTML='';prep()}
-  else if(a==='pvp'){arena();pvpFetch()}
+  else if(a==='pvp'){pv.tab='hub';arena();pvpFetch()}
+  else if(a==='pvtab'){pv.tab=t.dataset.t;arena()}
+  else if(a==='pvfind'){const o=pvOpps();if(o.length){const near=o.slice(0,Math.min(3,o.length));pv.sel=o.indexOf(near[Math.floor(Math.random()*near.length)]);pvPick()}}
   else if(a==='pvref'){pvpFetch()}
-  else if(a==='pvgo'){pv.sel=+t.dataset.i;if(pv.opp&&pv.opp[pv.sel])pvPick()}
   else if(a==='pvpick'){const tm=pvTeam(),k=tm.indexOf(id);if(k>=0)tm.splice(k,1);else if(tm.length<3)tm.push(id);save();pvPick()}
   else if(a==='pvauto'){S.auto=!S.auto;save();pvPick()}
   else if(a==='pvstart'){const o=pv.opp&&pv.opp[pv.sel],me=pvGet();if(o&&pvTeam().length&&(isDev()||me.n<PV_DAILY)){me.n++;save();pvpPush();startBattle(PV_STAGE,o)}}
@@ -1425,23 +1443,32 @@ function pvBots(n){const me=pvGet(),own=byRank(Object.keys(S.cards).filter(id=>C
 function pvOpps(){pvTeam();const me=pvGet(),real=pv.state==='ok'?pv.list.filter(o=>o.uid!==(USER&&USER.sub)).sort((a,b)=>Math.abs(a.st-me.st)-Math.abs(b.st-me.st)).slice(0,4):[];
   return pv.opp=(S.pvt.length||S.team.length)?[...real,...pvBots(Math.max(1,4-real.length))]:[]}
 const pvPay=(won,st)=>{const t=rankOf(st).t;return won?[t[3],t[4]]:[PV_LOSE_GOLD,0]};
-function arena(){const me=pvGet(),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),opp=pvOpps(),can=isDev()||me.n<PV_DAILY;
-  const tm=o=>`<span class="pvt">${[0,1,2].map(()=>'<span class="pvc hid"><b>?</b></span>').join('')}</span>`;
-  const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริงและขึ้นตารางอันดับ ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players and enter the ranking. Bots are available now.'),load:T('กำลังโหลดรายชื่อ…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้: ','Arena offline: ')+esc(pv.err||''),ok:'',idle:''}[pv.state];
-  const top=pv.state==='ok'?pv.list.slice(0,10):[];
-  view(`<div class="cols arenav"><div class="rail nt"><div class="row"><button class="btn alt sm" data-act="home">${T('กลับ','Back')}</button><h2>PvP</h2></div>
-    <p class="num" style="font-size:18px">${tierTag(me.st)}</p><p class="sub">${T('ชนะ','Wins')} ${me.w} · ${T('แพ้','Losses')} ${me.l}</p>
-    <p class="sub">${T('เหรียญอารีน่า','Arena coins')}: ${acoin(S.ac||0)}</p>
-    <p class="sub">${T('สู้ได้อีก','Fights left today')}: <b style="color:#ffe45c">${left}${isDev()?'':'/'+PV_DAILY}</b></p>
-    <p class="sub">${T('ชนะ','Win')}: ★+1 · Gold +${pvPay(1,me.st)[0]} · ${acoin(pvPay(1,me.st)[1])}<br>${T('แพ้','Lose')}: ★−1 · Gold +${PV_LOSE_GOLD}</p>
-    <p class="sub">${T('ทีมป้องกันคือทีม PvP ที่ใช้ล่าสุด คู่ต่อสู้จะไม่เห็นการ์ดของคุณก่อนเริ่ม','Your defence team is your last PvP team. Opponents cannot see your cards before the fight.')}</p>
-    <div class="pvsq">${pvTeam().map(id=>`<span>${sprite(id,'front')}</span>`).join('')}</div>
-    <button class="btn alt sm" data-act="pvref">${T('รีเฟรช','Refresh')}</button></div>
-   <div class="main nt"><h3 class="pvh">${T('คู่ต่อสู้','Opponents')}</h3>${st?`<p class="sub" style="margin-bottom:8px">${st}</p>`:''}
-    ${opp.length?opp.map((o,i)=>{return `<div class="pvrow"><span class="pvn"><b>${esc(o.name)}</b>${o.bot?'<i class="bot">BOT</i>':''}<small>${tierTag(o.st,false)}</small></span>${tm(o)}<button class="btn go sm" data-act="pvgo" data-i="${i}" ${can?'':'disabled'}>${T('ท้าสู้','Fight')}</button></div>`}).join(''):`<p class="sub">${T('ยังไม่มีการ์ดสำหรับเข้าอารีน่า','You have no cards for the arena yet')}</p>`}
-    ${can?'':`<p class="sub" style="color:#ff8492">${T('วันนี้สู้ครบแล้ว กลับมาใหม่พรุ่งนี้','No fights left today. Come back tomorrow.')}</p>`}
-    <h3 class="pvh" style="margin-top:14px">${T('อันดับสูงสุด','Top ranking')}</h3>
-    ${top.length?`<table class="gt"><tr><th>#</th><th>${T('ผู้เล่น','Player')}</th><th>${T('แร้งค์','Rank')}</th><th>${T('ชนะ/แพ้','W/L')}</th></tr>${top.map((o,i)=>`<tr${o.uid===(USER&&USER.sub)?' style="outline:2px solid #ffe45c"':''}><td>${i+1}</td><td><b>${esc(o.name)}</b></td><td>${tierTag(o.st)}</td><td>${o.w}/${o.l}</td></tr>`).join('')}</table>`:`<p class="sub">${T('ยังไม่มีข้อมูลอันดับ','No ranking data yet')}</p>`}</div></div>`)}
+// rank shield drawn in the tier's colour: wings from Diamond up, a crown for King, the division numeral in the middle
+const shield=(st,cls='')=>{const r=rankOf(st),c=r.t[1],w=r.i>=3,k=r.i>=5;
+  return `<span class="shd ${cls}" style="--c:${c}"><svg viewBox="0 0 120 120" aria-hidden="true">
+   ${w?`<path d="M34 46 4 30l8 22-10 2 12 14-8 6 26 6z" fill="${c}" stroke="#080b1f" stroke-width="3" opacity=".9"/><path d="M86 46l30-16-8 22 10 2-12 14 8 6-26 6z" fill="${c}" stroke="#080b1f" stroke-width="3" opacity=".9"/>`:''}
+   <path d="M60 14 96 26v34c0 26-16 42-36 50C40 102 24 86 24 60V26z" fill="${c}" stroke="#080b1f" stroke-width="4"/>
+   <path d="M60 24 87 33v27c0 20-12 33-27 40z" fill="rgba(0,0,0,.22)"/><path d="M60 24 33 33v27c0 20 12 33 27 40z" fill="rgba(255,255,255,.2)"/>
+   <path d="M60 14 96 26v34c0 26-16 42-36 50C40 102 24 86 24 60V26z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5" transform="translate(60 62) scale(.86) translate(-60 -62)"/>
+   ${k?`<path d="M38 20l6-16 8 9 8-12 8 12 8-9 6 16z" fill="#ffd23a" stroke="#080b1f" stroke-width="3"/>`:r.i>=4?`<path d="M60 0l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#fff" stroke="#080b1f" stroke-width="2.5"/>`:''}
+  </svg><b>${DIVS[r.d]}</b></span>`};
+const starRow=st=>{const r=rankOf(st);return `<span class="rst big" style="color:${r.t[1]}">${'★'.repeat(r.k)}<i>${'★'.repeat(r.per-r.k)}</i></span>`};
+// arena hub: just the rank shield with its stars and a Fight button; the rank list and the ranking table open from the two small buttons
+function arena(){const me=pvGet(),r=rankOf(me.st),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),can=(isDev()||me.n<PV_DAILY)&&Object.keys(S.cards).length>0,tab=pv.tab||'hub';pvOpps();
+  const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริง ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players. Bots are available now.'),load:T('กำลังโหลด…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้ ตอนนี้สู้กับบอทได้','Arena offline. Bots are available.'),ok:'',idle:''}[pv.state];
+  const head=t=>`<div class="row" style="align-self:start;justify-self:start"><button class="btn alt sm" data-act="pvtab" data-t="hub">${T('กลับ','Back')}</button><h2>${t}</h2></div>`;
+  if(tab==='ranks')return view(`<div class="pvhub list nt arenav">${head(T('ระดับแร้งค์','Ranks'))}<div class="pvlist">
+    ${TIERS.map((t,i)=>{const base=TIERS.slice(0,i).reduce((a,x)=>a+x[2]*4,0),mine=r.i===i;return `<div class="rkrow ${mine?'me':''}">${shield(base,'sm nod')}<span class="rkn"><b style="color:${t[1]}">${t[0]}</b><small>${T('ขั้น','Divisions')} IV · III · II · I</small></span><span class="rkd">${'★'.repeat(t[2])}<small>${T('ดาวต่อขั้น','stars per division')}</small></span><span class="rkd">Gold +${t[3]}<small>${T('เมื่อชนะ','per win')}</small></span><span class="rkd">${acoin('+'+t[4])}<small>${T('เมื่อชนะ','per win')}</small></span>${mine?`<i class="you">${T('คุณอยู่ที่นี่','You are here')}</i>`:''}</div>`}).join('')}
+    <p class="sub">${T('ชนะได้ 1 ดาว แพ้เสีย 1 ดาว ดาวเต็มขั้นแล้วเลื่อนขั้นถัดไป ทีมป้องกันไม่เสียดาว','A win adds a star and a loss removes one. Fill a division to move up. Defence teams never lose stars.')}</p></div></div>`);
+  if(tab==='top'){const top=pv.state==='ok'?pv.list.slice(0,20):[];return view(`<div class="pvhub list nt arenav">${head(T('อันดับสูงสุด','Top ranking'))}<div class="pvlist">
+    ${top.length?`<table class="gt"><tr><th>#</th><th>${T('ผู้เล่น','Player')}</th><th>${T('แร้งค์','Rank')}</th><th>${T('ชนะ/แพ้','W/L')}</th></tr>${top.map((o,i)=>`<tr${o.uid===(USER&&USER.sub)?' style="outline:2px solid #ffe45c"':''}><td>${i+1}</td><td><b>${esc(o.name)}</b></td><td>${tierTag(o.st)}</td><td>${o.w}/${o.l}</td></tr>`).join('')}</table>`:`<p class="sub">${st||T('ยังไม่มีข้อมูลอันดับ','No ranking data yet')}</p>`}</div></div>`)}
+  view(`<div class="pvhub nt arenav"><div class="pvtop"><button class="btn alt sm" data-act="home">${T('กลับ','Back')}</button><h2>PvP</h2><span class="hgap" style="flex:1"></span><span class="sub">${acoin(S.ac||0)}</span>
+     <button class="btn alt sm" data-act="pvtab" data-t="ranks">${T('ระดับแร้งค์','Ranks')}</button><button class="btn alt sm" data-act="pvtab" data-t="top">${T('อันดับ','Ranking')}</button></div>
+    <div class="pvmid">${shield(me.st,'xl')}<b class="pvname" style="color:${r.t[1]}">${r.t[0]} ${DIVS[r.d]}</b>${starRow(me.st)}
+     <button class="btn go pvfight" data-act="pvfind" ${can?'':'disabled'}>FIGHT</button>
+     <p class="sub">${T('สู้ได้อีก','Fights left')}: <b style="color:#ffe45c">${left}${isDev()?'':'/'+PV_DAILY}</b> · ${T('ชนะ','Wins')} ${me.w} · ${T('แพ้','Losses')} ${me.l}</p>
+     <p class="sub">${T('ชนะ','Win')}: ★+1 · Gold +${pvPay(1,me.st)[0]} · ${acoin('+'+pvPay(1,me.st)[1])} &nbsp; ${T('แพ้','Lose')}: ★−1 · Gold +${PV_LOSE_GOLD}</p>
+     ${st?`<p class="sub" style="opacity:.8">${st}</p>`:''}</div></div>`)}
 // pick screen: the opponent's cards stay hidden; choose up to 3 of your own, set auto or manual, then start
 function pvPick(){const o=pv.opp[pv.sel],me=pvGet(),tm=pvTeam(),can=isDev()||me.n<PV_DAILY;
   view(`<div class="cols arenav"><div class="rail nt"><div class="row"><button class="btn alt sm" data-act="pvp">${T('กลับ','Back')}</button><h2>${T('เลือกการ์ด','Pick cards')}</h2></div>
@@ -1572,7 +1599,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b86';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
+const BUILD='b87';const FBV='10.14.1';let fbP=null,cloudT=0,cloudDirty=false;
 function fbLoad(){if(!FB_CFG)return Promise.reject(new Error('no config'));
   return fbP=fbP||['app','auth','firestore','database'].reduce((pr,m)=>pr.then(()=>new Promise((ok,no)=>{const sc=document.createElement('script');sc.src=`https://www.gstatic.com/firebasejs/${FBV}/firebase-${m}-compat.js`;sc.onload=ok;sc.onerror=()=>no(new Error('sdk'));document.head.append(sc)})),Promise.resolve()).then(()=>{if(!firebase.apps.length)firebase.initializeApp(FB_CFG);return firebase})}
 const fbUser=()=>new Promise(ok=>{const off=firebase.auth().onAuthStateChanged(u=>{off();ok(u)})});
