@@ -705,10 +705,13 @@ function roomList(noFetch){ensureMe();const on=mkOn(),cnt=i=>rtCounts?rtCounts[i
 // chat: the last line a player said rides in their room node as {m,mt} and shows as a bubble over their head for a few seconds
 function bubble(c,text){if(!c||!c.el)return;const old=c.el.querySelector('.bub');if(old)old.remove();const b=document.createElement('span');b.className='bub nt';b.textContent=text;c.el.append(b);clearTimeout(c.bt);c.bt=setTimeout(()=>b.remove(),5500)}
 function chatSend(txt){const i=$('chi'),t=String(txt!=null?txt:i?i.value:'').replace(/\s+/g,' ').trim().slice(0,40);if(i)i.value='';if(!t||!room)return;bubble(room.me,t);beep&&beep();if(rt)rt.me.update({m:t,mt:Date.now()}).catch(()=>{})}
-function rtSend(){if(!rt||!room)return;const m=room.me;rt.me.update({n:S.me.name,l:S.me.look,tx:Math.round(m.tx),ty:+(m.ty/room.H).toFixed(3)}).catch(()=>{})}
-function rtJoin(r){if(!mkOn())return;if(rt&&rt.r===r){rtSend();rtSync(rt.data||{});return}rtLeave();
-  fbLoad().then(fbUser).then(u=>{if(!u||!room||room.no!==r||!$('tfloor'))return;const base=rtDb().ref('rooms/'+r),me=base.child(USER.sub);me.onDisconnect().remove();
-    rt={r,base,me,data:{}};if(S.pg)refundGift('stale');rtSend();base.on('value',sn=>{if(!rt||rt.base!==base)return;rt.data=sn.val()||{};rtSync(rt.data)})}).catch(()=>{})}
+// connection status shown in the room header, so a failed link is visible instead of silent
+function rtStat(t,err){const e=$('rstat');if(!e)return;e.textContent=t;e.style.color=err?'#ff8492':'#6cf586'}
+const rtErr=e=>rtStat((S.lang==='en'?'offline: ':'เชื่อมต่อไม่ได้: ')+(e&&(e.code||e.message)||'?'),1);
+function rtSend(){if(!rt||!room)return;const m=room.me;rt.me.update({n:S.me.name,l:S.me.look,tx:Math.round(m.tx),ty:+(m.ty/room.H).toFixed(3)}).catch(rtErr)}
+function rtJoin(r){if(!mkOn()){rtStat(S.lang==='en'?'offline (guest)':'ออฟไลน์ (Guest)',1);return}if(rt&&rt.r===r){rtSend();rtSync(rt.data||{});return}rtLeave();rtStat(S.lang==='en'?'connecting…':'กำลังเชื่อมต่อ…');
+  fbLoad().then(fbUser).then(u=>{if(!u){rtErr({code:'not-signed-in'});return}if(!room||room.no!==r||!$('tfloor'))return;if(!firebase.database){rtErr({code:'no-database-sdk'});return}const base=rtDb().ref('rooms/'+r),me=base.child(USER.sub);me.onDisconnect().remove();
+    rt={r,base,me,data:{}};if(S.pg)refundGift('stale');rtSend();base.on('value',sn=>{if(!rt||rt.base!==base)return;rt.data=sn.val()||{};rtStat(S.lang==='en'?'online':'ออนไลน์');rtSync(rt.data)},rtErr)}).catch(rtErr)}
 function rtLeave(){if(!rt)return;try{rt.base.off();rt.me.remove()}catch(e){}rt=null}
 function refundGift(why){const g=S.pg;if(!g)return;S.am[g.k]=(S.am[g.k]||0)+1;S.gold+=TRADE_TAX;S.pg=null;save();if(rt)rt.me.child('gift').remove().catch(()=>{});
   const l=$('tlog');if(l)l.textContent=why==='dec'?'ผู้รับไม่รับของ ได้ของและภาษีคืน':'ส่งของไม่สำเร็จ ได้ของและภาษีคืน'}
@@ -726,7 +729,7 @@ function rtSync(data){const R=room,wd=$('tworld');if(!R||!wd||!rt)return;const m
   const pg=S.pg;if(pg){const o=data[pg.to];if(!o)refundGift('left');else if(o.ack===pg.id){S.pg=null;save();rt.me.child('gift').remove().catch(()=>{});const l=$('tlog');if(l)l.textContent='ผู้รับได้รับของแล้ว'}else if(o.dec===pg.id)refundGift('dec')}}
 function enterRoom(){
   ensureMe();const r=roomNo,on=mkOn();
-  view(`<div class="troom px"><div class="atop"><span class="num">ห้องเทรด ${r+1} · <span class="nt" id="rcount">1/${ROOM_CAP}</span> คน</span><span class="alog" id="tlog">${on?'แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อส่งของ':'แตะพื้นเพื่อเดิน · ล็อกอิน Google เพื่อเห็นผู้เล่นอื่น'}</span>
+  view(`<div class="troom px"><div class="atop"><span class="num">ห้องเทรด ${r+1} · <span class="nt" id="rcount">1/${ROOM_CAP}</span> คน <small class="nt" id="rstat" style="font-size:11px"></small></span><span class="alog" id="tlog">${on?'แตะพื้นเพื่อเดิน แตะตัวละครอื่นเพื่อส่งของ':'แตะพื้นเพื่อเดิน · ล็อกอิน Google เพื่อเห็นผู้เล่นอื่น'}</span>
     <span class="row"><span class="num gold">Gold ${S.gold.toLocaleString('en')}</span><button class="btn alt sm" data-act="charedit">ตัวละคร</button><button class="btn alt sm" data-act="troom">ห้องอื่น</button><button class="btn alt sm" data-act="home">ออก</button></span></div>
     <div class="tfloor" id="tfloor"><div class="tworld" id="tworld" style="width:${WORLD_W}px">
       ${[120,430,760,1080,1360].map((x,i)=>`<span class="deco stall" style="left:${x}px;top:30px;--aw:${['#ff004d','#29adff','#ffa300','#00e436','#b06cff'][i]}"></span>`).join('')}
