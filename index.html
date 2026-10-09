@@ -1632,7 +1632,7 @@ function guide(){
   const en=S.lang==='en',T=(a,b)=>en?b:a,N=v=>(+v).toLocaleString('en'),P=v=>+(v*100).toFixed(v<.001?2:1)+'%',rn=r=>r==='ST'?T('การ์ดเริ่มต้น','Starter'):RAR[r].n;
   const tb=(h,rows)=>`<table class="gt"><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}</table>`;
   const ul=a=>`<ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul>`,ranks=['ST','C','UC','R','L','SL','LT'];
-  const get=r=>r==='ST'?T('ของขวัญล็อกอินครั้งแรก','First-login gift'):r==='LT'?T('ยังไม่มีในแพ็ค (อีเวนต์)','Not in packs yet (events)'):`Starter ${P(ODDS[r])} · Gold ${P(GODDS[r])}`;
+  const get=r=>r==='ST'?T('ของขวัญล็อกอินครั้งแรก','First-login gift'):r==='LT'?T('ดรอปจากด่าน 400 ขึ้นไป · การ์ดอีเวนต์จาก Limited Pack','Drops from stage 400+ · event card from the Limited Pack'):`Gold Pack ${P(GODDS[r])}`+(ST_GIVE.includes(r)?' · Starter Pack '+ST_GIVE.filter(x=>x===r).length+T(' ใบแน่นอน',' guaranteed'):'')+(PRO.odds[r]?' · Pro Pack '+P(PRO.odds[r]):'');
   const SEC={
    start:[T('เริ่มต้น','Getting started'),()=>ul([
      T(`ล็อกอินครั้งแรกได้การ์ดเริ่มต้นฟรี ${GIFT.length} ใบ: ${GIFT.map(id=>C[id].n).join(', ')}`,`Your first login gives ${GIFT.length} free Starter cards: ${GIFT.map(id=>C[id].n).join(', ')}`),
@@ -1745,7 +1745,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b104';
+const BUILD='b105';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
