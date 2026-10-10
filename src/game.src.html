@@ -1929,7 +1929,7 @@ function beep(){if(!S||S.snd===false)return;try{actx=actx||new (window.AudioCont
 $('stage').addEventListener('click',e=>{if(e.target.closest&&e.target.closest('button:not(:disabled)'))beep()},true);
 /* ---------- PvP arena: fight another player's saved team (it plays itself); arena/{uid} = {name,look,team,pts,w,l,at} ---------- */
 const T=(a,b)=>S&&S.lang==='en'?b:a,esc=x=>String(x==null?'':x).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-const PV_HP=3,PV_CAP=15,PV_DAILY=5,PV_STAGE=0;
+const PV_HP=3,PV_CAP=15,PV_DAILY=10,PV_STAGE=0; // b156: 10 fights a day (was 5); the arena shop prices went up with it, see AS_COST
 // rank ladder: six tiers, each with divisions IV to I; a division is filled with stars (3 below Master, 4 in Master, 5 in King). A win adds a star, a loss removes one.
 // per tier: [name, colour, stars per division, Gold for a win, arena coins for a win]
 const TIERS=[['Bronze','#d99a66',3,40,5],['Silver','#aab2c0',3,60,8],['Gold','#ffd23a',3,90,12],['Diamond','#7fe8ff',3,130,16],['Master','#d59bff',4,180,22],['King','#ff5a3c',5,250,30]];
@@ -1976,7 +1976,7 @@ const starRow=st=>{const r=rankOf(st);return `<span class="rst big" style="color
 // Star Stone (b154): bought with arena coins, stands in for the duplicate copies a star needs. STONE_N = stones per copy by rank, so a Super Legend star costs
 // 3x as many stones as a Rare one. A star is paid either all in copies or all in stones (Gold is paid either way). S.ss = stones owned.
 const STONE_N={C:1,UC:1,R:1,L:2,SL:3,LT:3},stoneCost=id=>{const c=starCost(id);return c&&c[1]?c[1]*(STONE_N[C[id].r]||1):0},canStone=id=>{const c=starCost(id),n=stoneCost(id);return !!(c&&n&&S.cards[id]&&S.gold>=c[0]&&(S.ss||0)>=n)};
-const AS_COST={pack:400,gem:120,vip:1500,stone:150},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[[1,5,.5],[6,10,.28],[11,20,.15],[21,35,.055],[36,50,.015]],AS_VIP=7;
+const AS_COST={pack:600,gem:200,vip:3000,stone:250},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[[1,5,.5],[6,10,.28],[11,20,.15],[21,35,.055],[36,50,.015]],AS_VIP=7;
 function asBuy(k){const c=AS_COST[k];if(!c||(S.ac||0)<c)return;S.ac-=c;let got;
   if(k==='pack'){let x=Math.random(),r='UC';for(const q of['SL','L','R'])if((x-=AS_PACK[q])<0){r=q;break}got={k,card:giveCard(randOf(r))}}
   else if(k==='gem'){let x=Math.random(),b=AS_GEM[0];for(const g of AS_GEM)if((x-=g[2])<0){b=g;break}const n=b[0]+Math.floor(Math.random()*(b[1]-b[0]+1));S.dia=(S.dia||0)+n;got={k,n}}
@@ -2164,7 +2164,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b155';
+const BUILD='b156';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
