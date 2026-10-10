@@ -28,6 +28,11 @@ service cloud.firestore {
         && request.resource.data.gold >= 0 && request.resource.data.gold <= 5000000;
       allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
     }
+    // players online: each signed-in player keeps one small note with the time it was last seen; anyone signed in may count them
+    match /online/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
     // manual top-up: only the owner's account may create a grant; the receiving player reads and deletes their own
     // replace OWNER_EMAIL with the owner's Google address in the Firebase console (do not commit the real address here)
     match /grants/{id} {
