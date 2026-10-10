@@ -1,18 +1,3 @@
-<!doctype html>
-<html lang="th">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#0c1030">
-<title>Pixeldeck Battle</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-</head>
-<body>
 <title>Pixeldeck Battle</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Chakra+Petch:wght@500;700&display=swap">
 <style>
@@ -715,7 +700,7 @@ Object.keys(MON).forEach(id=>Object.defineProperty(C,id,{value:{...MON[id],r:'C'
 const MSM=Object.keys(MON).filter(id=>!MON[id].boss),MBS=Object.keys(MON).filter(id=>MON[id].boss);
 const RORD=['C','UC','R','L','SL','LT'],STARTERS=['h06','h20','h11'],POOL=Object.keys(C).filter(id=>C[id].r!=='ST').sort((x,y)=>RORD.indexOf(C[x].r)-RORD.indexOf(C[y].r));
 // Firebase web config of the live site (null in the preview build = no Google sign-in or cloud save, guests only)
-const FB_CFG={"apiKey": "AIzaSyBxPtaSzWfEWeLUZffrgB5cbr1Mhtdpj7M", "authDomain": "pixeldeck-battle-1a625.firebaseapp.com", "projectId": "pixeldeck-battle-1a625", "storageBucket": "pixeldeck-battle-1a625.firebasestorage.app", "messagingSenderId": "520020450750", "appId": "1:520020450750:web:c54dadd6f487038ab22def", "databaseURL": "https://pixeldeck-battle-1a625-default-rtdb.asia-southeast1.firebasedatabase.app"};
+const FB_CFG=null;
 // stars: each one adds 3% ATK/HP/DEF and raises the card's max level by 3% of its rank cap (at least 1); costs are [Gold, duplicate copies] per star
 const STAR_STAT=.03,STAR_COST=[[500,1],[1000,1],[2000,2],[4000,2],[8000,3]],STAR_COST_ST=[[200,0],[400,0],[800,0],[1500,0],[3000,0]];
 const GPACK=5000,GN=3,GODDS={SL:.001,L:.004,R:.03,UC:.22,C:.745};
@@ -2134,6 +2119,3 @@ document.addEventListener('focusin',ev=>{const n=ev.target,chat=n.id==='chi';if(
   $('kbo').onclick=()=>done(true);$('kbc').onclick=()=>done(false);i.onkeydown=e=>{if(e.key==='Enter')done(true)};setTimeout(()=>i.focus(),30)});
 S=load();try{const l=localStorage.getItem('pdb_lang');if(l&&!USER)S.lang=l}catch(e){}document.documentElement.lang=S.lang||'th';USER?loading(USER.sub?cloudPull().catch(()=>{}):null):titleScreen();
 </script>
-
-</body>
-</html>
