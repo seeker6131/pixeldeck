@@ -459,7 +459,7 @@ h2{color:#ffe45c;text-shadow:0 2px 0 #080b1f}
 .pill{display:flex;align-items:center;gap:6px;height:28px;padding:0 12px 0 4px;border:3px solid #080b1f;background:rgba(8,11,31,.78);font-family:var(--display);font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
 .pill img,.dk img,.ibtn img,.play img{image-rendering:pixelated}.pill img{width:18px;height:18px}
 .pill .plus{display:grid;place-items:center;width:18px;height:18px;margin-left:2px;background:#17a843;color:#fff;font-size:15px;line-height:1}
-.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.dgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.vipg{align-items:stretch}.vipc{cursor:default;position:relative;align-content:start;padding:8px 8px 10px}.vipc.on{box-shadow:0 0 0 2px var(--vc),0 0 14px var(--vc)}.dpk.vipc img{width:auto;height:86px;image-rendering:auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}.dpk.vipc b{color:var(--vc);font-size:18px}.dpk.vipc .vd{color:#b9c4ee}.vipc ul{list-style:none;margin:8px 0 2px;padding:0;justify-self:stretch;font-family:var(--body);font-weight:500;font-size:11.5px;line-height:1.45;color:#e6ebff;text-align:left}.vipc li{padding-left:15px;position:relative}.vipc li:before{content:'✓';position:absolute;left:1px;color:#6cf586;font-weight:700}.vipc .vuse{position:absolute;top:6px;right:6px;font-style:normal;font-size:11px;color:#141b3c;background:var(--vc);border-radius:6px;padding:0 6px;z-index:1}.vipc .btn{justify-self:stretch}
 .dpk{display:grid;justify-items:center;gap:2px;padding:9px 6px 8px;color:var(--ink);font-family:var(--display);font-weight:700}
 .dpk img{width:30px;height:30px;image-rendering:pixelated}.dpk b{font-size:19px;color:#6fd8ff}.dpk small{font-family:var(--body);font-size:11px;color:#5fe36a;min-height:1.2em}.dpk .thb{margin-top:3px;padding:2px 10px 4px;background:#ffd84a;color:#2a1600;font-size:15px}
 .dpk.on{outline:3px solid var(--yellow);outline-offset:1px}
@@ -749,7 +749,7 @@ const mkKeys=()=>(mkTab==='am'?Object.keys(AM):byRank(Object.keys(C).filter(id=>
 const mkRk=k=>AM[k]?AM[k].r:C[k]?C[k].r:'',mkIsTab=k=>mkTab==='am'?!!AM[k]:!!C[k]&&!AM[k];
 const mkPass=l=>mkIsTab(l.k)&&(!mkF.r||mkRk(l.k)===mkF.r)&&(!mkF.k||l.k===mkF.k);
 const mkSort=a=>a.slice().sort((x,y)=>mkF.s==='pd'?y.p-x.p:mkF.s==='new'?((y.at&&y.at.seconds)||0)-((x.at&&x.at.seconds)||0):x.p-y.p);
-const MK_MAX=5000000,MK_FEE=.02,mkFee=p=>Math.max(50,Math.ceil(p*MK_FEE)),mkName=k=>AM[k]?AM[k].n:C[k]?C[k].n:'',mkHave=k=>AM[k]?spare(k):S.cards[k]&&C[k]&&C[k].r!=='ST'?(S.cards[k].cp||0)+(inUse(k)?0:1):0;
+const MK_MAX=5000000,MK_FEE=.02,mkFee=p=>Math.ceil(Math.max(50,Math.ceil(p*MK_FEE))*vipP().fee),mkName=k=>AM[k]?AM[k].n:C[k]?C[k].n:'',mkHave=k=>AM[k]?spare(k):S.cards[k]&&C[k]&&C[k].r!=='ST'?(S.cards[k].cp||0)+(inUse(k)?0:1):0;
 // Locks: a locked card (S.cards[id].lk) or amulet type (S.lk[key]) cannot be listed on the market, given in a trade room, or dismantled.
 // A card that is "in use" (stage team, PvP team, or the player's avatar) can only be sold as a duplicate copy, never the card itself.
 const isLock=k=>AM[k]?!!(S.lk&&S.lk[k]):!!(S.cards[k]&&S.cards[k].lk),inUse=id=>S.team.includes(id)||(S.pvt||[]).includes(id)||(S.me&&S.me.look===id);
@@ -1011,7 +1011,7 @@ function rollGold(n){const jp=Math.random()<.05,[lo,hi]=goldRange(n);return{g:(l
 /* ---------- screens ---------- */
 // offline farm: Gold builds up while the player is away, at 10 wins' worth per hour of the highest stage cleared, for up to 8 hours
 const AFK_H=8,afkRate=()=>10*goldBase(Math.max(1,S.cleared));
-const afkGold=()=>{if(!S.afk)return 0;return Math.floor(Math.min(Date.now()-S.afk,AFK_H*36e5)/36e5*afkRate())};
+const afkGold=()=>{if(!S.afk)return 0;return Math.floor(Math.min(Date.now()-S.afk,AFK_H*36e5)/36e5*afkRate()*vipP().afk)};
 // daily quests reset at local midnight: [key, label, target, Gold]
 const QUESTS=[['win','ชนะ 10 ด่าน',10,300],['boss','ชนะด่านบอส 1 ครั้ง',1,250],['afk','เก็บ Gold ออฟไลน์ 1 ครั้ง',1,100]];
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
@@ -1026,10 +1026,17 @@ const PRO={dia:600,gold:1200000,n:3,odds:{R:.77,L:.2,SL:.03}};
 // Opened with dismantle points (S.dp) or diamonds; while CBT is true the diamond price is off. Guaranteed Limited after LTD.pity opens.
 const CBT=true,DIS={C:1,UC:3,R:15,L:60,SL:300};
 const LTD={dia:100,pts:200,n:1,pity:300,odds:{LT:.002,SL:.006,L:.032,R:.11,UC:.25}};const LT_RK=['C','UC','R','L','SL','LT'];
-const VIPS=[[7,120,59],[30,400,199],[365,3000,1490]],VIP_DROP=1.5;
+const VIPS=[[7,120,59],[30,400,199],[365,3000,1490]];
+// VIP has 3 tiers (1 Bronze = 7 days, 2 Silver = 30 days, 3 Gold = 1 year). Every tier gives Exp x2, Gold x2 and arena coins x2; the table adds what differs:
+// dr = drop multiplier, afk = offline Gold multiplier, fee = market listing fee multiplier, day = free diamonds once a day.
+// The tier in force (S.vt) is the highest card bought while VIP has been running without a gap; a cheaper card bought on top only adds days. That cannot be abused: lower tiers cost more per day.
+const VIPT=[{dr:1,afk:1,fee:1,day:0},{dr:1.5,afk:1,fee:1,day:0},{dr:1.5,afk:1.5,fee:.5,day:5},{dr:2,afk:2,fee:0,day:8}],VIPN=['','Bronze','Silver','Gold'],VIPC=['','#e0996a','#cfe0ff','#ffd84a'];
 const vipOn=()=>!!S&&(isDev()||(S.vip||0)>Date.now()),VX=()=>vipOn()?2:1,vipLeft=()=>Math.max(0,Math.ceil(((S.vip||0)-Date.now())/864e5));
+const vipTier=()=>!S?0:isDev()?3:(S.vip||0)>Date.now()?(S.vt||(S.vipk===365?3:S.vipk===30?2:1)):0,vipP=()=>VIPT[vipTier()];
+function vipAdd(days,tier){const cur=vipTier();S.vip=Math.max(Date.now(),S.vip||0)+days*864e5;S.vt=Math.max(cur,tier);S.vipk=days===AS_VIP&&tier===1&&arguments[2]?'a':days}
+function vipDaily(){const n=vipP().day,d=new Date().toDateString();if(!n||S.vd===d)return;S.vd=d;S.dia=(S.dia||0)+n;save();fx.push(['view','VIP +'+n+' 💎','g'])}
 // S.vipk remembers the card bought last (days, or 'a' for the arena-shop card) so the shop can say which card is running and when it ends
-const vipName=k=>k==='a'?T('VIP 7 วัน (แลกจากอารีน่า)','VIP 7 days (arena shop)'):k===365?T('VIP 1 ปี','VIP 1 year'):k?T('VIP '+k+' วัน','VIP '+k+' days'):'VIP';
+const vipName=()=>'VIP '+VIPN[vipTier()||1];
 const vipEnd=short=>new Date(S.vip||0).toLocaleString(S.lang==='en'?'en-GB':'th-TH',short?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const vipRem=()=>{const m=Math.max(0,(S.vip||0)-Date.now()),d=Math.floor(m/864e5),h=Math.floor(m%864e5/36e5),mi=Math.floor(m%36e5/6e4);return d?T(d+' วัน '+h+' ชม.',d+' d '+h+' h'):T(h+' ชม. '+mi+' นาที',h+' h '+mi+' min')};
 // cards also drop from stages: rare overall, and the higher ranks only appear deeper in
@@ -1061,12 +1068,12 @@ function devGrant(){if(!isDev())return;let ch=0;
   if(!S.team.length){S.team=['h03','h22','h07'];ch=1}
   if(ch)save()}
 function home(){
-  bt=null;busy=false;devGrant();ensureMe();grantFetch();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
+  bt=null;busy=false;devGrant();ensureMe();grantFetch();vipDaily();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
   const ico=(src,d=0)=>`<span class="ico" style="--m:url(${src});--d:${d}s"><img src="${src}" alt=""></span>`;
   const dk=(act,ic,c,t,sub,dis,d)=>`<button class="dk ${c}" ${dis?'disabled':`data-act="${act}"`}>${ico(ic,d)}<span>${t}<small>${sub}</small></span></button>`;
   view(`<div class="lobby" style="--bg:url(${mapImg(next)})"><div class="lbg"></div>
    <div class="hud">
-    <button class="pchip" data-act="profile">${hero(S.me.look)}<span><b class="nt">${S.me.name.replace(/</g,'&lt;')}</b><small class="nt">${isDev()?'<b style="color:#ff5a3c">DEV</b> · ':vipOn()?'<b style="color:#f2d98a">VIP</b> · ':''}${C[S.me.look].n}</small></span></button>
+    <button class="pchip" data-act="profile">${hero(S.me.look)}<span><b class="nt">${S.me.name.replace(/</g,'&lt;')}</b><small class="nt">${isDev()?'<b style="color:#ff5a3c">DEV</b> · ':vipOn()?`<b style="color:${VIPC[vipTier()]}">${vipName()}</b> · `:''}${C[S.me.look].n}</small></span></button>
     <span class="hgap"></span>
     <span class="pill gold nt" title="Gold">${ico(UI.coin,.3)}${S.gold.toLocaleString('en')}</span>
     <button class="pill acp nt" data-act="pvp" title="Arena coin">${ico(UI.acoin,1.5)}${(S.ac||0).toLocaleString('en')}</button>
@@ -1209,7 +1216,7 @@ function shop(){const d=S.dia||0;
      <button class="btn go sm" data-act="openltd" data-c="p" ${(S.dp||0)<LTD.pts?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.pts}</i> แต้ม</button>
      <button class="btn sm" data-act="openltd" data-c="d" ${d<LTD.dia?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.dia}</i> เพชร</button>
      <button class="btn alt sm" data-act="dis">ย่อยการ์ดแลกแต้ม</button></div>`:''}
-    <button class="btn alt sm" data-act="vip">บัตร VIP${vipOn()&&!isDev()?`<br><i class="nt" style="font-style:normal;font-size:11px;color:#f2d98a">${vipName(S.vipk)} · ${T('หมด','ends')} ${vipEnd(1)}</i>`:''}</button>
+    <button class="btn alt sm" data-act="vip">บัตร VIP${vipOn()&&!isDev()?`<br><i class="nt" style="font-style:normal;font-size:11px;color:#f2d98a">${vipName()} · ${T('หมด','ends')} ${vipEnd(1)}</i>`:''}</button>
     <button class="btn alt sm" data-act="topup">เติมเพชร / แลก Gold</button>
     <p class="sub">ได้ใบซ้ำจะเก็บไว้ใช้อัปดาว ขายในตลาดกลาง หรือย่อยเป็นแต้ม</p>
   </div><div class="main">${pull?`<div class="pull">${pull.map(p=>p.ev?`<div>${evCard(p.id)}<span class="sub">${C[p.id].r==='LT'?'การ์ดอีเวนต์ Limited · เก็บไว้ใช้ตอน OBT':`การ์ดอีเวนต์ · ย่อยได้ <b class="nt">+${DIS[C[p.id].r]}</b> แต้ม`}</span></div>`:`<div>${full(p.id,`data-act="zoom" data-id="${p.id}"`,'glow')}<span class="sub">${p.dup?`ใบซ้ำ +1 (มี ${S.cards[p.id].cp||0})`:'ใหม่!'}</span></div>`).join('')}</div>`
@@ -1244,13 +1251,21 @@ function dis(){const L=disList();disS.forEach(k=>{if(!L.includes(k))disS.delete(
   </div><div class="main">${keep.length?`<p class="sub" style="color:#6fd8ff">การ์ดอีเวนต์ Limited ที่เก็บไว้ใช้ตอน OBT: <b class="nt">${keep.map(id=>C[id].n+' x'+S.ev[id]).join(', ')}</b></p>`:''}<div class="disg">${L.map(k=>`<button class="mkpick ${disS.has(k)?'on':''}" data-act="dissel" data-k="${k}" aria-pressed="${disS.has(k)}" aria-label="${C[disId(k)].n}">${mkIcon(disId(k),k.startsWith('e:'))}${k.startsWith('e:')?'<em class="evb nt">EV</em>':''}<small>x${disN(k)}</small></button>`).join('')||'<span class="sub">ไม่มีการ์ดให้ย่อย</span>'}</div></div></div>`)}
 function openPro(cur){if(CBT&&!isDev())return;if(cur==='d'){if((S.dia||0)<PRO.dia)return;S.dia-=PRO.dia}else{if(S.gold<PRO.gold)return;S.gold-=PRO.gold}
   pull=Array.from({length:PRO.n},()=>{const x=Math.random();return giveCard(randOf(x<PRO.odds.SL?'SL':x<PRO.odds.SL+PRO.odds.L?'L':'R'))});save();sfx('win');shop()}
-function vip(){const d=S.dia||0;
-  view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="shop">กลับ</button><h2>บัตร VIP</h2></div>
+function vip(){const d=S.dia||0,tr=vipTier(),ck=t=>`<li>${t}</li>`;
+  const perks=i=>{const q=VIPT[i];return [T('Exp x2 · Gold x2 · เหรียญอารีน่า x2','Exp x2 · Gold x2 · arena coins x2'),T('โอกาสดรอป +'+Math.round((q.dr-1)*100)+'%','Drop chance +'+Math.round((q.dr-1)*100)+'%'),
+    q.day?T('เพชรฟรีวันละ '+q.day+' 💎 (รวม '+(q.day*VIPS[i-1][0]).toLocaleString('en')+')',q.day+' free 💎 every day ('+(q.day*VIPS[i-1][0]).toLocaleString('en')+' in total)'):'',
+    q.afk>1?T('Gold ออฟไลน์ '+(q.afk===2?'x2':'+50%'),'Offline Gold '+(q.afk===2?'x2':'+50%')):'',
+    q.fee<1?(q.fee?T('ค่าลงขายตลาดลด 50%','Market listing fee -50%'):T('ลงขายตลาดฟรี ไม่มีค่าธรรมเนียม','Free market listings')):'',
+    i===3?T('ชื่อ VIP สีทองในล็อบบี้','Gold VIP name in the lobby'):''].filter(Boolean).map(ck).join('')};
+  view(`<div class="cols wide"><div class="rail"><div class="row"><button class="btn alt sm" data-act="shop">กลับ</button><h2>บัตร VIP</h2></div>
     <p class="num dia">เพชร <span class="nt">${d.toLocaleString('en')}</span></p>
-    ${isDev()?'<p class="sub">บัญชี Dev เปิด VIP ถาวร</p>':vipOn()?`<div class="pk2 px nt" style="border-color:#f2d98a"><b style="color:#f2d98a">${T('กำลังใช้','Active')}: ${vipName(S.vipk)}</b><small>${T('หมดอายุ','Ends')}: <b style="color:#fff">${vipEnd()}</b><br>${T('เหลือเวลา','Time left')}: <b style="color:#6cf586">${vipRem()}</b><br>${T('ซื้อเพิ่มจะต่ออายุจากวันหมดเดิม','Buying another card adds to the end date')}</small></div>`:'<p class="sub">ตอนนี้ยังไม่มี VIP</p>'}
-    <div class="pk2 px"><b>สิทธิ์ VIP</b><small>Exp จากด่าน x2<br>Gold จากด่านและ PvP x2<br>เหรียญอารีน่า x2<br>โอกาสดรอปเครื่องรางและการ์ด +50%</small></div>
-    <p class="sub">Gold จากฟาร์มออฟไลน์ ภารกิจ และโบนัสบอสไม่คูณ</p></div>
-   <div class="main"><div class="dgrid">${VIPS.map(([days,c,thb],i)=>`<div class="dpk px" style="cursor:default${vipOn()&&!isDev()&&S.vipk===days?';box-shadow:0 0 0 2px #f2d98a':''}">${vipOn()&&!isDev()&&S.vipk===days?`<small class="nt" style="color:#141b3c;background:#f2d98a;border-radius:6px;padding:0 6px;font-weight:700">${T('ใช้อยู่','In use')}</small>`:''}<b class="nt" style="color:#f2d98a">VIP ${days===365?'1 ปี':days+' วัน'}</b><small class="nt">${(c/days).toFixed(1)} 💎 / ${T('วัน','day')}</small><span class="thb nt">≈ ฿${thb.toLocaleString('en')}</span><button class="btn go sm" data-act="vipbuy" data-i="${i}" ${d<c?'disabled':''}><i class="nt" style="font-style:normal">${c.toLocaleString('en')}</i> เพชร</button></div>`).join('')}</div></div></div>`)}
+    ${isDev()?'<p class="sub">บัญชี Dev เปิด VIP Gold ถาวร</p>':vipOn()?`<div class="pk2 px nt" style="border-color:${VIPC[tr]}"><b style="color:${VIPC[tr]}">${T('กำลังใช้','Active')}: ${vipName()}</b><small>${T('หมดอายุ','Ends')}: <b style="color:#fff;font-size:13px">${vipEnd()}</b><br>${T('เหลือเวลา','Time left')}: <b style="color:#6cf586;font-size:13px">${vipRem()}</b>${vipP().day?`<br>${T('เพชรรายวัน','Daily diamonds')}: <b style="color:#6fd8ff;font-size:13px">${S.vd===new Date().toDateString()?T('รับแล้ววันนี้','collected today'):'+'+vipP().day}</b>`:''}</small></div>`:'<p class="sub">ตอนนี้ยังไม่มี VIP</p>'}
+    <p class="sub nt">${T('ซื้อบัตรเพิ่มเป็นการต่ออายุ · ระดับสิทธิ์ใช้ของบัตรสูงสุดที่ซื้อไว้ตราบที่ VIP ไม่ขาดช่วง','Another card adds days · you keep the perks of the highest card bought for as long as VIP does not lapse')}</p>
+    <p class="sub nt">${T('เพชรรายวันเข้าเองเมื่อเปิดหน้าล็อบบี้ วันละครั้ง · Gold จากภารกิจและโบนัสบอสไม่คูณ','Daily diamonds arrive when you open the lobby, once a day · quest and boss-bonus Gold are not doubled')}</p></div>
+   <div class="main"><div class="dgrid vipg">${VIPS.map(([days,c],i)=>`<div class="dpk px vipc ${tr===i+1&&!isDev()?'on':''}" style="--vc:${VIPC[i+1]}">${tr===i+1&&!isDev()?`<i class="vuse nt">${T('ใช้อยู่','In use')}</i>`:''}<img src="ic2/vip${i+1}.webp" alt="">
+      <b class="nt">VIP ${VIPN[i+1]}</b><small class="nt vd">${days===365?T('1 ปี','1 year'):days+T(' วัน',' days')} · ${(c/days).toFixed(1)} 💎/${T('วัน','day')}</small>
+      <button class="btn go sm" data-act="vipbuy" data-i="${i}" ${d<c?'disabled':''}><i class="nt" style="font-style:normal">${c.toLocaleString('en')} 💎</i></button>
+      <ul class="nt">${perks(i+1)}</ul></div>`).join('')}</div></div></div>`)}
 // roll a rank from an odds table, best rank first
 const rollRank=o=>{let x=Math.random();for(const r of['SL','L','R','UC'])if((x-=o[r])<0)return r;return 'C'};
 const pct=o=>['C','UC','R','L','SL'].map(r=>RAR[r].n+' '+(+(o[r]*100).toFixed(1))+'%').join(' · ');
@@ -1477,8 +1492,8 @@ async function finish(won){
   const my=bt;busy=true;sfx(won?'win':'lose');await banner(won?'FINISH':'DEFEAT',won?'':'lose');if(bt!==my)return;
   if(my.pvp){bt=null;busy=false;return pvpResult(won,my.pvp)}
   const n=bt.n,team=bt.al.map(a=>a.id);bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0,cdrop=null;
-  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<(n%10===0?DROP_BOSS:DROP)*(vipOn()?VIP_DROP:1)){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
-    if(Math.random()<(n%10===0?CDROP_BOSS:CDROP)*(vipOn()?VIP_DROP:1))cdrop=giveCard(randOf(cardDropRank(n)));const x=expOf(n)*VX();
+  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<(n%10===0?DROP_BOSS:DROP)*vipP().dr){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
+    if(Math.random()<(n%10===0?CDROP_BOSS:CDROP)*vipP().dr)cdrop=giveCard(randOf(cardDropRank(n)));const x=expOf(n)*VX();
     rows=team.map(id=>{const was=S.cards[id].lv,wasMax=maxed(id),up=addExp(id,x),c=S.cards[id];
       return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${artSrc(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
     if(n>S.cleared)S.cleared=n;save()}
@@ -1621,7 +1636,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='disask'){disArm=disS.size>0;dis()}
   else if(a==='disgo'){let g=0;if(disArm)[...disS].forEach(k=>{g+=disDo(k,1e9)});disS=new Set();disArm=false;if(g){save();sfx('win');fx.push(['view','+'+g,'g'])}dis()}
   else if(a==='vip')vip();
-  else if(a==='vipbuy'){const v=VIPS[+t.dataset.i];if(v&&(S.dia||0)>=v[1]){S.dia-=v[1];S.vip=Math.max(Date.now(),S.vip||0)+v[0]*864e5;S.vipk=v[0];save();sfx('win');fx.push(['view','VIP +'+v[0]+'d','g'])}vip()}
+  else if(a==='vipbuy'){const v=VIPS[+t.dataset.i];if(v&&(S.dia||0)>=v[1]){S.dia-=v[1];vipAdd(v[0],+t.dataset.i+1);save();sfx('win');fx.push(['view','VIP +'+v[0]+'d','g'])}vip()}
   else if(a==='dlget'){if(dlCan()){const n=dlNext(),[c,v]=DAILY[n-1];if(c==='g')S.gold+=v;else S.dia=(S.dia||0)+v;S.dl={last:today(),n};save();sfx('win');fx.push(['view','+'+v+(c==='g'?' Gold':' 💎'),'g'])}quests()}
   else if(a==='mktab'){mkTab=t.dataset.t;mkSel=null;market()}
   else if(a==='mkmode'){mkMode=t.dataset.m;mkSel=null;market()}
@@ -1755,14 +1770,14 @@ const AS_COST={pack:400,gem:120,vip:1500},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[
 function asBuy(k){const c=AS_COST[k];if(!c||(S.ac||0)<c)return;S.ac-=c;let got;
   if(k==='pack'){let x=Math.random(),r='UC';for(const q of['SL','L','R'])if((x-=AS_PACK[q])<0){r=q;break}got={k,card:giveCard(randOf(r))}}
   else if(k==='gem'){let x=Math.random(),b=AS_GEM[0];for(const g of AS_GEM)if((x-=g[2])<0){b=g;break}const n=b[0]+Math.floor(Math.random()*(b[1]-b[0]+1));S.dia=(S.dia||0)+n;got={k,n}}
-  else{S.vip=Math.max(Date.now(),S.vip||0)+AS_VIP*864e5;S.vipk='a';got={k}}
+  else{vipAdd(AS_VIP,1,1);got={k}}
   pv.got=got;save();sfx('win');arena()}
 function arena(){const me=pvGet(),r=rankOf(me.st),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),can=(isDev()||me.n<PV_DAILY)&&Object.keys(S.cards).length>0,tab=pv.tab||'hub';pvOpps();
   const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริง ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players. Bots are available now.'),load:T('กำลังโหลด…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้ ตอนนี้สู้กับบอทได้','Arena offline. Bots are available.'),ok:'',idle:''}[pv.state];
   const head=t=>`<div class="row" style="align-self:start;justify-self:start"><button class="btn alt sm" data-act="pvtab" data-t="hub">${T('กลับ','Back')}</button><h2>${t}</h2></div>`;
   if(tab==='shop'){const ac=S.ac||0,g=pv.got,box=(k,ic,name,desc)=>`<div class="dpk px asb"><span class="asi">${ic}</span><b>${name}</b><small>${desc}</small><button class="btn go sm" data-act="asbuy" data-k="${k}" ${ac<AS_COST[k]?'disabled':''}>${acoin(AS_COST[k])}</button></div>`;
     return view(`<div class="pvhub list nt arenav"><div class="pvtop">${head(T('แลกรางวัล','Rewards'))}<span class="hgap" style="flex:1"></span><span class="sub">${T('เหรียญอารีน่า','Arena coins')} ${acoin(ac)}</span></div><div class="pvlist">
-    <div class="dgrid">${box('pack',`<img src="${UI.pack}" alt="">`,T('แพ็คการ์ดอารีน่า','Arena card pack'),T('การ์ด 1 ใบ · ลุ้น Super Legend','1 card · a shot at a Super Legend'))}${box('gem',`<img src="${UI.gem}" alt="">`,T('กล่องสุ่มเพชร','Diamond box'),T('สุ่มได้ 1–50 เพชร','1–50 diamonds at random'))}${box('vip','<i class="vipt">VIP</i>',T(`บัตร VIP ${AS_VIP} วัน`,`VIP card, ${AS_VIP} days`),vipOn()&&!isDev()?T(`ตอนนี้เหลือ ${vipLeft()} วัน ซื้อเพิ่มจะต่ออายุ`,`${vipLeft()} days left; buying adds more`):T('Exp, Gold, เหรียญอารีน่า x2','Exp, Gold, arena coins x2'))}</div>
+    <div class="dgrid">${box('pack',`<img src="${UI.pack}" alt="">`,T('แพ็คการ์ดอารีน่า','Arena card pack'),T('การ์ด 1 ใบ · ลุ้น Super Legend','1 card · a shot at a Super Legend'))}${box('gem',`<img src="${UI.gem}" alt="">`,T('กล่องสุ่มเพชร','Diamond box'),T('สุ่มได้ 1–50 เพชร','1–50 diamonds at random'))}${box('vip','<i class="vipt">VIP</i>',T(`บัตร VIP Bronze ${AS_VIP} วัน`,`VIP Bronze card, ${AS_VIP} days`),vipOn()&&!isDev()?T(`ตอนนี้เหลือ ${vipLeft()} วัน ซื้อเพิ่มจะต่ออายุ`,`${vipLeft()} days left; buying adds more`):T('Exp, Gold, เหรียญอารีน่า x2','Exp, Gold, arena coins x2'))}</div>
     ${g?`<div class="asgot">${g.k==='pack'?`${full(g.card.id,`data-act="zoom" data-id="${g.card.id}"`,'glow')}<p><b>${T('ได้การ์ด','You got')} ${C[g.card.id].n}</b><br><span style="color:var(--gl)" class="r-${C[g.card.id].r}">${RAR[C[g.card.id].r].n}</span> · ${g.card.dup?T('ใบซ้ำ +1','copy +1'):T('การ์ดใหม่!','new card!')}</p>`:g.k==='gem'?`<p><b style="font-size:26px;color:#6fd8ff">+${g.n} 💎</b><br>${T('ได้เพชรจากกล่อง','diamonds from the box')}</p>`:`<p><b style="font-size:22px;color:#f2d98a">VIP +${AS_VIP} ${T('วัน','days')}</b><br>${T('รวมเหลือ','now')} ${vipLeft()} ${T('วัน','days')}</p>`}</div>`:`<p class="sub" style="margin-top:12px">${T('เหรียญอารีน่าได้จากการชนะแร้งค์ ยิ่งแร้งค์สูงยิ่งได้มาก','Arena coins come from ranked wins; higher ranks pay more')}</p>`}</div></div>`)}
   if(tab==='ranks')return view(`<div class="pvhub list nt arenav">${head(T('ระดับแร้งค์','Ranks'))}<div class="pvlist">
     ${TIERS.map((t,i)=>{const base=TIERS.slice(0,i).reduce((a,x)=>a+x[2]*4,0),mine=r.i===i;return `<div class="rkrow ${mine?'me':''}">${shield(base,'sm')}<span class="rkn"><b style="color:${t[1]}">${t[0]}</b><small>${T('ขั้น','Divisions')} IV · III · II · I</small></span><span class="rkd">${'★'.repeat(t[2])}<small>${T('ดาวต่อขั้น','stars per division')}</small></span><span class="rkd">Gold +${t[3]}<small>${T('เมื่อชนะ','per win')}</small></span><span class="rkd">${acoin('+'+t[4])}<small>${T('เมื่อชนะ','per win')}</small></span>${mine?`<i class="you">${T('คุณอยู่ที่นี่','You are here')}</i>`:''}</div>`}).join('')}
@@ -1870,9 +1885,11 @@ function guide(){
      T('เกมไม่มีระบบซื้อขายด้วยเงินจริงระหว่างผู้เล่น','The game has no real-money trading between players')])],
    vip:['VIP',()=>ul([
      T('บัตร VIP ซื้อด้วยเพชรในร้านแพ็ค: ','VIP cards are bought with diamonds in the shop: ')+VIPS.map(([d,c])=>(d===365?T('1 ปี','1 year'):d+T(' วัน',' days'))+' '+N(c)+' 💎').join(' · ')+T(' · หน้าบัตร VIP แสดงบัตรที่กำลังใช้ วันเวลาหมดอายุ และเวลาที่เหลือ',' · the VIP screen shows the card in use, when it ends and the time left'),
-     T('Exp จากด่าน x2 · Gold จากด่านและ PvP x2 · เหรียญอารีน่า x2','Stage Exp x2 · Gold from stages and PvP x2 · arena coins x2'),
-     T('โอกาสดรอปเครื่องรางและการ์ด +50%','Amulet and card drop chance +50%'),
-     T('Gold จากฟาร์มออฟไลน์ ภารกิจ และโบนัสบอสไม่คูณ · ซื้อซ้ำเป็นการต่ออายุ','Offline farm, quest and boss-bonus Gold are not doubled · buying again extends the time'),
+     T('ทุกระดับ: Exp จากด่าน x2 · Gold จากด่านและ PvP x2 · เหรียญอารีน่า x2','Every tier: stage Exp x2 · Gold from stages and PvP x2 · arena coins x2'),
+     T('VIP Bronze (7 วัน): โอกาสดรอปเครื่องรางและการ์ด +50%','VIP Bronze (7 days): amulet and card drop chance +50%'),
+     T(`VIP Silver (30 วัน): ดรอป +50% · เพชรฟรีวันละ ${VIPT[2].day} · Gold ออฟไลน์ +50% · ค่าลงขายตลาดลด 50%`,`VIP Silver (30 days): drops +50% · ${VIPT[2].day} free diamonds a day · offline Gold +50% · market listing fee -50%`),
+     T(`VIP Gold (1 ปี): ดรอป +100% · เพชรฟรีวันละ ${VIPT[3].day} · Gold ออฟไลน์ x2 · ลงขายตลาดฟรี · ชื่อ VIP สีทอง`,`VIP Gold (1 year): drops +100% · ${VIPT[3].day} free diamonds a day · offline Gold x2 · free market listings · gold VIP name`),
+     T('ซื้อซ้ำเป็นการต่ออายุ ระดับสิทธิ์ใช้ของบัตรสูงสุดที่ซื้อไว้ตราบที่ VIP ไม่ขาดช่วง · เพชรรายวันเข้าเองเมื่อเปิดล็อบบี้ วันละครั้ง · บัตร VIP จากร้านอารีน่าเป็นระดับ Bronze · Gold จากภารกิจและโบนัสบอสไม่คูณ','Buying again adds days; you keep the perks of the highest card bought while VIP does not lapse · daily diamonds arrive when you open the lobby, once a day · the arena-shop VIP card is Bronze · quest and boss-bonus Gold are not doubled'),
      T('ล็อกอินรายวัน 7 วัน: ','7-day login streak: ')+DAILY.map(([c,v])=>v+(c==='g'?' Gold':' 💎')).join(' → ')])],
    pvp:['PvP',()=>ul([
      T(`การจับคู่: หาคู่ที่ดาวห่างกันไม่เกิน ${MM_STEP} ดาวก่อน (ราว 1 ขั้น) ถ้าคนไม่พอจะขยายทีละ ${MM_STEP} ดาว แต่ไม่เกิน ${MM_MAX} ดาว (ราว 1 ระดับแร้งค์) ถ้ายังไม่พอจะเจอบอทที่แร้งค์เดียวกับเราแทน จะไม่จับคู่ข้ามแร้งค์ไกลกว่านี้ · คนที่เพิ่งสู้ไป 3 คนล่าสุดจะถูกข้ามถ้ามีคนอื่นให้เลือก`,`Matchmaking: opponents within ${MM_STEP} stars first (about one division); if too few, the band widens by ${MM_STEP} stars at a time up to ${MM_MAX} stars (about one tier); beyond that you meet bots at your own rank instead, never a far higher or lower rank · the last 3 players you fought are skipped when others are available`),T('สู้กับทีมของผู้เล่นคนอื่นที่บันทึกไว้ ทีมฝั่งตรงข้ามเล่นเองอัตโนมัติและใช้สกิลครบเหมือนเรา','Fight another player\'s saved team. It plays itself and uses its full skills'),
@@ -1927,7 +1944,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b125';
+const BUILD='b126';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
