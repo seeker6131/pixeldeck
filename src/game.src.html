@@ -1025,12 +1025,14 @@ const expOf=n=>10+2*n,goldBase=n=>6+Math.floor(n/3);
 // Gold drops from every win: a first clear rolls 150-450% of the stage's base, a replay a little less (60-165%) - both x GOLD_UP (b146: +50%, stage drops only; the offline farm still uses the plain base), with a 5% jackpot of x4; the first win over a boss adds a fixed bonus
 const GOLD_UP=1.5,goldRange=n=>{const b=goldBase(n)*GOLD_UP;return n>S.cleared?[Math.round(b),Math.round(b*3)]:[Math.max(1,Math.round(b*.4)),Math.round(b*1.1)]};
 // b155: the first two bosses pay for a Gold Pack each, so a new free player gets real cards on day one instead of grinding the starter team
+// b157: every first clear of a non-boss stage up to EARLY_N also pays EARLY_G, and the offline farm never earns less than AFK_MIN an hour - new players get cards by moving on and by coming back, not by looping one stage. Both are one-time or time-gated, so they cannot be farmed.
+const EARLY_N=50,EARLY_G=200,AFK_MIN=300,earlyB=n=>n<=EARLY_N&&n%10!==0&&n>S.cleared?EARLY_G:0;
 const BOSS_GIFT={10:5000,20:5000},bossBonus=n=>n%10===0&&n>S.cleared?(BOSS_GIFT[n]||100+5*n):0;
 function rollGold(n){const jp=Math.random()<.05,[lo,hi]=goldRange(n);return{g:(lo+Math.floor(Math.random()*(hi-lo+1)))*(jp?4:1),jp}}
 
 /* ---------- screens ---------- */
 // offline farm: Gold builds up while the player is away, at 10 wins' worth per hour of the highest stage cleared, for up to 8 hours
-const AFK_H=8,afkRate=()=>10*goldBase(Math.max(1,S.cleared));
+const AFK_H=8,afkRate=()=>Math.max(AFK_MIN,10*goldBase(Math.max(1,S.cleared)));
 const afkGold=()=>{if(!S.afk)return 0;return Math.floor(Math.min(Date.now()-S.afk,AFK_H*36e5)/36e5*afkRate()*vipP().afk)};
 // daily quests reset at local midnight: [key, label, target, Gold]
 const QUESTS=[['win','ชนะ 10 ด่าน',10,300],['boss','ชนะด่านบอส 1 ครั้ง',1,250],['afk','เก็บ Gold ออฟไลน์ 1 ครั้ง',1,100]];
@@ -1130,6 +1132,8 @@ function home(){
 }
 const ORD=['LT','SL','L','R','UC','C','ST'],byRank=ids=>[...ids].sort((a,b)=>ORD.indexOf(C[a].r)-ORD.indexOf(C[b].r));
 let collTab='all';
+// Which card rank a stage asks for, measured by simulation (teams of one rank on Auto at the level the stages give): [rank, last normal stage, last boss stage]
+const REC_WALL=[['ST',15,10],['C',24,20],['UC',29,20],['R',95,80],['L',271,210],['SL',500,500]],recRank=n=>(REC_WALL.find(w=>n<=(n%10===0?w[2]:w[1]))||REC_WALL[5])[0];
 function prep(){
   const top=Math.min(MAXST,S.cleared+1);prepN=Math.max(1,Math.min(top,prepN));const en=stageDef(prepN);
   S.team=S.team.filter(id=>S.cards[id]);
@@ -1139,9 +1143,10 @@ function prep(){
     <div class="mapth" style="background-image:url(${mapImg(prepN)})" role="img" aria-label="${MAPS[mapOf(prepN)-1]}"></div>
     <p class="sub">แผนที่: ${MAPS[mapOf(prepN)-1]}</p>
     <p class="sub">ศัตรู: ${en.map(e=>(e.boss?'บอส ':'')+C[e.id].n).join(', ')}</p>
-    <p class="sub">รางวัล: Gold ${goldRange(prepN).join('–')}${bossBonus(prepN)?' + โบนัสบอส '+bossBonus(prepN):''} · Exp ${expOf(prepN)} ต่อใบ${prepN<=S.cleared?' (เล่นซ้ำ)':''}</p>
+    <p class="sub">รางวัล: Gold ${goldRange(prepN).join('–')}${bossBonus(prepN)?' + โบนัสบอส '+bossBonus(prepN):''}${earlyB(prepN)?' + '+T('โบนัสด่านใหม่','new stage bonus')+' '+earlyB(prepN):''} · Exp ${expOf(prepN)} ต่อใบ${prepN<=S.cleared?' (เล่นซ้ำ)':''}</p>
     <p class="sub nt">${T('โอกาสดรอป','Drop chance')}: ${T('เครื่องราง','amulet')} <b style="color:#ffe45c">${P2(dropP(prepN,DROP,DROP_BOSS,prepN>S.cleared))}</b> · ${T('การ์ด','card')} <b style="color:#ffe45c">${P2(dropP(prepN,CDROP,CDROP_BOSS,prepN>S.cleared))}</b></p>
     <p class="sub">Lv แนะนำ <b class="nt" style="color:#ffe45c">${LNAT[prepN]}+</b>${S.team.length?` · ทีมคุณ <b class="nt" style="color:${S.team.some(id=>S.cards[id].lv<LNAT[prepN])?'#ff8492':'#6cf586'}">Lv ${S.team.map(id=>S.cards[id].lv).join(' / ')}</b>`:''}</p>
+    ${(r=>{const need=RORD.indexOf(r),best=Math.max(-1,...S.team.map(id=>C[id].r==='ST'?-1:RORD.indexOf(C[id].r))),low=S.team.length&&best<need;return `<p class="sub nt">${T('ระดับการ์ดแนะนำ','Suggested card rank')}: <b class="r-${r}" style="color:${r==='ST'?'#dfe5ff':'var(--gl)'}">${r==='ST'?T('การ์ดเริ่มต้นก็ผ่านได้','starter cards are enough'):RAR[r].n+T(' ขึ้นไป',' or higher')}</b></p>${low?`<p class="sub nt" style="color:#ff8492">${T(`ด่านนี้ทีมที่ไม่มีการ์ด ${RAR[r].n} ขึ้นไปผ่านยากมาก · หาได้จาก Gold Pack, ฟิวชั่น หรือดรอปในด่าน · อัปดาวการ์ดระดับต่ำไม่ช่วยให้ผ่าน`,`A team with no ${RAR[r].n} or better will struggle here · get one from a Gold Pack, fusion or a stage drop · stars on low-rank cards will not get you through`)}</p>`:''}`})(recRank(prepN))}
     ${S.team.some(id=>S.cards[id].lv<LNAT[prepN])?'<p class="sub" style="color:#ff8492">เลเวลทีมต่ำกว่าที่แนะนำ ลองเก็บเลเวลจากด่านก่อนหน้า</p>':''}
     <p class="sub">ทีมของคุณ (แตะช่องเพื่อเอาออก)</p>
     <div class="picks">${[0,1,2].map(k=>S.team[k]?full(S.team[k],`data-act="pick" data-id="${S.team[k]}" aria-label="เอา ${C[S.team[k]].n} ออกจากทีม"`,'glow'):`<span class="empty">${k+1}</span>`).join('')}</div>
@@ -1337,7 +1342,7 @@ function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),
   z.innerHTML=`${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}<div class="inf"><h2>${C[id].n}</h2><span class="rib r-${C[id].r}">${RAR[C[id].r].n} · ${ROLE[C[id].role]}</span>
    <div class="stb nt"><span><img src="${ICON[MAGIC.includes(id)?'orb':'sword']}" alt=""><b>${atkName(id)}</b><i>${v.atk}</i><u>▸ +${gr(C[id].a,id)} / Lv</u></span><span><img src="${ICON.heart}" alt=""><b>HP</b><i>${v.hp}</i><u>▸ +${gr(C[id].h,id)} / Lv</u></span><span><img src="${ICON.shield}" alt=""><b>DEF</b><i>${v.def}</i><u>▸ +${gr(C[id].d,id)} / Lv</u></span><span><b class="k">CRIT</b><i>${Math.round(v.crit*100)}%</i><u>CRIT DMG x${v.cx}</u></span>
     <span><b class="k">LEVEL</b><i>${o?o.lv:1}<small> / ${capOf(id)}</small></i><u>EXP ${o&&maxed(id)?'MAX':(o?o.exp:0)+'/'+need(o?o.lv:1)}</u></span></div>
-   ${o?(()=>{const c=starCost(id),st=starOf(id);return `<div class="strow"><span class="nt">★ ${st}/5${C[id].r==='ST'?'':` · <span class="tx">ใบซ้ำ</span> ${o.cp||0}`}</span>${c?`<span class="btn sm ${canStar(id)?'':'off'}" data-star="${id}">อัปดาว <i class="nt">${c[0].toLocaleString('en')} Gold${c[1]?' + '+c[1]:''}</i>${c[1]?' ใบซ้ำ':''}</span>${stoneCost(id)?`<span class="btn sm alt ${canStone(id)?'':'off'} nt" data-stone="${id}">${T('ใช้หินดาว','Use Star Stones')} <i>${c[0].toLocaleString('en')} Gold + ★${stoneCost(id)}</i> <small style="display:inline;flex:none;margin:0">(${T('มี','have')} ${S.ss||0})</small></span>`:''}`:'<span class="gold nt">MAX ★</span>'}<small class="tx">ดาวละ ATK/HP/DEF +3% · เลเวลสูงสุด +${capBonus(C[id].r)}</small></div>`})():''}
+   ${o?(()=>{const c=starCost(id),st=starOf(id);return `<div class="strow"><span class="nt">★ ${st}/5${C[id].r==='ST'?'':` · <span class="tx">ใบซ้ำ</span> ${o.cp||0}`}</span>${c?`<span class="btn sm ${canStar(id)?'':'off'}" data-star="${id}">อัปดาว <i class="nt">${c[0].toLocaleString('en')} Gold${c[1]?' + '+c[1]:''}</i>${c[1]?' ใบซ้ำ':''}</span>${stoneCost(id)?`<span class="btn sm alt ${canStone(id)?'':'off'} nt" data-stone="${id}">${T('ใช้หินดาว','Use Star Stones')} <i>${c[0].toLocaleString('en')} Gold + ★${stoneCost(id)}</i> <small style="display:inline;flex:none;margin:0">(${T('มี','have')} ${S.ss||0})</small></span>`:''}`:'<span class="gold nt">MAX ★</span>'}${st>0?(p=>canUnstar(id)?`<span class="btn sm ${unstarArm===id?'warn':'alt'} nt" data-unstar="${id}">${unstarArm===id?T('แตะอีกครั้งเพื่อยืนยัน','Tap again to confirm'):T('รีเซ็ตดาว','Reset stars')} <i>+${p.g.toLocaleString('en')} Gold${p.c?' · '+T('ใบซ้ำ','copies')+' +'+p.c:''}${p.sn?' · ★+'+p.sn:''}</i></span>`:`<small class="tx nt" style="color:#ffb14a">${T(`รีเซ็ตดาวไม่ได้: เลเวลเกิน ${RAR[C[id].r].cap} (เพดานตอนไม่มีดาว)`,`Stars cannot be reset: level is above ${RAR[C[id].r].cap} (the cap with no stars)`)}</small>`)(starPaid(id)):''}<small class="tx">ดาวละ ATK/HP/DEF +3% · เลเวลสูงสุด +${capBonus(C[id].r)}</small></div>`})():''}
    ${o&&C[id].r!=='ST'?`<div class="strow"><span class="btn sm ${isLock(id)?'':'alt'}" data-lock="${id}"><span class="nt">${isLock(id)?T('🔒 ล็อคอยู่ · แตะเพื่อปลดล็อค','🔒 Locked · tap to unlock'):T('🔓 ล็อคการ์ดใบนี้','🔓 Lock this card')}</span></span><small class="tx nt">${T('การ์ดที่ล็อคจะขาย เทรด และย่อยไม่ได้','A locked card cannot be sold, traded or dismantled')}</small></div>`:''}
    <p class="sub">เครื่องราง: ${amOf(id)?amOf(id).n+' ('+amOf(id).t+')':'ยังไม่ได้ใส่'}</p>
    <div class="skl">${[0,1,2].map(k=>`${skBtn(id,k,{tag:'span'})}<p><b>${SK[id][k][0]}</b>${CD[k]?` · พัก ${CD[k]} ตา`:''}<br>${skDesc(SK[id][k]).replace(/ATK/g,atkName(id))}</p>`).join('')}</div>
@@ -1582,8 +1587,8 @@ $('ov').addEventListener('click',e=>{const t=e.target.closest('[data-lp]');if(!t
 async function finish(won){
   const my=bt;busy=true;sfx(won?'win':'lose');await banner(won?'FINISH':'DEFEAT',won?'':'lose');if(bt!==my)return;
   if(my.pvp){bt=null;busy=false;return pvpResult(won,my.pvp)}
-  const n=bt.n,team=bt.al.map(a=>a.id),farm=!!bt.farm,first=!!bt.first;bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0,cdrop=null;
-  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<dropP(n,DROP,DROP_BOSS,first)){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
+  const n=bt.n,team=bt.al.map(a=>a.id),farm=!!bt.farm,first=!!bt.first;bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0,eb=0,cdrop=null;
+  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);eb=earlyB(n);S.gold+=g+bb+eb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<dropP(n,DROP,DROP_BOSS,first)){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
     if(Math.random()<dropP(n,CDROP,CDROP_BOSS,first))cdrop=giveCard(randOf(cardDropRank(n)));const x=expOf(n)*VX();
     rows=team.map(id=>{const was=S.cards[id].lv,wasMax=maxed(id),up=addExp(id,x),c=S.cards[id];
       return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${artSrc(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
@@ -1591,12 +1596,12 @@ async function finish(won){
   const next=Math.min(MAXST,n+1);
   view(`<div class="cols"><div class="rail">
     <h1>${won?'ชนะ!':'แพ้'}</h1><p class="num">ด่าน ${n}</p>
-    ${won?`<p class="num gold">Gold +${g}${jp?' <b class="nt">JACKPOT x4</b>':''}</p>${bb?`<p class="num gold">โบนัสชนะบอสครั้งแรก +${bb}</p>`:''}${vipOn()?'<p class="sub nt" style="color:#f2d98a">VIP · Exp x2 · Gold x2</p>':''}${cdrop?`<div class="row"><span class="pvc r-${C[cdrop.id].r}" style="width:38px">${art(cdrop.id)}</span><span>ได้การ์ด${cdrop.dup?' (ใบซ้ำ)':''}<br><b class="nt r-${C[cdrop.id].r}" style="color:var(--gl)">${C[cdrop.id].n}</b></span></div>`:''}${drop?`<div class="row"><span style="width:38px">${amu(drop)}</span><span>ได้เครื่องราง<br><b>${AM[drop].n}</b></span></div>`:''}`:'<p class="sub">ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่</p>'}
+    ${won?`<p class="num gold">Gold +${g}${jp?' <b class="nt">JACKPOT x4</b>':''}</p>${bb?`<p class="num gold">โบนัสชนะบอสครั้งแรก +${bb}</p>`:''}${eb?`<p class="num gold nt">${T('โบนัสผ่านด่านใหม่','New stage bonus')} +${eb}</p>`:''}${vipOn()?'<p class="sub nt" style="color:#f2d98a">VIP · Exp x2 · Gold x2</p>':''}${cdrop?`<div class="row"><span class="pvc r-${C[cdrop.id].r}" style="width:38px">${art(cdrop.id)}</span><span>ได้การ์ด${cdrop.dup?' (ใบซ้ำ)':''}<br><b class="nt r-${C[cdrop.id].r}" style="color:var(--gl)">${C[cdrop.id].n}</b></span></div>`:''}${drop?`<div class="row"><span style="width:38px">${amu(drop)}</span><span>ได้เครื่องราง<br><b>${AM[drop].n}</b></span></div>`:''}`:'<p class="sub">ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่</p>'}
     ${won&&n<MAXST?`<button class="btn go" data-act="go" data-n="${next}">ด่าน ${next}</button>`:''}
     ${won?'':`<button class="btn go" data-act="go" data-n="${n}">เล่นด่านนี้อีก</button>`}
     <button class="btn alt sm" data-act="home">หน้าหลัก</button>
   </div><div class="main">${won&&S.tut==null?`<div class="lprow">${n<MAXST?`<button class="btn lpb nt" data-act="lpnext" data-n="${next}"><b>⏩ ${T('เปลี่ยนด่านอัตโนมัติ','Auto next stage')}</b><small>${T('ชนะแล้วไปด่านถัดไปเอง · ดรอปตามปกติ','Wins lead to the next stage · normal drops')}</small></button>`:''}<button class="btn lpb rp nt" data-act="lprep" data-n="${n}"><b>🔁 ${T('เล่นซ้ำด่านเดิม','Replay this stage')}</b><small>${T('วนด่านนี้เอง · ได้ Gold, Exp และลุ้นดรอป','Loops this stage · Gold, Exp and drops')}</small></button></div>`:''}${won?`<div class="res">${rows}</div>`:''}</div></div>`);
-  if(loop){const nx=!won?0:loop===2?n:n<MAXST?next:0;if(!nx)loop=0;else loopCount(nx,'Gold +'+(g+bb).toLocaleString('en'))}
+  if(loop){const nx=!won?0:loop===2?n:n<MAXST?next:0;if(!nx)loop=0;else loopCount(nx,'Gold +'+(g+bb+eb).toLocaleString('en'))}
 }
 
 
@@ -1849,10 +1854,12 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='reset'){if(armed){armed=false;S=unlock(fresh());save();home()}else{armed=true;settings()}}
 };
 $('zoom').onclick=ev=>{const lk=ev.target.closest('[data-lock]');if(lk){const id=lk.dataset.lock;setLock(id,!isLock(id));sfx('tap');if(document.querySelector('.tab'))coll();zoom(id);return}
+  const ub=ev.target.closest('[data-unstar]');
+  if(ub){const id=ub.dataset.unstar;if(!canUnstar(id))return;if(unstarArm!==id){unstarArm=id;zoom(id);return}unstarArm=null;const g=starPaid(id).g;unstar(id);sfx('win');fx.push(['view','+'+g.toLocaleString('en')+' Gold','g']);if(document.querySelector('.tab'))coll();zoom(id);return}
   const sb=ev.target.closest('[data-stone]');
-  if(sb){const id=sb.dataset.stone,c=starCost(id),n=stoneCost(id),o=S.cards[id];if(canStone(id)){S.gold-=c[0];S.ss-=n;o.star=starOf(id)+1;save();sfx('win');if(document.querySelector('.tab'))coll();zoom(id)}return}
+  if(sb){const id=sb.dataset.stone,c=starCost(id),n=stoneCost(id),o=S.cards[id];if(canStone(id)){S.gold-=c[0];S.ss-=n;o.sn=(o.sn||0)+n;o.star=starOf(id)+1;unstarArm=null;save();sfx('win');if(document.querySelector('.tab'))coll();zoom(id)}return}
   const b=ev.target.closest('[data-star]');
-  if(b){const id=b.dataset.star,c=starCost(id),o=S.cards[id];if(canStar(id)){S.gold-=c[0];o.cp=(o.cp||0)-c[1];o.star=starOf(id)+1;save();sfx('win');if(document.querySelector('.tab'))coll();zoom(id)}return}
+  if(b){const id=b.dataset.star,c=starCost(id),o=S.cards[id];if(canStar(id)){S.gold-=c[0];o.cp=(o.cp||0)-c[1];o.star=starOf(id)+1;unstarArm=null;save();sfx('win');if(document.querySelector('.tab'))coll();zoom(id)}return}
   $('zoom').hidden=true};
 /* ---------- pixel fire for the fire frame ---------- */
 const FW=108,FH=130,FM=14,fsim=document.createElement('canvas');fsim.width=FW;fsim.height=FH;
@@ -1975,6 +1982,11 @@ const starRow=st=>{const r=rankOf(st);return `<span class="rst big" style="color
 // Arena shop: arena coins buy three boxes. AS_PACK odds are deliberately NOT shown anywhere in the game (owner's decision); the rest of a pack is Legend / Rare / Uncommon.
 // Star Stone (b154): bought with arena coins, stands in for the duplicate copies a star needs. STONE_N = stones per copy by rank, so a Super Legend star costs
 // 3x as many stones as a Rare one. A star is paid either all in copies or all in stones (Gold is paid either way). S.ss = stones owned.
+// Star reset (b157): takes every star off a card and gives back all the Gold, the copies and the Star Stones that paid for them (o.sn = stones spent on this card;
+// stones come back as stones, never as copies). Not allowed while the card's level is above the level cap it would have with no stars.
+const starPaid=id=>{const o=S.cards[id],st=starOf(id),tb=C[id].r==='ST'?STAR_COST_ST:STAR_COST;let g=0,c=0;for(let i=0;i<st;i++){g+=tb[i][0];c+=tb[i][1]}const sn=Math.min(o.sn||0,c*(STONE_N[C[id].r]||1));return{g,sn,c:c-Math.floor(sn/(STONE_N[C[id].r]||1))}};
+const canUnstar=id=>!!(S.cards[id]&&starOf(id)>0&&S.cards[id].lv<=RAR[C[id].r].cap);let unstarArm=null;
+function unstar(id){if(!canUnstar(id))return;const p=starPaid(id),o=S.cards[id];S.gold+=p.g;if(p.c)o.cp=(o.cp||0)+p.c;if(p.sn)S.ss=(S.ss||0)+p.sn;delete o.star;delete o.sn;save()}
 const STONE_N={C:1,UC:1,R:1,L:2,SL:3,LT:3},stoneCost=id=>{const c=starCost(id);return c&&c[1]?c[1]*(STONE_N[C[id].r]||1):0},canStone=id=>{const c=starCost(id),n=stoneCost(id);return !!(c&&n&&S.cards[id]&&S.gold>=c[0]&&(S.ss||0)>=n)};
 const AS_COST={pack:600,gem:200,vip:3000,stone:250},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[[1,5,.5],[6,10,.28],[11,20,.15],[21,35,.055],[36,50,.015]],AS_VIP=7;
 function asBuy(k){const c=AS_COST[k];if(!c||(S.ac||0)<c)return;S.ac-=c;let got;
@@ -2082,6 +2094,8 @@ function guide(){
      T('ชนะด่านครั้งแรก: Gold 150–450% ของค่าฐาน (ค่าฐาน = 6 + ด่าน÷3) · เล่นซ้ำ: 60–165%','First clear: 150–450% of the base (base = 6 + stage÷3) · replays: 60–165%'),
      T('ทุกครั้งที่ชนะมีโอกาส 5% ได้ JACKPOT x4','Every win has a 5% chance of a x4 JACKPOT'),
      T('เติมเพชร (ช่วง CBT): โอนเข้าบัญชีธนาคารตามยอดแพ็ก แล้วอัปโหลดสลิปในหน้าเติมเพชร ระบบตรวจกับธนาคารและส่งเพชรให้อัตโนมัติ (ถ้าระบบอัตโนมัติยังไม่เปิด จะเป็นการส่งสลิปทาง LINE ให้แอดมิน) · เพชรที่เติมช่วง CBT ถูกล้างพร้อมข้อมูลทั้งหมดตอนจบ CBT ไม่มีการคืน · เติมได้ทุกวัน 17:00–00:00 น. เวลาไทย (ช่วงที่แอดมินออนไลน์ช่วยแก้ปัญหาได้ทันที) โอนนอกเวลาได้แล้วมาอัปสลิปตอนเปิด · ติดปัญหาหรือเจอบั๊ก แจ้งได้ที่ Discord (ปุ่มในล็อบบี้และหน้าตั้งค่า)','Top-up (CBT): pay the pack price by bank transfer and upload the slip on the top-up screen; it is checked with the bank and the diamonds are sent automatically (if automatic top-up is not open yet, the slip goes to the admin on LINE) · diamonds bought during the CBT are wiped with everything else when it ends, with no refund · top-up is open daily 17:00–00:00 Thai time (when the admin is online to fix problems at once); you can pay earlier and upload the slip when it opens · for problems or bugs use Discord (button in the lobby and in Settings)'),
+     T(`ผ่านด่านใหม่ครั้งแรกในด่าน 1–${EARLY_N} (ที่ไม่ใช่บอส) ได้โบนัส ${EARLY_G} Gold · ฟาร์มออฟไลน์ได้อย่างน้อยชั่วโมงละ ${AFK_MIN} Gold · หน้าเตรียมด่านบอกระดับการ์ดแนะนำ: การ์ดเริ่มต้นถึงราวด่าน 15 · Common ถึงราว 24 · Uncommon ถึงราว 29 · Rare ถึงราว 95 · Legend ถึงราว 270 · บอสต้องการระดับสูงกว่าด่านปกติ`,`First clear of a non-boss stage in 1–${EARLY_N} gives ${EARLY_G} Gold · the offline farm earns at least ${AFK_MIN} Gold an hour · the stage screen suggests a card rank: starters to about stage 15 · Common to about 24 · Uncommon to about 29 · Rare to about 95 · Legend to about 270 · bosses ask for more than normal stages`),
+     T('<b>รีเซ็ตดาว</b>: หน้าดูการ์ดใบใหญ่มีปุ่มรีเซ็ตดาว ได้ Gold ใบซ้ำ และหินดาวที่ใช้ไปคืนทั้งหมด (แตะ 2 ครั้งเพื่อยืนยัน) · รีเซ็ตไม่ได้ถ้าเลเวลการ์ดเกินเพดานตอนไม่มีดาว','<b>Reset stars</b>: a card\'s detail screen can take its stars off and return all the Gold, copies and Star Stones spent (tap twice to confirm) · not possible while the card\'s level is above the cap it has with no stars'),
      T('ชนะบอสครั้งแรก: โบนัส 100 + 5×ด่าน · บอสด่าน 10 และด่าน 20 ให้ 5,000 Gold (พอเปิด Gold Pack 1 แพ็ค) · 30 ด่านแรกความยากค่อยๆ ไต่ขึ้น ทีมการ์ดเริ่มต้นผ่านได้ถึงราวด่าน 15','First boss win: bonus of 100 + 5×stage · the bosses of stages 10 and 20 give 5,000 Gold (one Gold Pack) · the first 30 stages ramp up gently; the starter team can reach about stage 15'),
      T(`ฟาร์มออฟไลน์: ชั่วโมงละ 10×ค่าฐานของด่านสูงสุดที่ผ่าน สะสมได้ ${AFK_H} ชั่วโมง กดเก็บที่ล็อบบี้`,`Offline farm: 10×the base of your highest cleared stage per hour, stored up to ${AFK_H} hours; collect in the lobby`),
      T('ภารกิจรายวัน: ','Daily quests: ')+QUESTS.map(([,n,,g])=>`${n} (${g} Gold)`).join(' · '),
@@ -2164,7 +2178,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b156';
+const BUILD='b157';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
