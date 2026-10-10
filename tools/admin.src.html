@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
 <title>Pixeldeck Admin</title>
+<link rel="manifest" href="admin.webmanifest"><link rel="icon" href="admin-192.png"><link rel="apple-touch-icon" href="admin-192.png"><meta name="theme-color" content="#101425"><meta name="mobile-web-app-capable" content="yes">
 <style>
 :root{--bg:#0d1226;--pn:#161d3c;--ln:#2c3768;--tx:#e9edff;--mu:#9aa6d6;--gd:#ffd84a;--gr:#5fe36a;--rd:#ff7a6b;--bl:#6fd8ff}
 *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;font-family:system-ui,"Noto Sans Thai","Loma",sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.5}
@@ -81,6 +82,12 @@ function swDraw(){const p=cfg.pay||{},h=Array.isArray(p.h)?p.h:[17,24],hs=v=>Arr
   <div class="card"><h3>🔧 ปิดปรับปรุง</h3><div class="sw"><span>ผู้เล่นทุกคนเห็นหน้าปิดปรับปรุง เล่นไม่ได้<br><small class="mu">บัญชี Dev ของคุณยังเข้าเล่นได้</small></span><button class="tg red ${cfg.maint?'on':''}" id="tmt"><i></i></button></div>
    <label>ข้อความที่ผู้เล่นเห็น (เว้นว่าง = ข้อความมาตรฐาน)</label><textarea id="mmsg" maxlength="400">${esc(cfg.maintMsg||'')}</textarea><button class="b" data-a="mt" style="margin-top:8px">บันทึกข้อความ</button></div>
   <div class="card"><h3>📢 ประกาศในเกม</h3><label>ขึ้นแถบบนหน้าล็อบบี้ของทุกคน (เว้นว่าง = ไม่มีประกาศ) สูงสุด 160 ตัวอักษร</label><textarea id="ntc" maxlength="160">${esc(cfg.notice||'')}</textarea><button class="b" data-a="nt" style="margin-top:8px">บันทึกประกาศ</button></div>
+  ${(()=>{const g=cfg.gift,on=!!(g&&g.id&&g.days>0&&Date.now()<(+g.to||0)),d0=new Date();d0.setDate(d0.getDate()+1);d0.setHours(0,0,0,0);const f=on?+g.from:d0.getTime(),t=on?+g.to:d0.getTime()+864e5-6e4,loc=m=>{const d=new Date(m-new Date(m).getTimezoneOffset()*6e4);return d.toISOString().slice(0,16)},VN=['','Bronze','Silver','Gold'];
+   return `<div class="card"><h3>👑 แจก VIP ให้ทุกคนที่ล็อกอิน</h3><p style="margin:0 0 6px">สถานะ: ${on?`<b class="ok" style="color:var(--gr)">${Date.now()<f?'ตั้งไว้แล้ว รอเวลาเริ่ม':'กำลังแจกอยู่'}</b> · VIP ${VN[g.tier]||'?'} ${N(g.days)} วัน · ${dt(f)} → ${dt(t)}`:'<span class="mu">ยังไม่ได้ตั้ง</span>'}</p>
+   <div class="row"><select id="gt">${[1,2,3].map(i=>`<option value="${i}" ${(on?g.tier:1)==i?'selected':''}>VIP ${VN[i]}</option>`).join('')}</select><input id="gd" type="number" min="1" max="60" value="${on?g.days:7}" style="max-width:90px"><span class="fx">วัน</span></div>
+   <label>เริ่มแจก (เวลาในเครื่องนี้)</label><input id="gf" type="datetime-local" value="${loc(f)}"><label>สิ้นสุด</label><input id="gu" type="datetime-local" value="${loc(t)}">
+   <div class="row" style="margin-top:8px"><button class="b" data-a="gset">${on?'บันทึกเป็นการแจกรอบใหม่':'ตั้งแจก'}</button>${on?'<button class="b r" data-a="goff">ยกเลิกการแจก</button>':''}</div>
+   <p class="mu" style="margin:6px 0 0;font-size:13px">ผู้เล่นที่ล็อกอิน Google แล้วเข้าล็อบบี้ในช่วงเวลานี้ได้ VIP 1 ครั้งต่อรอบ · บันทึกใหม่ = รอบใหม่ คนที่รับรอบเก่าแล้วจะได้อีก · ยกเลิกแล้วไม่ดึงคืนจากคนที่รับไปแล้ว</p></div>`})()}
   <div class="card"><h3>💎 ระบบเติมเพชร</h3><div class="sw"><span>เปิดรับเติมเพชรด้วยสลิป</span><button class="tg ${p.on===false?'':'on'}" id="tpay"><i></i></button></div>
    <label>เวลาเปิดรับ (เวลาไทย)</label><div class="row"><select id="h0">${hs(h[0])}</select><span class="fx">ถึง</span><select id="h1">${hs(h[1])}</select></div><button class="b" data-a="ph" style="margin-top:8px">บันทึกเวลา</button></div>
   <div class="card" style="border-color:var(--rd)"><h3 class="er" style="color:var(--rd)">🧹 จบ CBT และล้างข้อมูลทั้งเกม</h3><p style="margin:0 0 6px">ตอนนี้: <b>เฟสที่ ${N(cfg.era||1)}</b>${cfg.eraAt?' · ล้างครั้งล่าสุด '+dt(cfg.eraAt):''}</p>
@@ -94,6 +101,11 @@ function swDraw(){const p=cfg.pay||{},h=Array.isArray(p.h)?p.h:[17,24],hs=v=>Arr
     if(a==='mt')setC({maintMsg:$('mmsg').value.trim()},'ข้อความปิดปรับปรุง');
     else if(a==='nt')setC({notice:$('ntc').value.trim()},$('ntc').value.trim()?'ประกาศในเกม':'ลบประกาศ');
     else if(a==='ph'){const a0=+$('h0').value,a1=+$('h1').value;if(a0===a1||a0===24)return say('เวลาเปิดและปิดต้องต่างกัน และเวลาเปิดต้องไม่ใช่ 24:00','er');setC({pay:{...(cfg.pay||{}),h:[a0,a1]}},'เวลาเติมเพชร '+a0+':00–'+(a1%24)+':00')}
+    else if(a==='gset'){const tier=+$('gt').value|0,days=+$('gd').value|0,from=Date.parse($('gf').value),to=Date.parse($('gu').value);
+      if(!(tier>=1&&tier<=3)||!(days>=1&&days<=60))return say('จำนวนวันต้องอยู่ระหว่าง 1–60','er');if(!(from>0)||!(to>from))return say('เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม','er');if(to<Date.now())return say('เวลาสิ้นสุดผ่านไปแล้ว','er');
+      const cur=cfg.gift;if(cur&&cur.id&&Date.now()<(+cur.to||0)&&!confirm('มีการแจกตั้งไว้อยู่แล้ว บันทึกใหม่จะนับเป็นรอบใหม่ คนที่รับรอบเก่าแล้วจะได้อีก ยืนยัน?'))return;
+      setC({gift:{id:'g'+Date.now().toString(36),days,tier,from,to}},'ตั้งแจก VIP '+days+' วัน').then(swDraw)}
+    else if(a==='goff'){if(!confirm('ยกเลิกการแจก VIP? คนที่รับไปแล้วไม่ถูกดึงคืน'))return;setC({gift:null},'ยกเลิกการแจก VIP').then(swDraw)}
     else if(a==='wipe'){if($('wipe').value.trim()!=='ล้าง CBT')return say('พิมพ์คำยืนยันไม่ตรง ยังไม่ได้ล้าง','er');if(!confirm('ยืนยันครั้งสุดท้าย: ล้างข้อมูลผู้เล่นทั้งเกม เหลือเฉพาะการ์ด Limited ย้อนกลับไม่ได้'))return;
       setC({era:(cfg.era||1)+1,eraAt:Date.now()},'ล้างข้อมูลทั้งเกม (จบเฟส '+(cfg.era||1)+')').then(swDraw)}}}
 
