@@ -280,6 +280,9 @@ p{margin:0}
 .slam{position:absolute;z-index:5;left:-25%;right:-25%;bottom:10px;height:20px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 10px 3px #ffd98a;pointer-events:none;animation:slam .32s ease-out forwards}
 @keyframes slam{from{transform:scale(.15);opacity:1}to{transform:scale(1.25);opacity:0}}
 .aur{position:absolute;z-index:5;inset:8% 0 12%;border-radius:50%;border:3px solid var(--green);box-shadow:0 0 12px 4px var(--green),inset 0 0 12px 2px var(--green);pointer-events:none;animation:slam .5s ease-out forwards}
+.fxs{position:absolute;z-index:6;left:50%;pointer-events:none;background-size:600% 100%;background-repeat:no-repeat;image-rendering:pixelated;animation:fxs var(--fd,.42s) steps(6,jump-none) forwards}
+@keyframes fxs{from{background-position:0 0}to{background-position:100% 0}}
+.pj.s i{background-size:600% 100%;background-repeat:no-repeat;image-rendering:pixelated;animation:fxs .3s steps(6,jump-none) infinite}
 .pj{position:absolute;z-index:9;pointer-events:none;width:0;height:0}
 .pj i{position:absolute;display:block;left:0;top:0;transform:translate(-50%,-50%)}
 .pj.arrow i{width:38px;height:4px;background:linear-gradient(90deg,#f1f5f9 0 14%,#8b5a2b 14% 78%,#dfe7ef 78%);box-shadow:0 0 0 1px #0a0e22,0 0 6px #fff}
@@ -1467,20 +1470,33 @@ const GIFT=STARTERS;
 const NC=Object.keys(C).length;
 
 const mid=el=>{const o=off(el);return{x:o.x+el.offsetWidth/2,y:o.y+el.offsetHeight/2}};
+// Painted effects (fx/*.webp, 6 frames in a row). FXS = [strip frame w, h, width in % of the fighter, anchor: c = centred on the body, b = standing on the ground]
+const FXS={slash:[133,150,125,'c'],claw:[131,150,120,'c'],smash:[123,150,150,'b'],boom:[150,145,150,'c'],ice:[150,142,145,'c'],bolt:[98,190,100,'b'],hit:[113,130,105,'c'],drain:[140,133,125,'c'],shield:[137,150,140,'c']};
+const PJS={arrow:[87,26,.62],farrow:[119,52,.62],fball:[105,56,.62],shard:[121,52,.6],orb:[105,56,.6]},PJMAP={arrow:'arrow',fire:'fball',moon:'shard',light:'orb'};
+// which hit effect a skill shows, by its icon; an attack with no skill (a stage monster) goes by its attack style instead
+const FXI={sword:'slash',spear:'slash',wind:'slash',exec:'slash',claw:'claw',bite:'claw',dark:'claw',hammer:'smash',earth:'smash',punch:'hit',bow:'hit',poison:'hit',holy:'hit',fire:'boom',blast:'boom',meteor:'boom',ice:'ice',bolt:'bolt',drain:'drain'};
+let FK=null; // skill being played right now: [skill, index], set by the turn code just before strike()/pose()
+function fxAt(id,name,flip){const e=$(id),d=FXS[name];if(!e||!d||RM)return;const b=document.createElement('span'),sp=S.spd||1,dur=Math.max(.2,.44/sp);b.className='fxs';
+  b.style.cssText=`width:${d[2]}%;aspect-ratio:${d[0]}/${d[1]};background-image:url(fx/${name}.webp);--fd:${dur}s;`+(d[3]==='b'?'bottom:2%;':'top:50%;')+`transform:translate(-50%,${d[3]==='b'?'0':'-50%'})${flip?' scaleX(-1)':''}`;
+  e.append(b);setTimeout(()=>b.remove(),dur*1000+60)}
 function addFx(id,cls){const e=$(id);if(!e)return;const b=document.createElement('span');b.className=cls;e.append(b);setTimeout(()=>b.remove(),520)}
 function shoot(from,to,type){const f=$(from),t=$(to);if(!f||!t)return;const A=mid(f),B=mid(t),d=document.createElement('div'),sp=S.spd||1;
-  d.className='pj '+type;d.style.left=A.x+'px';d.style.top=A.y+'px';d.innerHTML=`<i style="transform:translate(-50%,-50%) rotate(${Math.atan2(B.y-A.y,B.x-A.x)}rad)"></i>`;$('ov').append(d);
+  const pn=PJS[type]?type:PJMAP[type],pd=PJS[pn],ang=Math.atan2(B.y-A.y,B.x-A.x);
+  d.className='pj '+(pd?'s':type);d.style.left=A.x+'px';d.style.top=A.y+'px';d.innerHTML=`<i style="${pd?`width:${Math.round(pd[0]*pd[2])}px;height:${Math.round(pd[1]*pd[2])}px;background-image:url(fx/${pn}.webp);`:''}transform:translate(-50%,-50%) rotate(${ang}rad)${pd&&B.x<A.x?' scaleY(-1)':''}"></i>`;$('ov').append(d);
   d.animate([{transform:'translate(0,0)'},{transform:`translate(${B.x-A.x}px,${B.y-A.y}px)`}],{duration:260/sp,easing:'ease-in'}).onfinish=()=>d.remove()}
 // one attack: wind up, then either cross the lane and swing, or stay put and fire; resolves at the moment of impact
 async function strike(from,id,tos,dir){
   const f=$(from);if(!f||RM)return;const spr=f.querySelector('.spr'),st=C[id].st||'slash',sp=S.spd||1;
   const swing=()=>{spr.style.setProperty('--ad',(.5/sp)+'s');spr.classList.remove('atk');void spr.offsetWidth;spr.classList.add('atk')};
-  if(st==='shoot'||st==='cast'){swing();await W(300);sfx(st==='shoot'?'arrow':'magic');tos.forEach(t=>shoot(from,t,C[id].pj||'fire'));await W(255);return}
+  const fk=FK;FK=null;const ic=fk&&fk[0][1],pj=C[id].pj||'fire';
+  // the painted hit effect: by the skill's icon, else by how this fighter attacks
+  const hitFx=(ic&&FXI[ic])||(st==='smash'?'smash':st==='cast'||st==='shoot'?({fire:'boom',moon:'ice',light:'hit',arrow:'hit',soul:'hit'})[pj]:C[id].mon?'claw':'slash'),land=()=>tos.forEach(t=>fxAt(t,hitFx,dir!==1));
+  if(st==='shoot'||st==='cast'){swing();await W(300);sfx(st==='shoot'?'arrow':'magic');tos.forEach(t=>shoot(from,t,st==='shoot'&&fk&&fk[1]>0?'farrow':pj));await W(255);land();return}
   await lunge(from,tos.length===1?tos[0]:null,dir);swing();await W(240);
-  if(st==='smash'){sfx('smash');tos.forEach(t=>addFx(t,'slam'));quake=true}else{sfx('slash');tos.forEach(t=>addFx(t,'arc'+(dir===1?'':' rv')))}
+  if(st==='smash'||hitFx==='smash'){sfx('smash');quake=true}else sfx('slash');land();
   await W(130)}
 async function pose(from,tos){const f=$(from);if(!f||RM)return;
-  f.querySelector('.spr').animate([{transform:'none'},{transform:'translateY(-14px) scale(1.06)'},{transform:'none'}],{duration:380/(S.spd||1)});await W(200);sfx('heal');tos.forEach(t=>addFx(t,'aur'));await W(150)} // sprites drawn facing right; mirrored when they fight on the enemy side
+  f.querySelector('.spr').animate([{transform:'none'},{transform:'translateY(-14px) scale(1.06)'},{transform:'none'}],{duration:380/(S.spd||1)});await W(200);sfx('heal');const fk=FK;FK=null;tos.forEach(t=>fk&&['guard','shieldall'].includes(fk[0][2])?fxAt(t,'shield'):addFx(t,'aur'));await W(150)} // sprites drawn facing right; mirrored when they fight on the enemy side
 // where each fighter stands on the floor: [x %, feet y %, size]; the back row is higher up, smaller and nearer the middle, the front row lower and larger
 const SPOT=[[37,44,.8],[24,62,.92],[10,81,1.04]],spots=n=>n===1?[SPOT[1]]:n===2?[SPOT[0],SPOT[2]]:SPOT;
 function unit(u,el,cls,attr,sp,side){const p=Math.max(0,u.hp/u.max*100),mon=u.boss!==undefined,k=sp[2]*(u.boss?1.18:1);
@@ -1542,23 +1558,23 @@ async function act(ti){
   if(needT(sk)&&(ti<0||!my.en[ti]||my.en[ti].hp<=0))return;
   busy=true;my.log=`${C[a.id].n} ใช้ ${sk[0]}`;draw();
   if(k>0){await cutin(a,k);if(bt!==my)return}
-  if(isAtk(sk))await strike('a'+ai,a.id,needT(sk)?['e'+ti]:my.en.map((e,j)=>e.hp>0?'e'+j:null).filter(Boolean),1);
+  FK=[sk,k];if(isAtk(sk))await strike('a'+ai,a.id,needT(sk)?['e'+ti]:my.en.map((e,j)=>e.hp>0?'e'+j:null).filter(Boolean),1);
   else await pose('a'+ai,['healall','shieldall','rally'].includes(sk[2])?my.al.map((x,j)=>x.hp>0?'a'+j:null).filter(Boolean):['a'+ai]);
-  if(bt!==my)return;const big=quake;
+  if(bt!==my)return;const big=quake;if(sk[2]==='drain')fxAt('a'+ai,'drain');
   a.taunt=false;cast(a,k,ti);a.done=true;my.sel=0;quake=big||k===2;draw();await W(540);if(bt!==my)return;
   if(my.en.every(e=>e.hp<=0))return finish(true);
   // arena: turns alternate, so after each of my fighters one of theirs answers with a skill of its own
   const foeGo=async i=>{const e=my.en[i];e.taunt=false;e.done=true;const k=autoPick(e,false),sk=SK[e.id][k],j=foePick();if(j<0)return true;
     const liveA=my.al.map((x,q)=>x.hp>0?'a'+q:null).filter(Boolean),liveE=my.en.map((x,q)=>x.hp>0?'e'+q:null).filter(Boolean);
     my.log=`${C[e.id].n} ใช้ ${sk[0]}`;draw();
-    if(isAtk(sk))await strike('e'+i,e.id,needT(sk)?['a'+j]:liveA,-1);else await pose('e'+i,['healall','shieldall','rally'].includes(sk[2])?liveE:['e'+i]);
+    FK=[sk,k];if(isAtk(sk))await strike('e'+i,e.id,needT(sk)?['a'+j]:liveA,-1);else await pose('e'+i,['healall','shieldall','rally'].includes(sk[2])?liveE:['e'+i]);
     if(bt!==my)return false;cast(e,k,j,false);draw();await W(440);return bt===my};
   if(my.pvp){const i=my.en.findIndex(x=>x.hp>0&&!x.done);if(i>=0){if(!await foeGo(i))return;if(my.al.every(x=>x.hp<=0))return finish(false)}}
   if(!actor()){
     for(let i=0;i<my.en.length;i++){const e=my.en[i];if(e.hp<=0)continue;
       if(my.pvp){if(e.done)continue;if(!await foeGo(i))return;if(my.al.every(x=>x.hp<=0))break;continue}
       const j=foePick();if(j<0)break;my.log=`${C[e.id].n} โจมตี ${C[my.al[j].id].n}`;draw();
-      await strike('e'+i,e.id,['a'+j],-1);if(bt!==my)return;foeHit(e,j);draw();await W(440);if(bt!==my)return}
+      FK=null;await strike('e'+i,e.id,['a'+j],-1);if(bt!==my)return;foeHit(e,j);draw();await W(440);if(bt!==my)return}
     if(my.al.every(x=>x.hp<=0))return finish(false);
     if(my.pvp&&my.round>=PV_CAP){const fr=l=>l.reduce((t,x)=>t+Math.max(0,x.hp),0)/l.reduce((t,x)=>t+x.max,0);return finish(fr(my.al)>fr(my.en))}
     my.round++;my.al.forEach(x=>{x.done=false});my.en.forEach(x=>{x.done=false});
@@ -2086,6 +2102,7 @@ function guide(){
       T('ไม่มีขายในร้าน ได้จากดรอป ตลาดกลาง หรือผู้เล่นอื่นส่งให้เท่านั้น','Not sold in the shop: only drops, the market, or gifts from other players')])],
    trade:[T('ตลาดและห้องเทรด','Market and trade rooms'),()=>ul([
      T('ต้องล็อกอินด้วย Google ถึงจะใช้ตลาดกลางและเห็นผู้เล่นอื่นในห้องเทรด','Sign in with Google to use the market and to see other players in trade rooms'),T('ห้องเทรดส่งต่อได้เฉพาะเครื่องรางระดับ Legend และการ์ดระดับ Super Legend / Limited เท่านั้น · การ์ดจะส่งใบซ้ำก่อน ถ้าไม่มีใบซ้ำจะส่งการ์ดตัวจริง (เลเวล ดาว Exp หาย ผู้รับได้เลเวล 1) · การ์ดอีเวนต์เทรดไม่ได้','Trade rooms can pass on only Legend amulets and Super Legend / Limited cards · a duplicate copy goes first; with no copy the card itself is sent (its level, stars and Exp are lost, the receiver gets level 1) · event cards cannot be traded'),
+     T('<b>ศัตรูในด่าน</b>เป็นมอนสเตอร์ทั้งหมด (มอนเล็ก 10 ชนิด บอส 5 ตัวสลับกันทุกด่านที่ลงท้ายด้วย 0) · การ์ดของผู้เล่นจะเจอเป็นคู่ต่อสู้เฉพาะใน PvP · มีแผนที่ 10 แห่ง สลับบรรยากาศ 23 แบบ · ท่าโจมตีและสกิลมีเอฟเฟกต์ภาพวาดตามชนิดสกิล','<b>Stage enemies</b> are all monsters (10 small kinds, 5 bosses taking turns on every stage ending in 0) · player cards are met as opponents only in PvP · there are 10 maps in 23 moods · attacks and skills show painted effects by skill type'),
      T('<b>ของขวัญจากทีมงาน</b>: บางช่วงทีมงานแจก VIP ให้ทุกคนที่ล็อกอินด้วย Google แล้วเข้าล็อบบี้ในช่วงเวลาที่ประกาศ รับได้ 1 ครั้งต่อรอบ มีป๊อปอัปแจ้งตอนได้รับ','<b>Gifts from the team</b>: now and then the team gives VIP to everyone who signs in with Google and opens the lobby during the announced period, once per gift, with a pop-up when it arrives'),
      T('<b>ประวัติการขาย</b>: หน้าตลาดกลาง โหมดขาย แสดงของที่ตั้งขายอยู่ (รอผู้ซื้อ) และ 30 รายการล่าสุดที่ขายได้ พร้อมชื่อผู้ซื้อ วันเวลา และ Gold ที่ได้รับ · ถ้าขายได้ตอนคุณอยู่ล็อบบี้ เกมจะแจ้งและโอน Gold ให้เอง','<b>Sales history</b>: the market\'s Sell mode shows your open listings (waiting for a buyer) and your last 30 sales with the buyer, the time and the Gold received · if something sells while you are in the lobby the game tells you and credits the Gold'),
      T(`<b>ตลาดกลาง</b>: ลงขายเครื่องรางที่ไม่ได้ใส่ และการ์ดทุกใบ (ยกเว้นการ์ดเริ่มต้น) มีใบซ้ำจะขายใบซ้ำก่อน ไม่มีใบซ้ำจะขายการ์ดตัวจริง ยกเว้นการ์ดที่อยู่ในทีม ทีม PvP หรือเป็นตัวละคร · ล็อคการ์ดได้ในหน้ารายละเอียดการ์ด ล็อคเครื่องรางได้ในหน้าเครื่องราง ของที่ล็อคจะขาย เทรด และย่อยไม่ได้ · ตั้งราคาเอง 100–${N(MK_MAX)} Gold · ค่าวางขาย ${P(MK_FEE)} ของราคา ขั้นต่ำ 50 Gold จ่ายตอนลงขายและไม่คืน · ผู้ขายถูกหักภาษี ${P(TAX)} เมื่อขายได้`,`<b>Market</b>: list unequipped amulets and any card except starters. A duplicate copy is sold first; with no copy the card itself is sold, unless it is in your team, PvP team or used as your avatar · lock a card on its detail screen and an amulet on the Amulets screen; locked items cannot be sold, traded or dismantled · set your own price, 100–${N(MK_MAX)} Gold · listing fee ${P(MK_FEE)} of the price, at least 50 Gold, paid up front and not refunded · the seller pays ${P(TAX)} tax when it sells`),
@@ -2155,7 +2172,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b152';
+const BUILD='b153';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
@@ -2208,7 +2225,7 @@ function welcome(){
 const TIPS=['การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ','ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า','การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน','ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้','การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง'];
 // loading screen: really preloads every card, fighter and the next map so nothing pops in during play
 function loading(wait){
-  const next=Math.min(MAXST,S.cleared+1),list=[COVER_BG,mapImg(next),...stageDef(next).filter(e=>C[e.id].mon).flatMap(e=>[`spr/${e.id}.webp`,artSrc(e.id)]),...Object.keys(C).flatMap(id=>[img(id),`spr/${id}.webp`])];
+  const next=Math.min(MAXST,S.cleared+1),list=[COVER_BG,mapImg(next),...Object.keys(FXS).concat(Object.keys(PJS)).map(k=>`fx/${k}.webp`),...stageDef(next).filter(e=>C[e.id].mon).flatMap(e=>[`spr/${e.id}.webp`,artSrc(e.id)]),...Object.keys(C).flatMap(id=>[img(id),`spr/${id}.webp`])];
   view(`<div class="loadv art" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
    <div class="lbar"><i id="lbi"></i></div><p class="lpct nt" id="lpc">0%</p>
    <p class="ltip">${TIPS[Math.floor(Math.random()*TIPS.length)]}</p></div>`);
