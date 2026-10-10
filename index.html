@@ -1149,7 +1149,7 @@ function coll(){
     ${ORD.map(r=>`<button class="tab r-${r} ${collTab===r?'on':''}" data-act="ctab" data-r="${r}">${RAR[r].n} (${Object.keys(C).filter(id=>C[id].r===r).length})</button>`).join('')}
     <button class="tab am ${isAm?'on':''}" data-act="ctab" data-r="am">เครื่องราง (${have.reduce((n,k)=>n+owned(k),0)})</button>
     <button class="btn go sm" data-act="fuse"><span class="nt">${T('ฟิวชั่นการ์ด','Card Fusion')}</span></button>
-    ${isAm?'':`<p class="sub nt">${T(`ป้ายมุมการ์ด +N = จำนวนใบซ้ำ · ป้ายสีทองทึบ = ครบ ${FUSE.n} ใบ ฟิวชั่นได้`,`Corner tag +N = spare copies · solid gold tag = ${FUSE.n} or more, ready to fuse`)}</p>`}
+    ${isAm?'':`<p class="sub nt">${T(`ป้ายมุมการ์ด +N = จำนวนใบซ้ำ · ป้ายสีทองทึบ = ครบจำนวน ฟิวชั่นได้`,`Corner tag +N = spare copies · solid gold tag = enough to fuse`)}</p>`}
     <p class="sub">${isAm?'แตะเครื่องราง แล้วแตะการ์ดที่จะใส่ แตะการ์ดที่ใส่อยู่อีกครั้งเพื่อถอด':'แตะการ์ดเพื่อดูใบใหญ่และสกิล'}</p>
   </div><div class="main">
     ${isAm?(have.length?`<div class="amlist">${have.map(k=>`<button class="amrow ${amSel===k?'on':''}" data-act="amsel" data-k="${k}">${amu(k)}<span><b>${isLock(k)?'🔒 ':''}${AM[k].n} x${owned(k)}</b><small><b class="nt art-${AM[k].r}">${RAR[AM[k].r].n}</b> · ${AM[k].t}</small><small>ใส่อยู่ ${worn(k)} · ว่าง ${spare(k)}</small></span></button>`).join('')}</div>
@@ -1253,24 +1253,25 @@ function openLtd(cur){if(!CBT)return;if(cur==='d'){if((S.dia||0)<LTD.dia)return;
   const id=randOf(ltdRoll());S.ev=S.ev||{};S.ev[id]=(S.ev[id]||0)+1;pull=[{id,ev:true}];save();sfx('win');shop()}
 // An event card: the card picture and name only, with a stamp. No fire, lightning, sparkles, stars, level or stats.
 const evCard=id=>`<div class="cf evc r-${C[id].r}"><img src="${img(id)}" alt="${C[id].n}"><span class="cnm nt">${C[id].n}</span><span class="evst"><b class="nt">EVENT CARD</b><i>ใช้เล่นไม่ได้</i></span></div>`;
-// Fusion: FUSE.n spare copies (cp) of ONE card + FUSE.gold Gold -> 1 random card of the next rank. Stars/level don't matter (copies have none),
+// Fusion: FUSE.n[rank] spare copies (cp) of ONE card + FUSE.gold[rank] Gold -> 1 random card of the next rank (b147: cost rises per step so SL stays rare). Stars/level don't matter (copies have none),
 // the owned card itself is never consumed. Starter and Limited are outside the chain; Super Legend is the top, so it cannot be fused.
-const FUSE={n:3,gold:1000,up:{C:'UC',UC:'R',R:'L',L:'SL'}};
+const FUSE={n:{C:3,UC:3,R:4,L:5},gold:{C:1000,UC:2000,R:5000,L:20000},up:{C:'UC',UC:'R',R:'L',L:'SL'}};
+const fuN=id=>FUSE.n[C[id].r]||99,fuG=id=>FUSE.gold[C[id].r]||0,fuTxt=T=>Object.keys(FUSE.up).map(r=>`<span class="sub nt">${RAR[r].n} → <b style="font-size:inherit">${RAR[FUSE.up[r]].n}</b> : ${FUSE.n[r]} ${T('ใบ','copies')} + ${FUSE.gold[r].toLocaleString('en')} Gold</span>`).join('');
 let fuSel=null,fuGot=null;
-const fuCan=id=>!!(id&&C[id]&&S.cards[id]&&FUSE.up[C[id].r]&&!isLock(id)),fuOk=id=>fuCan(id)&&(S.cards[id].cp||0)>=FUSE.n;
+const fuCan=id=>!!(id&&C[id]&&S.cards[id]&&FUSE.up[C[id].r]&&!isLock(id)),fuOk=id=>fuCan(id)&&(S.cards[id].cp||0)>=fuN(id);
 const fuList=()=>byRank(Object.keys(S.cards).filter(id=>fuCan(id)&&(S.cards[id].cp||0)>0)).sort((a,b)=>fuOk(b)-fuOk(a));
-function fuDo(id){if(!fuOk(id)||S.gold<FUSE.gold)return null;const to=randOf(FUSE.up[C[id].r]);if(!to)return null;S.cards[id].cp-=FUSE.n;S.gold-=FUSE.gold;const g=giveCard(to);g.from=id;return g}
-function fuse(){const L=fuList();if(!L.includes(fuSel))fuSel=null;const id=fuSel,ok=fuOk(id),cp=id?S.cards[id].cp||0:0,poor=S.gold<FUSE.gold,chain=Object.keys(FUSE.up).map(r=>RAR[r].n).concat(RAR.SL.n).join(' → ');
+function fuDo(id){if(!fuOk(id)||S.gold<fuG(id))return null;const to=randOf(FUSE.up[C[id].r]);if(!to)return null;const c=fuG(id);S.cards[id].cp-=fuN(id);S.gold-=c;const g=giveCard(to);g.from=id;g.cost=c;return g}
+function fuse(){const L=fuList();if(!L.includes(fuSel))fuSel=null;const id=fuSel,ok=fuOk(id),cp=id?S.cards[id].cp||0:0,need=id?fuN(id):0,cost=id?fuG(id):0,poor=S.gold<cost;
   view(`<div class="cols wide"><div class="rail">
     <div class="row"><button class="btn alt sm" data-act="coll">กลับ</button><h2 class="nt">${T('ฟิวชั่นการ์ด','Card Fusion')}</h2></div>
     <span class="num gold nt" style="margin:0">Gold ${S.gold.toLocaleString('en')}</span>
-    <div class="px dissum">${id?`<b class="nt">${C[id].n}</b><span class="sub nt">${RAR[C[id].r].n} → <b>${RAR[FUSE.up[C[id].r]].n}</b></span><span class="sub nt">${T('ใบซ้ำ','Copies')} <b>${cp}</b>/${FUSE.n} · ${T('ฟิวชั่นได้','can fuse')} ${Math.floor(cp/FUSE.n)} ${T('ครั้ง','time(s)')}</span>`:`<span class="sub">แตะการ์ดทางขวาเพื่อเลือก</span>`}</div>
-    <button class="btn go sm" data-act="fugo" ${ok&&!poor?'':'disabled'}><span class="nt">${T('ฟิวชั่น','Fuse')} · ${FUSE.gold.toLocaleString('en')} Gold</span></button>
-    ${id&&!ok?`<p class="sub nt" style="color:#ffb14a">${T(`ใบซ้ำไม่พอ ต้องมี ${FUSE.n} ใบ (ขาดอีก ${FUSE.n-cp})`,`Not enough copies: need ${FUSE.n} (${FUSE.n-cp} short)`)}</p>`:ok&&poor?`<p class="sub nt" style="color:#ffb14a">${T('Gold ไม่พอ','Not enough Gold')}</p>`:''}
-    <div class="px dissum"><span class="sub nt">${T(`ใช้ใบซ้ำของการ์ดตัวเดียวกัน ${FUSE.n} ใบ + ${FUSE.gold.toLocaleString('en')} Gold`,`${FUSE.n} spare copies of the same card + ${FUSE.gold.toLocaleString('en')} Gold`)}</span><span class="sub nt">${T('ได้การ์ดระดับสูงขึ้น 1 ขั้น 1 ใบ (สุ่มตัว)','gives 1 random card one rank higher')}</span><b class="nt" style="font-size:12px">${chain}</b></div>
+    <div class="px dissum">${id?`<b class="nt">${C[id].n}</b><span class="sub nt">${RAR[C[id].r].n} → <b>${RAR[FUSE.up[C[id].r]].n}</b></span><span class="sub nt">${T('ใบซ้ำ','Copies')} <b>${cp}</b>/${need} · ${T('ฟิวชั่นได้','can fuse')} ${Math.floor(cp/need)} ${T('ครั้ง','time(s)')}</span>`:`<span class="sub">แตะการ์ดทางขวาเพื่อเลือก</span>`}</div>
+    <button class="btn go sm" data-act="fugo" ${ok&&!poor?'':'disabled'}><span class="nt">${T('ฟิวชั่น','Fuse')}${id?' · '+cost.toLocaleString('en')+' Gold':''}</span></button>
+    ${id&&!ok?`<p class="sub nt" style="color:#ffb14a">${T(`ใบซ้ำไม่พอ ต้องมี ${need} ใบ (ขาดอีก ${need-cp})`,`Not enough copies: need ${need} (${need-cp} short)`)}</p>`:ok&&poor?`<p class="sub nt" style="color:#ffb14a">${T('Gold ไม่พอ','Not enough Gold')}</p>`:''}
+    <div class="px dissum"><span class="sub nt">${T('ใช้ใบซ้ำของการ์ดตัวเดียวกัน + Gold ได้การ์ดระดับสูงขึ้น 1 ขั้น 1 ใบ (สุ่มตัว) · ยิ่งระดับสูงยิ่งใช้มาก','Spare copies of the same card + Gold give 1 random card one rank higher · higher ranks cost more')}</span>${fuTxt(T)}</div>
     <p class="sub nt">${T('การ์ดตัวจริง เลเวล และดาวไม่หาย ใช้เฉพาะใบซ้ำ · การ์ดที่ล็อคไม่ขึ้นในรายการ · Starter, Super Legend และ Limited ฟิวชั่นไม่ได้ · ฟิวชั่นแล้วเอาคืนไม่ได้','Your card, its level and stars stay; only spare copies are used · locked cards are not listed · Starter, Super Legend and Limited cannot be fused · fusion cannot be undone')}</p>
   </div><div class="main">${fuGot&&C[fuGot.id]?`<div class="px fugot">${full(fuGot.id,`data-act="zoom" data-id="${fuGot.id}"`,'glow')}<div><h3 class="nt">${T('ฟิวชั่นสำเร็จ!','Fusion complete!')}</h3><p class="nt"><b>${C[fuGot.id].n}</b> · ${RAR[C[fuGot.id].r].n}</p><p class="sub nt">${fuGot.dup?T(`ใบซ้ำ +1 (มี ${S.cards[fuGot.id].cp||0})`,`copy +1 (have ${S.cards[fuGot.id].cp||0})`):T('การ์ดใหม่!','New card!')}</p></div></div>`:''}
-    <div class="disg">${L.map(k=>`<button class="mkpick fupick ${fuSel===k?'on':''} ${fuOk(k)?'':'no'}" data-act="fusel" data-k="${k}" aria-pressed="${fuSel===k}" aria-label="${C[k].n}">${mkIcon(k)}<small class="nt">${fuOk(k)?`<b>${S.cards[k].cp}/${FUSE.n}</b>`:`${S.cards[k].cp}/${FUSE.n}`}</small></button>`).join('')||`<span class="sub nt">${T(`ยังไม่มีใบซ้ำให้ฟิวชั่น · ได้การ์ดซ้ำจากแพ็คจะถูกเก็บไว้ที่นี่ ครบ ${FUSE.n} ใบก็ฟิวชั่นได้`,`No spare copies yet · duplicate pulls are kept here; ${FUSE.n} of one card can be fused`)}</span>`}</div></div></div>`)}
+    <div class="disg">${L.map(k=>`<button class="mkpick fupick ${fuSel===k?'on':''} ${fuOk(k)?'':'no'}" data-act="fusel" data-k="${k}" aria-pressed="${fuSel===k}" aria-label="${C[k].n}">${mkIcon(k)}<small class="nt">${fuOk(k)?`<b>${S.cards[k].cp}/${fuN(k)}</b>`:`${S.cards[k].cp}/${fuN(k)}`}</small></button>`).join('')||`<span class="sub nt">${T(`ยังไม่มีใบซ้ำให้ฟิวชั่น · ได้การ์ดซ้ำจากแพ็คจะถูกเก็บไว้ที่นี่ ครบจำนวนก็ฟิวชั่นได้`,`No spare copies yet · duplicate pulls are kept here until there are enough to fuse`)}</span>`}</div></div></div>`)}
 // Dismantle. Keys: a card id = duplicate copies (cp) of a real card; 'e:'+id = an event card from the Limited Pack.
 // The real card itself, Starter cards and anything Limited can never be dismantled.
 let disS=new Set(),disArm=false;
@@ -1755,7 +1756,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='openltd')openLtd(t.dataset.c);
   else if(a==='fuse'){fuSel=null;fuGot=null;fuse()}
   else if(a==='fusel'){fuSel=fuSel===t.dataset.k?null:t.dataset.k;fuGot=null;fuse()}
-  else if(a==='fugo'){const g=fuDo(fuSel);if(g){fuGot=g;save();sfx('win');fx.push(['view','-'+FUSE.gold.toLocaleString('en')+' Gold','g'])}fuse()}
+  else if(a==='fugo'){const g=fuDo(fuSel);if(g){fuGot=g;save();sfx('win');fx.push(['view','-'+g.cost.toLocaleString('en')+' Gold','g'])}fuse()}
   else if(a==='dis'){disS=new Set();disArm=false;dis()}
   else if(a==='dissel'){const k=t.dataset.k;disS.has(k)?disS.delete(k):disS.add(k);disArm=false;dis()}
   else if(a==='disall'){disS=new Set(disList());disArm=false;dis()}
@@ -1988,7 +1989,7 @@ function guide(){
      T('เลเวลถัดไปใช้ Exp 20 + 10×เลเวลปัจจุบัน','The next level costs 20 + 10×current level Exp'),
      T(`อัปดาวได้สูงสุด 5 ดาว ดาวละ ATK/HP/DEF +${P(STAR_STAT)} และเพิ่มเลเวลสูงสุด`,`Up to 5 stars; each adds +${P(STAR_STAT)} ATK/HP/DEF and raises the level cap`),
      T('ใบซ้ำจากแพ็คเก็บไว้ใช้อัปดาวของการ์ดใบนั้น · หน้า การ์ดของฉัน มีป้าย +N ที่มุมการ์ดบอกจำนวนใบซ้ำ ป้ายสีทองทึบคือครบจำนวนฟิวชั่นได้','Duplicate pulls are kept as copies for that card\'s stars · in My Cards a +N corner tag shows the spare copies; a solid gold tag means enough to fuse'),
-     T(`ฟิวชั่นการ์ด (เมนู การ์ดของฉัน): ใช้ใบซ้ำของการ์ดตัวเดียวกัน ${FUSE.n} ใบ + ${FUSE.gold.toLocaleString('en')} Gold แลกการ์ดระดับสูงขึ้น 1 ขั้น 1 ใบ (สุ่มตัว) · Common → Uncommon → Rare → Legend → Super Legend · การ์ดตัวจริง เลเวล ดาว ไม่หาย · Starter, Super Legend, Limited และการ์ดที่ล็อค ฟิวชั่นไม่ได้`,`Card Fusion (My Cards menu): ${FUSE.n} spare copies of the same card + ${FUSE.gold.toLocaleString('en')} Gold give 1 random card one rank higher · Common → Uncommon → Rare → Legend → Super Legend · your card, its level and stars stay · Starter, Super Legend, Limited and locked cards cannot be fused`)])
+     T(`ฟิวชั่นการ์ด (เมนู การ์ดของฉัน): ใช้ใบซ้ำของการ์ดตัวเดียวกัน + Gold แลกการ์ดระดับสูงขึ้น 1 ขั้น 1 ใบ (สุ่มตัว) · ${Object.keys(FUSE.up).map(r=>RAR[r].n+' → '+RAR[FUSE.up[r]].n+' '+FUSE.n[r]+' ใบ + '+FUSE.gold[r].toLocaleString('en')+' Gold').join(' · ')} · การ์ดตัวจริง เลเวล ดาว ไม่หาย · Starter, Super Legend, Limited และการ์ดที่ล็อค ฟิวชั่นไม่ได้`,`Card Fusion (My Cards menu): spare copies of the same card + Gold give 1 random card one rank higher · ${Object.keys(FUSE.up).map(r=>RAR[r].n+' → '+RAR[FUSE.up[r]].n+' '+FUSE.n[r]+' copies + '+FUSE.gold[r].toLocaleString('en')+' Gold').join(' · ')} · your card, its level and stars stay · Starter, Super Legend, Limited and locked cards cannot be fused`)])
      +tb([T('ดาวที่','Star'),'1','2','3','4','5'],[[T('การ์ดทั่วไป','Normal cards'),...STAR_COST.map(([g,c])=>N(g)+' Gold + '+c+T(' ใบซ้ำ',' copies'))],[T('การ์ดเริ่มต้น','Starter cards'),...STAR_COST_ST.map(([g])=>N(g)+' Gold')]])],
    packs:[T('แพ็คการ์ด','Packs'),()=>tb([T('แพ็ค','Pack'),T('ราคา','Price'),T('ได้','Gives'),...['C','UC','R','L','SL'].map(rn)],
      [['Gold Pack',N(GPACK)+' Gold',GN+T(' ใบ',' cards'),...['C','UC','R','L','SL'].map(r=>P(GODDS[r]))],['Starter Pack',PACK+T(' เพชร',' diamonds'),T('3 ใบ','3 cards'),'–',T('1 ใบ','1 card'),T('2 ใบ','2 cards'),'–','–'],['Pro Pack',N(PRO.dia)+T(' เพชร หรือ ',' diamonds or ')+N(PRO.gold)+' Gold',PRO.n+T(' ใบ',' cards'),'–','–',...['R','L','SL'].map(r=>P(PRO.odds[r]))]])
@@ -2076,7 +2077,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b146';
+const BUILD='b147';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
