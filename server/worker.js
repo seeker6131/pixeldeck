@@ -14,7 +14,7 @@
 //   FB_SA_KEY     private_key from the same JSON (the whole -----BEGIN PRIVATE KEY----- ... block)
 //                 Easier: paste the WHOLE JSON file into FB_SA_KEY and skip FB_SA_EMAIL.
 // Optional plain variable:
-//   ALLOW_ORIGIN  site allowed to call this Worker (default https://seeker6131.github.io)
+//   ALLOW_ORIGIN  site allowed to call this Worker (default https://pixeldeckbattle.github.io)
 
 // [diamonds, bonus, price THB] - must match DPACKS in the game
 const PACKS = [[60,0,35],[120,10,69],[300,30,169],[900,100,499],[1500,300,799],[2500,700,1490]];
@@ -76,7 +76,7 @@ const sv = v => ({ stringValue: String(v) }), iv = v => ({ integerValue: String(
 
 export default {
   async fetch(req, env) {
-    const origin = env.ALLOW_ORIGIN || 'https://seeker6131.github.io';
+    const origin = env.ALLOW_ORIGIN || 'https://pixeldeckbattle.github.io';
     const cors = { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'vary': 'origin' };
     const out = (status, o) => new Response(JSON.stringify(o), { status, headers: { ...cors, 'content-type': 'application/json' } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });

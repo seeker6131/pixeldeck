@@ -1882,7 +1882,10 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b121';
+const BUILD='b122';
+// The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
+const NEW_HOME='https://pixeldeckbattle.github.io/';
+if(location.hostname==='seeker6131.github.io')fetch(NEW_HOME+'version.json?'+Date.now()).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.b)location.replace(NEW_HOME)}).catch(()=>{});
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
