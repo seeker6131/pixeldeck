@@ -307,6 +307,7 @@ p{margin:0}
 .imp{position:absolute;z-index:4;left:50%;top:45%;width:80%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,60% 35%,100% 20%,70% 50%,100% 80%,60% 65%,50% 100%,40% 65%,0 80%,30% 50%,0 20%,40% 35%);animation:imp .35s steps(5) forwards}
 @keyframes imp{from{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}to{transform:translate(-50%,-50%) scale(1.5) rotate(25deg);opacity:0}}
 /* overlays: VS intro, START / FINISH banners, skill cut-ins */
+#tut{position:absolute;inset:0;z-index:9;pointer-events:none}#tut:empty{display:none}#tut .th{position:absolute;border-radius:10px;box-shadow:0 0 0 3px #ffd84a,0 0 0 9999px rgba(4,8,24,.6);animation:tutp 1.1s ease-in-out infinite}@keyframes tutp{50%{box-shadow:0 0 0 6px #fff3b0,0 0 0 9999px rgba(4,8,24,.6)}}#tut .tb{position:absolute;pointer-events:auto;box-sizing:border-box;background:#141b3c;border:2px solid #f2d98a;border-radius:10px;padding:10px 12px 8px;color:#eef2ff;font-size:14px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.6)}#tut .tb small{display:block;color:#9fb0e8;font-size:11px;margin-bottom:2px}#tut .tb .row{justify-content:flex-end;gap:8px;margin-top:8px}@media(prefers-reduced-motion:reduce){#tut .th{animation:none}}
 #ov{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}#ov:empty{display:none}.ovon .bgl.top,.ovon .bfog,.ovon .bglow,.ovon .baur{animation-play-state:paused}
 .bn{position:absolute;left:0;right:0;top:50%;height:84px;transform:translateY(-50%);display:grid;place-items:center;background:linear-gradient(90deg,transparent,rgba(10,14,34,.92) 18% 82%,transparent);animation:bn calc(.85s/var(--sp,1)) both}
 .bn span{font-family:var(--display);font-weight:700;font-style:italic;font-size:58px;letter-spacing:.08em;color:var(--yellow);text-shadow:4px 4px 0 var(--red),0 0 20px #ff8a00;animation:pop .3s both}
@@ -602,7 +603,7 @@ h1{color:#f2d98a;text-shadow:0 3px 0 #7a4a1c,0 6px 0 #0a1019}h2{color:#f2d98a;te
 .gbtn{border:3px solid #0a1019}
 </style>
 
-<div id="stage"><div id="view"></div><div id="ov"></div><button id="zoom" hidden></button></div>
+<div id="stage"><div id="view"></div><div id="ov"></div><div id="tut"></div><button id="zoom" hidden></button></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -978,7 +979,7 @@ function addExp(id,x){const c=S.cards[id],cap=capOf(id);if(c.lv>=cap){c.lv=cap;c
 const scrKey=()=>{const h=document.querySelector('#view .rail h2');return h?h.textContent.replace(/[0-9]/g,''):''};
 function view(h){const k0=scrKey(),sc=k0?['.rail','.main'].map(q=>{const e=document.querySelector('#view '+q);return e?e.scrollTop:0}):null;$('view').innerHTML=h;
   if(sc&&scrKey()===k0){const put=()=>['.rail','.main'].forEach((q,i)=>{const e=document.querySelector('#view '+q);if(e)e.scrollTop=sc[i]});put();requestAnimationFrame(put)}
-  fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[]}
+  fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[];tutSync()}
 const q=(el,t,cls)=>fx.push([el,t,cls]);
 const rib=id=>`<span class="rib">${RAR[C[id].r].n}</span>`;
 const fr=id=>RAR[C[id].r].fire?'fire f-'+RAR[C[id].r].fire:'';
@@ -1027,6 +1028,10 @@ const CBT=true,DIS={C:1,UC:3,R:15,L:60,SL:300};
 const LTD={dia:100,pts:200,n:1,pity:300,odds:{LT:.002,SL:.006,L:.032,R:.11,UC:.25}};const LT_RK=['C','UC','R','L','SL','LT'];
 const VIPS=[[7,120,59],[30,400,199],[365,3000,1490]],VIP_DROP=1.5;
 const vipOn=()=>!!S&&(isDev()||(S.vip||0)>Date.now()),VX=()=>vipOn()?2:1,vipLeft=()=>Math.max(0,Math.ceil(((S.vip||0)-Date.now())/864e5));
+// S.vipk remembers the card bought last (days, or 'a' for the arena-shop card) so the shop can say which card is running and when it ends
+const vipName=k=>k==='a'?T('VIP 7 วัน (แลกจากอารีน่า)','VIP 7 days (arena shop)'):k===365?T('VIP 1 ปี','VIP 1 year'):k?T('VIP '+k+' วัน','VIP '+k+' days'):'VIP';
+const vipEnd=short=>new Date(S.vip||0).toLocaleString(S.lang==='en'?'en-GB':'th-TH',short?{day:'numeric',month:'short'}:{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const vipRem=()=>{const m=Math.max(0,(S.vip||0)-Date.now()),d=Math.floor(m/864e5),h=Math.floor(m%864e5/36e5),mi=Math.floor(m%36e5/6e4);return d?T(d+' วัน '+h+' ชม.',d+' d '+h+' h'):T(h+' ชม. '+mi+' นาที',h+' h '+mi+' min')};
 // cards also drop from stages: rare overall, and the higher ranks only appear deeper in
 const CDROP=.04,CDROP_BOSS=.12,CD_ODDS=[['LT',.0002,400],['SL',.001,250],['L',.009,100],['R',.05,30],['UC',.24,1]];
 function cardDropRank(n){let x=Math.random();for(const [r,pr,min] of CD_ODDS){if(n>=min&&(x-=pr)<0)return r}return 'C'}
@@ -1204,7 +1209,7 @@ function shop(){const d=S.dia||0;
      <button class="btn go sm" data-act="openltd" data-c="p" ${(S.dp||0)<LTD.pts?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.pts}</i> แต้ม</button>
      <button class="btn sm" data-act="openltd" data-c="d" ${d<LTD.dia?'disabled':''}>เปิด <i class="nt" style="font-style:normal">${LTD.dia}</i> เพชร</button>
      <button class="btn alt sm" data-act="dis">ย่อยการ์ดแลกแต้ม</button></div>`:''}
-    <button class="btn alt sm" data-act="vip">บัตร VIP${vipOn()&&!isDev()?` <i class="nt" style="font-style:normal">(${vipLeft()}d)</i>`:''}</button>
+    <button class="btn alt sm" data-act="vip">บัตร VIP${vipOn()&&!isDev()?`<br><i class="nt" style="font-style:normal;font-size:11px;color:#f2d98a">${vipName(S.vipk)} · ${T('หมด','ends')} ${vipEnd(1)}</i>`:''}</button>
     <button class="btn alt sm" data-act="topup">เติมเพชร / แลก Gold</button>
     <p class="sub">ได้ใบซ้ำจะเก็บไว้ใช้อัปดาว ขายในตลาดกลาง หรือย่อยเป็นแต้ม</p>
   </div><div class="main">${pull?`<div class="pull">${pull.map(p=>p.ev?`<div>${evCard(p.id)}<span class="sub">${C[p.id].r==='LT'?'การ์ดอีเวนต์ Limited · เก็บไว้ใช้ตอน OBT':`การ์ดอีเวนต์ · ย่อยได้ <b class="nt">+${DIS[C[p.id].r]}</b> แต้ม`}</span></div>`:`<div>${full(p.id,`data-act="zoom" data-id="${p.id}"`,'glow')}<span class="sub">${p.dup?`ใบซ้ำ +1 (มี ${S.cards[p.id].cp||0})`:'ใหม่!'}</span></div>`).join('')}</div>`
@@ -1242,10 +1247,10 @@ function openPro(cur){if(CBT&&!isDev())return;if(cur==='d'){if((S.dia||0)<PRO.di
 function vip(){const d=S.dia||0;
   view(`<div class="cols"><div class="rail"><div class="row"><button class="btn alt sm" data-act="shop">กลับ</button><h2>บัตร VIP</h2></div>
     <p class="num dia">เพชร <span class="nt">${d.toLocaleString('en')}</span></p>
-    <p class="sub">${isDev()?'บัญชี Dev เปิด VIP ถาวร':vipOn()?`VIP ของคุณเหลืออีก <b class="nt" style="color:#f2d98a">${vipLeft()}</b> วัน ซื้อเพิ่มจะต่ออายุ`:'ตอนนี้ยังไม่มี VIP'}</p>
+    ${isDev()?'<p class="sub">บัญชี Dev เปิด VIP ถาวร</p>':vipOn()?`<div class="pk2 px nt" style="border-color:#f2d98a"><b style="color:#f2d98a">${T('กำลังใช้','Active')}: ${vipName(S.vipk)}</b><small>${T('หมดอายุ','Ends')}: <b style="color:#fff">${vipEnd()}</b><br>${T('เหลือเวลา','Time left')}: <b style="color:#6cf586">${vipRem()}</b><br>${T('ซื้อเพิ่มจะต่ออายุจากวันหมดเดิม','Buying another card adds to the end date')}</small></div>`:'<p class="sub">ตอนนี้ยังไม่มี VIP</p>'}
     <div class="pk2 px"><b>สิทธิ์ VIP</b><small>Exp จากด่าน x2<br>Gold จากด่านและ PvP x2<br>เหรียญอารีน่า x2<br>โอกาสดรอปเครื่องรางและการ์ด +50%</small></div>
     <p class="sub">Gold จากฟาร์มออฟไลน์ ภารกิจ และโบนัสบอสไม่คูณ</p></div>
-   <div class="main"><div class="dgrid">${VIPS.map(([days,c,thb],i)=>`<div class="dpk px" style="cursor:default"><b class="nt" style="color:#f2d98a">VIP ${days===365?'1 ปี':days+' วัน'}</b><small class="nt">${(c/days).toFixed(1)} 💎 / ${T('วัน','day')}</small><span class="thb nt">≈ ฿${thb.toLocaleString('en')}</span><button class="btn go sm" data-act="vipbuy" data-i="${i}" ${d<c?'disabled':''}><i class="nt" style="font-style:normal">${c.toLocaleString('en')}</i> เพชร</button></div>`).join('')}</div></div></div>`)}
+   <div class="main"><div class="dgrid">${VIPS.map(([days,c,thb],i)=>`<div class="dpk px" style="cursor:default${vipOn()&&!isDev()&&S.vipk===days?';box-shadow:0 0 0 2px #f2d98a':''}">${vipOn()&&!isDev()&&S.vipk===days?`<small class="nt" style="color:#141b3c;background:#f2d98a;border-radius:6px;padding:0 6px;font-weight:700">${T('ใช้อยู่','In use')}</small>`:''}<b class="nt" style="color:#f2d98a">VIP ${days===365?'1 ปี':days+' วัน'}</b><small class="nt">${(c/days).toFixed(1)} 💎 / ${T('วัน','day')}</small><span class="thb nt">≈ ฿${thb.toLocaleString('en')}</span><button class="btn go sm" data-act="vipbuy" data-i="${i}" ${d<c?'disabled':''}><i class="nt" style="font-style:normal">${c.toLocaleString('en')}</i> เพชร</button></div>`).join('')}</div></div></div>`)}
 // roll a rank from an odds table, best rank first
 const rollRank=o=>{let x=Math.random();for(const r of['SL','L','R','UC'])if((x-=o[r])<0)return r;return 'C'};
 const pct=o=>['C','UC','R','L','SL'].map(r=>RAR[r].n+' '+(+(o[r]*100).toFixed(1))+'%').join(' · ');
@@ -1487,6 +1492,40 @@ async function finish(won){
   </div><div class="main">${won?`<div class="res">${rows}</div>`:''}</div></div>`);
 }
 
+
+/* ---------- first-stage tutorial ----------
+   S.tut = index of the step being shown (absent = no tutorial). It starts when a new player claims the Starter cards and can be replayed from Settings.
+   Each step: [screen it belongs to, element to point at, Thai, English, action that moves on ('' = a Next button)]. The dark layer never blocks taps. */
+const TUT=[
+ ['home','.squad','นี่คือทีมของคุณ ลงสู้ได้สูงสุด 3 ใบ ตอนนี้เป็นการ์ดเริ่มต้นที่เพิ่งได้รับ','This is your team, up to 3 cards. Right now it is the Starter cards you just received',''],
+ ['home','.play','แตะปุ่มนี้เพื่อเข้าด่านถัดไป','Tap this button to enter the next stage','prep'],
+ ['prep','.picks','หน้าเตรียมทีม: แตะการ์ดในช่องเพื่อเอาออก แล้วเลือกใบอื่นจากรายการด้านขวา ดูศัตรูและเลเวลแนะนำได้ด้านบน','Team setup: tap a card in a slot to remove it, then pick another from the list on the right. The enemies and the suggested level are shown above',''],
+ ['prep','[data-act=start]','พร้อมแล้วกด เข้าสู้','When you are ready, press Fight','start'],
+ ['battle','.order','แถบนี้คือลำดับเทิร์น ใบซ้ายสุดได้เล่นก่อน กรอบน้ำเงินคือฝ่ายคุณ','This strip is the turn order. The leftmost card acts first','' ],
+ ['battle','.abar','ถึงตาคุณ: เลือกสกิล 1 ใน 3 ปุ่ม สกิลแรงใช้แล้วต้องรอคูลดาวน์หลายเทิร์น','Your turn: choose one of the 3 skills. Strong skills go on cooldown for several turns',''],
+ ['battle','.fig[data-act=tgt]:not(.dead)','เลือกสกิลแล้วแตะศัตรูที่ต้องการโจมตี','After choosing a skill, tap the enemy you want to hit','tgt'],
+ ['battle','.atop .row','ออโต้ = ให้ทีมสู้เอง · x1 = เร่งความเร็ว · ถอย = ออกจากด่าน ลองสู้ต่อจนจบได้เลย','Auto = the team fights by itself · x1 = speed · Retreat = leave the stage. Keep fighting to the end',''],
+ ['result','.rail h1','จบด่าน: ชนะได้ Gold และทุกใบในทีมได้ Exp แพ้ไม่เสียอะไร อัปเลเวลแล้วกลับมาใหม่ได้','Stage over: a win gives Gold and Exp to every card on the team. Losing costs nothing; level up and try again',''],
+ ['result','.rail [data-act=home]','กลับหน้าหลักเพื่อดูเมนูอื่น','Go back to the lobby to see the other menus','home'],
+ ['home','.dock','เมนูหลัก: การ์ดของฉัน (อัปเลเวล อัปดาว) · ร้านแพ็ค (เปิดการ์ดใหม่ด้วย Gold) · เครื่องราง · ตลาดกลาง · ห้องเทรด · PvP','Main menu: My cards (level up, stars) · Pack shop (new cards for Gold) · Amulets · Market · Trade room · PvP',''],
+ ['home','[data-act=afk]','ออฟไลน์: ทีมเก็บ Gold ให้ตลอดแม้ปิดเกม กลับมากดรับได้ที่ปุ่มนี้','Offline: your team keeps earning Gold while the game is closed. Collect it with this button',''],
+ ['home','[data-act=guide]','รายละเอียดทั้งหมดอยู่ในปุ่มวิธีเล่น ขอให้สนุกกับการผจญภัย!','Everything else is explained under How to play. Enjoy the adventure!','']];
+const tutScr=()=>document.querySelector('.lobby')?'home':document.querySelector('.arena')&&bt&&!bt.pvp?'battle':document.querySelector('.rail [data-act=start]')?'prep':document.querySelector('.rail [data-act=go]')?'result':'';
+function tutSync(){const o=$('tut');if(!o)return;if(typeof S==='undefined'||!S||S.tut==null){if(o.firstChild){o.innerHTML='';o._k=null}return}
+  const scr=tutScr();let i=S.tut;
+  if(scr==='home'){if(i>=2&&i<=9)i=S.cleared>=1?10:1}else if(scr==='prep'){if(i<2)i=2;else if(i>3&&i<10)i=3}else if(scr==='battle'){if(i<4)i=4}else if(scr==='result'){if(i<8)i=8}
+  S.tut=i;const st=TUT[i],el=st&&st[0]===scr?document.querySelector(st[1]):null;if(!el){if(o.firstChild){o.innerHTML='';o._k=null}return}
+  if(o._k!==i){o._k=i;o.innerHTML=`<div class="th"></div><div class="tb nt"><small>${T('สอนเล่น','Tutorial')} ${i+1}/${TUT.length}</small>${T(st[2],st[3])}<div class="row"><button class="btn alt sm" data-t="s">${T('ข้ามการสอน','Skip')}</button>${st[4]?'':`<button class="btn sm" data-t="n">${i===TUT.length-1?T('เสร็จสิ้น','Done'):T('ต่อไป','Next')}</button>`}</div></div>`}
+  const sg=$('stage'),sr=sg.getBoundingClientRect(),r=el.getBoundingClientRect(),k=sr.width&&sg.offsetWidth?(innerHeight>innerWidth?sr.height/sg.offsetWidth:sr.width/sg.offsetWidth):1,pt=innerHeight>innerWidth,W=sg.offsetWidth,H=sg.offsetHeight;
+  const x=(pt?r.top-sr.top:r.left-sr.left)/k,y=(pt?sr.right-r.right:r.top-sr.top)/k,w=(pt?r.height:r.width)/k,h=(pt?r.width:r.height)/k,th=o.firstChild,tb=o.lastChild;
+  th.style.cssText=`left:${x-5}px;top:${y-5}px;width:${w+10}px;height:${h+10}px`;const bw=Math.min(310,W-20);tb.style.width=bw+'px';const bh=tb.offsetHeight;let L,Tp;
+  if(y+h+bh+16<=H){Tp=y+h+12;L=x+w/2-bw/2}else if(y-bh-16>=0){Tp=y-bh-12;L=x+w/2-bw/2}else{L=x+w/2>W/2?x-bw-14:x+w+14;Tp=y+h/2-bh/2}
+  tb.style.left=Math.max(8,Math.min(W-bw-8,L))+'px';tb.style.top=Math.max(8,Math.min(H-bh-8,Tp))+'px'}
+function tutNext(){if(S.tut==null)return;S.tut++;if(S.tut>=TUT.length)delete S.tut;save();tutSync()}
+$('tut').onclick=e=>{const a=e.target.dataset.t;if(a==='n'){try{sfx('tap')}catch(x){}tutNext()}else if(a==='s'){delete S.tut;save();tutSync()}};
+$('view').addEventListener('click',e=>{if(!S||S.tut==null)return;const st=TUT[S.tut],t=e.target.closest('[data-act]');if(st&&st[4]&&t&&!t.disabled&&t.dataset.act===st[4]&&st[0]===tutScr())setTimeout(()=>{if(S.tut!=null&&TUT[S.tut]===st)tutNext()},0)},true);
+setInterval(()=>{if(typeof S!=='undefined'&&S&&S.tut!=null)tutSync()},350);addEventListener('resize',()=>setTimeout(tutSync,60));
+
 /* ---------- input ---------- */
 $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');if(w&&!w.disabled&&w.dataset.act&&w.querySelector('.ico')&&!w._w&&!RM){w._w=1;w.classList.add('wig');try{sfx('tap')}catch(e){}setTimeout(()=>{if(w.isConnected)w.click()},170);return}}
   const t=ev.target.closest('[data-act]');if(!t||t.disabled)return;const a=t.dataset.act,id=t.dataset.id;
@@ -1515,7 +1554,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='lang'){S.lang=t.dataset.l;save();document.documentElement.lang=S.lang;settings()}
   else if(a==='logout'){save();cloudFlush();USER=null;try{localStorage.removeItem(SESSION)}catch(e){}try{window.firebase&&firebase.auth().signOut()}catch(e){}titleScreen()}
   else if(a==='glogin')gLogin()
-  else if(a==='claim'){if(!S.gift){S.gift=true;S.afk=Date.now();GIFT.forEach(id=>{if(!S.cards[id])S.cards[id]={lv:1,exp:0}});if(!S.team.length)S.team=[...GIFT];save();sfx('win')}home()}
+  else if(a==='claim'){if(!S.gift){S.gift=true;if(!S.cleared)S.tut=0;S.afk=Date.now();GIFT.forEach(id=>{if(!S.cards[id])S.cards[id]={lv:1,exp:0}});if(!S.team.length)S.team=[...GIFT];save();sfx('win')}home()}
   else if(a==='guest')signIn({guest:true,name:'Guest'})
   else if(a==='tlang'){S.lang=t.dataset.l;document.documentElement.lang=S.lang;try{localStorage.setItem('pdb_lang',S.lang)}catch(e){}titleScreen()}
   else if(a==='troom')roomList();
@@ -1563,6 +1602,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='tpick'){dSel=+t.dataset.i;if(!slip.busy)slip.msg='';topup()}
   else if(a==='tcancel'){dSel=null;topup()}
   else if(a==='grantref'){grantFetch(1);fx.push(['view',T('กำลังเช็ก…','Checking…'),'s']);topup()}
+  else if(a==='tutre'){S.tut=0;save();home()}
   else if(a==='discord'){const w=window.open(DISCORD,'_blank','noopener');if(!w)location.href=DISCORD}
   else if(a==='ppcopy'){try{navigator.clipboard.writeText(PAYINFO.pp.replace(/\D/g,''))}catch(e){}fx.push(['view',T('คัดลอกแล้ว','Copied'),'g']);topup()}
   else if(a==='pidcopy'){const v=USER&&USER.sub||'';try{navigator.clipboard.writeText(v)}catch(e){}fx.push(['view',T('คัดลอกแล้ว','Copied'),'g']);topup()}
@@ -1581,7 +1621,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='disask'){disArm=disS.size>0;dis()}
   else if(a==='disgo'){let g=0;if(disArm)[...disS].forEach(k=>{g+=disDo(k,1e9)});disS=new Set();disArm=false;if(g){save();sfx('win');fx.push(['view','+'+g,'g'])}dis()}
   else if(a==='vip')vip();
-  else if(a==='vipbuy'){const v=VIPS[+t.dataset.i];if(v&&(S.dia||0)>=v[1]){S.dia-=v[1];S.vip=Math.max(Date.now(),S.vip||0)+v[0]*864e5;save();sfx('win');fx.push(['view','VIP +'+v[0]+'d','g'])}vip()}
+  else if(a==='vipbuy'){const v=VIPS[+t.dataset.i];if(v&&(S.dia||0)>=v[1]){S.dia-=v[1];S.vip=Math.max(Date.now(),S.vip||0)+v[0]*864e5;S.vipk=v[0];save();sfx('win');fx.push(['view','VIP +'+v[0]+'d','g'])}vip()}
   else if(a==='dlget'){if(dlCan()){const n=dlNext(),[c,v]=DAILY[n-1];if(c==='g')S.gold+=v;else S.dia=(S.dia||0)+v;S.dl={last:today(),n};save();sfx('win');fx.push(['view','+'+v+(c==='g'?' Gold':' 💎'),'g'])}quests()}
   else if(a==='mktab'){mkTab=t.dataset.t;mkSel=null;market()}
   else if(a==='mkmode'){mkMode=t.dataset.m;mkSel=null;market()}
@@ -1715,7 +1755,7 @@ const AS_COST={pack:400,gem:120,vip:1500},AS_PACK={SL:.005,L:.08,R:.45},AS_GEM=[
 function asBuy(k){const c=AS_COST[k];if(!c||(S.ac||0)<c)return;S.ac-=c;let got;
   if(k==='pack'){let x=Math.random(),r='UC';for(const q of['SL','L','R'])if((x-=AS_PACK[q])<0){r=q;break}got={k,card:giveCard(randOf(r))}}
   else if(k==='gem'){let x=Math.random(),b=AS_GEM[0];for(const g of AS_GEM)if((x-=g[2])<0){b=g;break}const n=b[0]+Math.floor(Math.random()*(b[1]-b[0]+1));S.dia=(S.dia||0)+n;got={k,n}}
-  else{S.vip=Math.max(Date.now(),S.vip||0)+AS_VIP*864e5;got={k}}
+  else{S.vip=Math.max(Date.now(),S.vip||0)+AS_VIP*864e5;S.vipk='a';got={k}}
   pv.got=got;save();sfx('win');arena()}
 function arena(){const me=pvGet(),r=rankOf(me.st),left=isDev()?'∞':Math.max(0,PV_DAILY-me.n),can=(isDev()||me.n<PV_DAILY)&&Object.keys(S.cards).length>0,tab=pv.tab||'hub';pvOpps();
   const st={guest:T('ล็อกอิน Google เพื่อเจอผู้เล่นจริง ตอนนี้สู้กับบอทได้','Sign in with Google to meet real players. Bots are available now.'),load:T('กำลังโหลด…','Loading…'),err:T('เชื่อมต่ออารีน่าไม่ได้ ตอนนี้สู้กับบอทได้','Arena offline. Bots are available.'),ok:'',idle:''}[pv.state];
@@ -1774,6 +1814,7 @@ function guide(){
   const SEC={
    start:[T('เริ่มต้น','Getting started'),()=>ul([
      T(`ล็อกอินครั้งแรกได้การ์ดเริ่มต้นฟรี ${GIFT.length} ใบ: ${GIFT.map(id=>C[id].n).join(', ')}`,`Your first login gives ${GIFT.length} free Starter cards: ${GIFT.map(id=>C[id].n).join(', ')}`),
+     T('ผู้เล่นใหม่มีสอนเล่นด่านแรกทีละขั้น กดข้ามได้ และดูซ้ำได้ที่ ตั้งค่า → สอนเล่นด่านแรก','New players get a step-by-step tutorial for the first stage. It can be skipped, and replayed from Settings → First-stage tutorial'),
      T('จัดทีมได้สูงสุด 3 ใบ แล้วตะลุยด่าน 1 ถึง '+MAXST,'Build a team of up to 3 cards and fight through stages 1 to '+MAXST),
      T('ทุก 10 ด่านเป็นด่านบอส บอสพลังโจมตี x1.2 และเลือด x2.2','Every 10th stage is a boss stage: the boss has x1.2 attack and x2.2 life'),
      T('ด่าน 1–3 มีศัตรู 1 ตัว ด่าน 4–10 มี 2 ตัว หลังจากนั้น 3 ตัว','Stages 1–3 have 1 enemy, stages 4–10 have 2, later stages have 3'),
@@ -1828,7 +1869,7 @@ function guide(){
      T('ตัวละครที่เดินในห้องคือการ์ดที่เรามี เปลี่ยนได้ที่รูปโปรไฟล์ เอฟเฟกต์รอบตัวบอกระดับการ์ด','Your avatar is one of your own cards (change it from your profile); its effect shows the card\'s rank'),
      T('เกมไม่มีระบบซื้อขายด้วยเงินจริงระหว่างผู้เล่น','The game has no real-money trading between players')])],
    vip:['VIP',()=>ul([
-     T('บัตร VIP ซื้อด้วยเพชรในร้านแพ็ค: ','VIP cards are bought with diamonds in the shop: ')+VIPS.map(([d,c])=>(d===365?T('1 ปี','1 year'):d+T(' วัน',' days'))+' '+N(c)+' 💎').join(' · '),
+     T('บัตร VIP ซื้อด้วยเพชรในร้านแพ็ค: ','VIP cards are bought with diamonds in the shop: ')+VIPS.map(([d,c])=>(d===365?T('1 ปี','1 year'):d+T(' วัน',' days'))+' '+N(c)+' 💎').join(' · ')+T(' · หน้าบัตร VIP แสดงบัตรที่กำลังใช้ วันเวลาหมดอายุ และเวลาที่เหลือ',' · the VIP screen shows the card in use, when it ends and the time left'),
      T('Exp จากด่าน x2 · Gold จากด่านและ PvP x2 · เหรียญอารีน่า x2','Stage Exp x2 · Gold from stages and PvP x2 · arena coins x2'),
      T('โอกาสดรอปเครื่องรางและการ์ด +50%','Amulet and card drop chance +50%'),
      T('Gold จากฟาร์มออฟไลน์ ภารกิจ และโบนัสบอสไม่คูณ · ซื้อซ้ำเป็นการต่ออายุ','Offline farm, quest and boss-bonus Gold are not doubled · buying again extends the time'),
@@ -1864,6 +1905,7 @@ function settings(){
     <div class="row"><span style="flex:1">เต็มจอแนวนอน<br><small class="sub">หมุนเครื่องเป็นแนวนอนจริง แป้นพิมพ์จะเป็นแนวนอนด้วย</small></span><button class="btn sm ${fsPref()?'on':'alt'}" data-act="fstog">${fsPref()?'เปิดอยู่':'ปิดอยู่'}</button></div>
     <div class="row"><span style="flex:1">ขนาด UI<br><small class="sub">ปรับให้ปุ่มและตัวหนังสือเล็กลงหรือใหญ่ขึ้น</small></span><button class="btn sm alt nt" data-act="uik" data-d="-1" ${uiK()<=.8?'disabled':''}>−</button><b class="nt num" style="min-width:52px;text-align:center">${Math.round(uiK()*100)}%</b><button class="btn sm alt nt" data-act="uik" data-d="1" ${uiK()>=1.3?'disabled':''}>+</button></div>
     <div class="row dcrow"><span style="flex:1" class="nt">${DC_SVG}${T('ชุมชน Discord · ประกาศ แจ้งบั๊ก พูดคุย','Discord community · news, bug reports, chat')}</span><button class="btn sm nt" data-act="discord">${T('เข้าร่วม','Join')}</button></div>
+    <div class="row"><span style="flex:1" class="nt">${T('สอนเล่นด่านแรก','First-stage tutorial')}</span><button class="btn sm alt nt" data-act="tutre">${T('ดูอีกครั้ง','Replay')}</button></div>
     <div class="row"><span style="flex:1">วิธีเล่นและรายละเอียดเกม</span><button class="btn sm alt" data-act="guide">เปิดอ่าน</button></div>
     <div class="row"><span style="flex:1">ภาษา</span><button class="btn sm nt ${S.lang==='en'?'alt':'on'}" data-act="lang" data-l="th">ไทย</button><button class="btn sm nt ${S.lang==='en'?'on':'alt'}" data-act="lang" data-l="en">English</button></div>
     <div class="row"><span style="flex:1">บัญชี: <b class="nt">${USER&&USER.email?USER.email.replace(/</g,'&lt;'):'Guest'}</b></span><button class="btn red sm" data-act="logout">ออกจากระบบ</button></div>
@@ -1885,7 +1927,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b124';
+const BUILD='b125';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
