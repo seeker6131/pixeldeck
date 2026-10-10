@@ -1382,7 +1382,7 @@ async function lunge(from,to,dir){const f=$(from);if(!f||RM)return;let dx=dir*14
 const fighter=(id,lv,o)=>{const v=stat(id,lv,o);return{id,lv,atk:v.atk,base:v.atk,hp:v.hp,max:v.hp,def:v.def,crit:v.crit,cx:v.cx,hb:v.hb,sh:0,done:false,cds:[0,0,2]}};
 // opp = an arena opponent {name,pts,team:[{id,lv,star,am}]}: its cards fight with their own skills instead of stage monsters
 async function startBattle(n,opp){
-  bt={n,round:1,sel:0,log:'',pvp:opp||null,
+  bt={n,round:1,sel:0,log:'',pvp:opp||null,farm:!opp&&anMode()===2,
     al:(opp?pvTeam():S.team).map(id=>fighter(id,S.cards[id].lv)),
     en:opp?opp.team.map(c=>fighter(c.id,c.lv,c)):stageDef(n).map(e=>({...e,max:e.hp}))};
   if(opp)[...bt.al,...bt.en].forEach(f=>{f.hp=f.max=f.max*PV_HP}); // cards hit each other far harder than stage monsters do, so arena fights give everyone more life
@@ -1436,7 +1436,7 @@ function draw(){
   const ac=busy?null:actor(),ord=[...bt.al.filter(a=>a.hp>0&&!a.done).map(a=>[a,'al']),...bt.en.filter(e=>e.hp>0).map(e=>[e,'en'])];
   view(`<div class="arena px">${bgLayers(bt.n)}
     <div class="atop"><span class="num">${bt.pvp?`<span class="nt">PvP · vs ${esc(bt.pvp.name)}</span>`:`ด่าน ${bt.n} · ${MAPS[mapOf(bt.n)-1]}`} · รอบ ${bt.round}</span><span class="alog" aria-live="polite">${bt.log}</span>
-      <span class="row"><button class="btn sm ${S.auto?'on':'alt'}" data-act="auto">ออโต้</button><button class="btn alt sm" data-act="spd">x${S.spd||1}</button>${bt.pvp?'':`<button class="btn sm nt ${S.an?'on':'alt'}" data-act="anx" title="${T('ชนะแล้วไปด่านถัดไปเอง','Go to the next stage automatically after a win')}">${T('ต่อด่าน','Next')} ${S.an?'✓':'✕'}</button>`}<button class="btn red sm" data-act="prep">ถอย</button></span></div>
+      <span class="row"><button class="btn sm ${S.auto?'on':'alt'}" data-act="auto">ออโต้</button><button class="btn alt sm" data-act="spd">x${S.spd||1}</button>${bt.pvp?'':`<button class="btn sm nt ${S.an?'on':'alt'}" data-act="anx" title="${T('หลังชนะ: หยุด / ไปด่านถัดไป / ฟาร์มด่านนี้ซ้ำ','After a win: stop / next stage / farm this stage')}">${anShort()}</button>`}<button class="btn red sm" data-act="prep">ถอย</button></span></div>
     <div class="field">
       <div class="order">${ord.map(([u,sd],i)=>`<span class="op ${sd} ${i?'':'now'}">${art(u.id)}</span>`).join('')}</div>
       ${bt.al.map((a,i)=>unit(a,'a'+i,a===ac?'act':'','disabled',spots(bt.al.length)[i],0)).join('')}
@@ -1511,15 +1511,16 @@ async function act(ti){
 }
 // Auto-advance (S.an): after a win the next stage starts by itself after a short countdown, so stages can be chained without tapping.
 // It stops on a defeat, at the last stage, when the player leaves the result screen, or when the switch is turned off.
-let anNext=0,anT=0;const anLabel=()=>T('ไปด่านถัดไปเอง: ','Auto next stage: ')+(S.an?T('เปิด','On'):T('ปิด','Off'));
+// S.an: 0 = stop after a win, 1 = go on to the next stage, 2 = farm (replay the same stage). A farm run gives Gold and Exp but never an amulet or a card.
+let anNext=0,anT=0,anWon=0;const anMode=()=>S.an===2?2:S.an?1:0,anLabel=()=>T('หลังชนะ: ','After a win: ')+[T('หยุดรอ','wait'),T('ไปด่านถัดไป','next stage'),T('ฟาร์มด่านนี้ซ้ำ','farm this stage')][anMode()],anShort=()=>[T('ต่อด่าน','Next')+' ✕',T('ต่อด่าน','Next')+' ✓',T('ฟาร์มซ้ำ','Farm')+' ✓'][anMode()];
 function anStop(){clearTimeout(anT);anT=0;const e=$('anx');if(e)e.textContent=''}
-function anStart(){anStop();if(!S.an||!anNext||S.tut!=null)return;let k=3;const tick=()=>{const e=$('anx');if(!e||!S.an||!anNext)return anStop();if(k<=0){anT=0;const n=anNext;anNext=0;prepN=n;return startBattle(n)}e.textContent=T('ไปด่าน '+anNext+' ใน '+k+' วินาที… (แตะปุ่มด้านล่างเพื่อหยุด)','Stage '+anNext+' starts in '+k+' s… (tap the button below to stop)');k--;anT=setTimeout(tick,1000)};tick()}
+function anStart(){anStop();if(!S.an||!anNext||S.tut!=null)return;let k=3;const tick=()=>{const e=$('anx');if(!e||!S.an||!anNext)return anStop();if(k<=0){anT=0;const n=anNext;anNext=0;prepN=n;return startBattle(n)}e.textContent=anMode()===2?T('ฟาร์มด่าน '+anNext+' ซ้ำใน '+k+' วินาที… (แตะปุ่มด้านล่างเพื่อเปลี่ยน)','Farming stage '+anNext+' again in '+k+' s… (tap the button below to change)'):T('ไปด่าน '+anNext+' ใน '+k+' วินาที… (แตะปุ่มด้านล่างเพื่อเปลี่ยน)','Stage '+anNext+' starts in '+k+' s… (tap the button below to change)');k--;anT=setTimeout(tick,1000)};tick()}
 async function finish(won){
   const my=bt;busy=true;sfx(won?'win':'lose');await banner(won?'FINISH':'DEFEAT',won?'':'lose');if(bt!==my)return;
   if(my.pvp){bt=null;busy=false;return pvpResult(won,my.pvp)}
-  const n=bt.n,team=bt.al.map(a=>a.id);bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0,cdrop=null;
-  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(Math.random()<(n%10===0?DROP_BOSS:DROP)*vipP().dr){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
-    if(Math.random()<(n%10===0?CDROP_BOSS:CDROP)*vipP().dr)cdrop=giveCard(randOf(cardDropRank(n)));const x=expOf(n)*VX();
+  const n=bt.n,team=bt.al.map(a=>a.id),farm=!!bt.farm||anMode()===2;bt=null;busy=false;let rows='',g=0,drop=null,jp=false,bb=0,cdrop=null;
+  if(won){const rg=rollGold(n);g=rg.g*VX();jp=rg.jp;bb=bossBonus(n);S.gold+=g+bb;qAdd('win');if(n%10===0)qAdd('boss');if(!farm&&Math.random()<(n%10===0?DROP_BOSS:DROP)*vipP().dr){drop=amRoll();S.am=S.am||{};S.am[drop]=(S.am[drop]||0)+1}
+    if(!farm&&Math.random()<(n%10===0?CDROP_BOSS:CDROP)*vipP().dr)cdrop=giveCard(randOf(cardDropRank(n)));const x=expOf(n)*VX();
     rows=team.map(id=>{const was=S.cards[id].lv,wasMax=maxed(id),up=addExp(id,x),c=S.cards[id];
       return `<div class="mini r-${C[id].r} glow ${fr(id)}">${fxh(id)}${rib(id)}<div class="art"><img src="${artSrc(id)}" alt=""></div></div><div><b>${C[id].n}</b> ${wasMax?'<span class="gold">Lv MAX</span>':'Exp +'+x} ${up?`<span class="gold">Lv ${was} → ${c.lv}</span>`:`· Lv ${c.lv}`}<div class="hp xp"><i style="width:${maxed(id)?100:c.exp/need(c.lv)*100}%"></i></div></div>`}).join('');
     if(n>S.cleared)S.cleared=n;save()}
@@ -1527,12 +1528,13 @@ async function finish(won){
   view(`<div class="cols"><div class="rail">
     <h1>${won?'ชนะ!':'แพ้'}</h1><p class="num">ด่าน ${n}</p>
     ${won?`<p class="num gold">Gold +${g}${jp?' <b class="nt">JACKPOT x4</b>':''}</p>${bb?`<p class="num gold">โบนัสชนะบอสครั้งแรก +${bb}</p>`:''}${vipOn()?'<p class="sub nt" style="color:#f2d98a">VIP · Exp x2 · Gold x2</p>':''}${cdrop?`<div class="row"><span class="pvc r-${C[cdrop.id].r}" style="width:38px">${art(cdrop.id)}</span><span>ได้การ์ด${cdrop.dup?' (ใบซ้ำ)':''}<br><b class="nt r-${C[cdrop.id].r}" style="color:var(--gl)">${C[cdrop.id].n}</b></span></div>`:''}${drop?`<div class="row"><span style="width:38px">${amu(drop)}</span><span>ได้เครื่องราง<br><b>${AM[drop].n}</b></span></div>`:''}`:'<p class="sub">ลองเก็บเลเวลจากด่านก่อนหน้า หรือเปิดแพ็คหาการ์ดใหม่</p>'}
-    ${won&&n<MAXST?`<button class="btn go" data-act="go" data-n="${next}">ด่าน ${next}</button><p class="sub nt" id="anx" style="color:#6cf586;min-height:1.3em;margin:0"></p>`:''}
+    ${won&&n<MAXST?`<button class="btn go" data-act="go" data-n="${next}">ด่าน ${next}</button>`:''}
+    ${won?`<p class="sub nt" id="anx" style="color:#6cf586;min-height:1.3em;margin:0"></p>`:''}${farm?`<p class="sub nt" style="color:#ffd84a;margin:0">${T('โหมดฟาร์ม: ได้ Gold และ Exp · เครื่องรางและการ์ดไม่ดรอป','Farm mode: Gold and Exp only · no amulet or card drops')}</p>`:''}
     <button class="btn sm nt ${S.an?'on':'alt'}" data-act="anx" id="anb">${anLabel()}</button>
     <button class="btn ${won?'alt':'go'}" data-act="go" data-n="${n}">เล่นด่านนี้อีก</button>
     <button class="btn alt sm" data-act="home">หน้าหลัก</button>
   </div><div class="main">${won?`<div class="res">${rows}</div>`:''}</div></div>`);
-  anNext=won&&n<MAXST?next:0;anStart();
+  anWon=won?n:0;anNext=!won?0:anMode()===2?n:n<MAXST?next:0;anStart();
 }
 
 
@@ -1658,7 +1660,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='tgt')act(+t.dataset.i);
   else if(a==='sk'){bt.sel=+t.dataset.k;const ac=actor();if(ac&&!needT(SK[ac.id][bt.sel]))act(-1);else{bt.log=`${SK[ac.id][bt.sel][0]}: แตะศัตรูที่จะโจมตี`;draw()}}
   else if(a==='spd'){S.spd=S.spd===2?1:2;save();if(!busy)draw()}
-  else if(a==='anx'){S.an=!S.an;save();const b=$('anb');if(b){b.textContent=anLabel();b.classList.toggle('on',!!S.an);b.classList.toggle('alt',!S.an);S.an?anStart():anStop()}else if(bt&&!busy)draw();else{const q=document.querySelector('.atop [data-act=anx]');if(q){q.textContent=T('ต่อด่าน','Next')+' '+(S.an?'✓':'✕');q.classList.toggle('on',!!S.an);q.classList.toggle('alt',!S.an)}}}
+  else if(a==='anx'){S.an=(anMode()+1)%3;save();const b=$('anb');if(b){b.textContent=anLabel();b.classList.toggle('on',!!S.an);b.classList.toggle('alt',!S.an);anNext=!anWon?0:anMode()===2?anWon:anWon<MAXST?anWon+1:0;S.an?anStart():anStop()}else if(bt&&!busy)draw();else{const q=document.querySelector('.atop [data-act=anx]');if(q){q.textContent=anShort();q.classList.toggle('on',!!S.an);q.classList.toggle('alt',!S.an)}}}
   else if(a==='auto'){S.auto=!S.auto;save();if(!busy){draw();if(S.auto)autoAct()}}
   else if(a==='coll')coll();
   else if(a==='tgold'){S.gold+=10000;save();settings()}
@@ -1891,7 +1893,8 @@ function guide(){
      T('ชนะแล้วการ์ดในทีมได้ Exp และได้ Gold · แพ้ไม่เสียอะไร','Winning gives Exp to the cards in your team and Gold · losing costs nothing'),
      T('ติดด่าน: เก็บเลเวลจากด่านเก่า อัปดาว ใส่เครื่องราง หรือหาการ์ดระดับสูงขึ้น','Stuck? Level up on earlier stages, add stars, equip amulets, or find higher-rank cards')])],
    battle:[T('การต่อสู้','Battle'),()=>ul([
-     T('ปุ่ม "ต่อด่าน" บนแถบบนของการต่อสู้ (และปุ่ม "ไปด่านถัดไปเอง" ในหน้าผลด่าน): เปิดไว้แล้วชนะจะนับถอยหลัง 3 วินาทีแล้วเข้าด่านถัดไปเอง ใช้คู่กับออโต้เพื่อตะลุยต่อเนื่องได้ แพ้หรือออกจากหน้าผลด่านจะหยุด','The "Next" button on the battle top bar (and "Auto next stage" on the result screen): when on, a win counts down 3 seconds and enters the next stage by itself. Combine it with Auto to chain stages. It stops on a defeat or when you leave the result screen'),
+     T('ปุ่ม "ต่อด่าน" บนแถบบนของการต่อสู้ (และปุ่ม "หลังชนะ" ในหน้าผลด่าน) แตะเพื่อสลับ 3 แบบ: หยุดรอ · ไปด่านถัดไปเอง · ฟาร์มด่านนี้ซ้ำ ชนะแล้วจะนับถอยหลัง 3 วินาทีก่อนเริ่มด่านต่อไป ใช้คู่กับออโต้เพื่อเล่นต่อเนื่องได้ แพ้หรือออกจากหน้าผลด่านจะหยุด','The "Next" button on the battle top bar (and "After a win" on the result screen) cycles 3 modes: wait · next stage · farm this stage. A win counts down 3 seconds before the next battle. Combine with Auto to keep playing. It stops on a defeat or when you leave the result screen'),
+     T('โหมดฟาร์มซ้ำ: ได้ Gold (สุ่มตามช่วงของด่านที่เล่นซ้ำ มีลุ้นแจ็กพอต) และ Exp ตามปกติ แต่เครื่องรางและการ์ดจะไม่ดรอป อยากลุ้นดรอปให้เล่นแบบปกติหรือไปด่านถัดไป','Farm mode: Gold (random within the replay range of the stage, with a jackpot chance) and Exp as usual, but amulets and cards never drop. For drops, play normally or move on to the next stage'),
      T('ฝั่งเราเดินก่อนทีละตัว จากนั้นศัตรูที่เหลือโจมตีคนละครั้ง แล้วขึ้นรอบใหม่','Your fighters act first, one at a time; then every surviving enemy attacks once and a new round begins'),
      T('<b>ATK / MATK</b> คือพลังโจมตี (MATK = สายเวท) · <b>HP</b> คือเลือด หมดแล้วตาย','<b>ATK / MATK</b> is attack power (MATK = magic users) · <b>HP</b> is life; at 0 the fighter falls'),T('<b>DEF</b> คือพลังป้องกัน ลดดาเมจที่รับ: ดาเมจที่โดน = ดาเมจ × ATK ผู้ตี ÷ (ATK ผู้ตี + DEF ของเรา) เช่น DEF เท่ากับ ATK ของผู้ตี จะโดนครึ่งเดียว · ยิ่งผู้ตีแรง DEF ยิ่งกันได้น้อยลง · มอนสเตอร์ในด่านไม่มี DEF','<b>DEF</b> is defence and cuts damage taken: damage = damage × attacker ATK ÷ (attacker ATK + your DEF). DEF equal to the attacker\'s ATK halves the hit · the harder the hitter, the less DEF blocks · stage monsters have no DEF'),
      T(`แต่ละใบมี 3 สกิล: สกิล 1 ใช้ได้ทุกตา สกิล 2 พัก ${CD[1]} ตา สกิล 3 พัก ${CD[2]} ตา และสกิล 3 เริ่มด่านด้วยการพัก 2 ตา`,`Each card has 3 skills: skill 1 every turn, skill 2 rests ${CD[1]} turns, skill 3 rests ${CD[2]} turns, and skill 3 starts each stage on a 2-turn rest`),
@@ -2000,7 +2003,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b138';
+const BUILD='b139';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
