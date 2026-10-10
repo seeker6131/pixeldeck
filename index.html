@@ -897,7 +897,7 @@ let mk={list:[],state:'idle',msg:''};
 const mkOn=()=>!!(FB_CFG&&USER&&USER.sub),mkDb=()=>firebase.firestore();
 function mkFetch(){if(!mkOn())return;mk.state='load';
   fbLoad().then(fbUser).then(u=>{if(!u)throw new Error('auth');return Promise.all([mkDb().collection('market').orderBy('at','desc').limit(80).get(),mkDb().collection('payouts').where('to','==',USER.sub).get()])})
-   .then(([q,pay])=>{mk.list=q.docs.map(d=>({id:d.id,...d.data()})).filter(l=>(AM[l.k]||(C[l.k]&&C[l.k].r!=='ST'))&&l.p>0);let got=0;const dels=[];pay.docs.forEach(d=>{got+=d.data().gold||0;dels.push(d.ref.delete())});
+   .then(([q,pay])=>{mk.list=q.docs.map(d=>({id:d.id,...d.data()})).filter(l=>!oldEra(l.at)&&(AM[l.k]||(C[l.k]&&C[l.k].r!=='ST'))&&l.p>0);let got=0;const dels=[];pay.docs.forEach(d=>{if(!oldEra(d.data().at))got+=d.data().gold||0;dels.push(d.ref.delete())});
      if(got>0){S.gold+=got;save();mk.msg='sold:'+got}mk.state='ok';return Promise.all(dels)})
    .catch(e=>{mk.state='err';mk.msg='err:'+(e&&e.code||e&&e.message||'')}).then(()=>{if(document.querySelector('[data-mk]'))market()})}
 function mkList(){const k=mkSel,p=mkPrice,fee=mkFee(p);if(!mkOn()||!(mkHave(k)>0)||isLock(k)||S.gold<fee||mk.busy)return;mk.busy=true;
@@ -947,9 +947,21 @@ function market(){
     <div id="mkres">${mkRes()}</div>
   </div></div>`);
 }
-function fresh(){return{gold:0,dia:0,cleared:0,cards:{},team:[],auto:false}}
+// ---- OBT wipe ----
+// ERA 1 = OBT. To end the OBT: set ERA to 2 and ERA_AT to the moment of the switch (ms, e.g. Date.parse('2026-12-01T00:00:00+07:00')), then deploy.
+// Every save from an older era is then rebuilt from scratch the first time it loads, on any device, from the local copy or the cloud copy.
+// Only Limited cards survive: real LT cards and the event LT cards from the Limited Pack, which become real playable cards (Lv 1, extra copies kept).
+// Shared data older than ERA_AT (market listings, sale payouts, arena entries, unclaimed diamond grants) is ignored by every client.
+const ERA=1,ERA_AT=0;
+function fresh(){return{gold:0,dia:0,cleared:0,cards:{},team:[],auto:false,era:ERA}}
+const eraKeep=s=>{const lt={};Object.keys(s.cards||{}).forEach(id=>{if(C[id]&&C[id].r==='LT')lt[id]=1+(s.cards[id].cp||0)});Object.keys(s.ev||{}).forEach(id=>{if(C[id]&&C[id].r==='LT'&&s.ev[id]>0)lt[id]=(lt[id]||0)+s.ev[id]});return lt};
+function eraWipe(s){if((s.era||1)>=ERA)return s;const lt=eraKeep(s),n=fresh();
+  Object.keys(lt).forEach(id=>{n.cards[id]={lv:1,exp:0};if(lt[id]>1)n.cards[id].cp=lt[id]-1});
+  if(s.me&&s.me.name)n.me={name:s.me.name};['lang','snd','sfx','spd'].forEach(k=>{if(s[k]!=null)n[k]=s[k]});
+  n.wiped={era:ERA,lt};n.ts=Date.now();return n}
+const atMs=v=>v==null?Date.now():v.toMillis?v.toMillis():+v||Date.parse(v)||0,oldEra=v=>atMs(v)<ERA_AT;
 const TEST=false; // test build: every card of every rank is unlocked
-function unlock(s){s.am=s.am||{};
+function unlock(s){s=eraWipe(s);s.am=s.am||{};
   {const old=Object.keys(s.cards).filter(id=>/^c\d\d$/.test(id));if(old.length){const n=old.filter(id=>!['c02','c19','c24'].includes(id)).length;s.gold=(s.gold||0)+n*300;s.cards={};s.team=[];s.cleared=0;s.gift=false;s.mig=n*300;if(s.me)delete s.me.look}}
   Object.values(s.cards).forEach(c=>{if(c.am&&!AM[c.am])delete c.am});Object.keys(AM).forEach(k=>{const w=Object.values(s.cards).filter(c=>c.am===k).length;if(w>(s.am[k]||0))s.am[k]=w});if(TEST)Object.keys(C).forEach(id=>{if(!s.cards[id])s.cards[id]={lv:1,exp:0}});Object.keys(s.cards).forEach(id=>{if(!C[id])return;const c=s.cards[id],cap=RAR[C[id].r].cap+Math.max(1,Math.round(RAR[C[id].r].cap*.03))*(c.star||0);if(c.lv>=cap){c.lv=cap;c.exp=0}});return s}
 const SESSION='pdb_session';let USER=null;try{USER=JSON.parse(localStorage.getItem(SESSION))}catch(e){}
@@ -1134,7 +1146,7 @@ async function slipSend(file){if(slip.busy||dSel==null||!file||!PAYINFO.api||!mk
   if(document.querySelector('[data-tu]'))topup()}
 function grantFetch(force){if(!mkOn()||(!force&&Date.now()-grantAt<30000))return;grantAt=Date.now();
   fbLoad().then(fbUser).then(u=>{if(!u)return null;return mkDb().collection('grants').where('to','==',USER.sub).get()}).then(q=>{if(!q||!q.docs.length)return;let n=0;S.gr=S.gr||[];
-    q.docs.forEach(d=>{const x=Math.max(0,Math.min(100000,d.data().dia|0));if(x>0&&!S.gr.includes(d.id)){n+=x;S.gr.push(d.id);if(S.gr.length>60)S.gr.shift();S.pay=S.pay||[];S.pay.push({d:x,t:Date.now(),id:d.id})}d.ref.delete().catch(()=>{})});
+    q.docs.forEach(d=>{const x=Math.max(0,Math.min(100000,d.data().dia|0));if(x>0&&!S.gr.includes(d.id)&&!oldEra(d.data().at)){n+=x;S.gr.push(d.id);if(S.gr.length>60)S.gr.shift();S.pay=S.pay||[];S.pay.push({d:x,t:Date.now(),id:d.id})}d.ref.delete().catch(()=>{})});
     if(n){S.dia=(S.dia||0)+n;save();cloudFlush();sfx('win');fx.push(['view','+'+n.toLocaleString('en')+' 💎','g']);const v=document.querySelector('.lobby')?home:document.querySelector('[data-tu]')?topup:null;if(v)v()}}).catch(()=>{})}
 function topup(){const on=mkOn(),auto=!!PAYINFO.api,open=!!(PAYINFO.pp&&(auto||PAYINFO.line)),pk=dSel!=null?DPACKS[dSel]:null;grantFetch();
   view(`<div class="cols wide" data-tu="1"><div class="rail">
@@ -1170,7 +1182,7 @@ function adminGrant(){if(!isDev())return topup();
     ${adm.msg?`<p class="sub" style="color:${adm.err?'#ff8a7a':'#6cf586'}">${esc(adm.msg)}</p>`:''}
   </div><div class="main nt"><p class="sub" style="margin-bottom:8px">${T('รายการที่ส่งในรอบนี้ (หายเมื่อปิดเกม)','Sent this session (cleared when the game closes)')}</p>
     ${adm.log.length?`<table class="gt"><tr><th>${T('เวลา','Time')}</th><th>${T('รหัสผู้เล่น','Player ID')}</th><th>💎</th></tr>${adm.log.map(l=>`<tr><td>${l.t}</td><td style="word-break:break-all">${esc(l.uid)}</td><td>${l.dia.toLocaleString('en')}</td></tr>`).join('')}</table>`:`<p class="sub">${T('ยังไม่ได้ส่งให้ใคร','Nothing sent yet')}</p>`}
-    <p class="sub" style="margin-top:12px">${T('ตรวจยอดเงินเข้าบัญชีจริงก่อนส่งทุกครั้ง สลิปปลอมทำได้ง่าย · ส่งแล้วยกเลิกไม่ได้ถ้าผู้เล่นรับไปแล้ว','Check that the money really arrived before sending; slips are easy to fake · a grant cannot be undone once collected')}</p></div></div>`)}
+    <p class="sub" style="margin-top:12px;color:#6fd8ff">${(k=>T('ล้าง OBT: ตอนนี้ยังไม่ล้าง (ERA '+ERA+') · ถ้าล้างตอนนี้ บัญชีนี้จะเหลือ: ','OBT wipe: not active (ERA '+ERA+') · if it ran now this account would keep: ')+(Object.keys(k).length?Object.keys(k).map(id=>C[id].n+' ×'+k[id]).join(', '):T('ไม่มีการ์ด Limited','no Limited cards')))(eraKeep(S))}</p><p class="sub" style="margin-top:12px">${T('ตรวจยอดเงินเข้าบัญชีจริงก่อนส่งทุกครั้ง สลิปปลอมทำได้ง่าย · ส่งแล้วยกเลิกไม่ได้ถ้าผู้เล่นรับไปแล้ว','Check that the money really arrived before sending; slips are easy to fake · a grant cannot be undone once collected')}</p></div></div>`)}
 function adminSend(){const uid=String(($('aguid')||{}).value||'').trim(),dia=Math.floor(+(($('agdia')||{}).value||0));adm.uid=uid;adm.dia=dia;adm.err=1;
   if(!isDev()||!mkOn()){adm.msg='not allowed';return adminGrant()}if(!/^[A-Za-z0-9]{20,40}$/.test(uid)){adm.msg=T('รหัสผู้เล่นไม่ถูกต้อง','That is not a valid player ID');return adminGrant()}if(!(dia>=1&&dia<=100000)){adm.msg=T('จำนวนเพชรต้องอยู่ระหว่าง 1–100,000','Diamonds must be 1–100,000');return adminGrant()}
   adm.busy=true;adm.msg='';adminGrant();mkDb().collection('grants').add({to:uid,dia,by:USER.sub,at:firebase.firestore.FieldValue.serverTimestamp()})
@@ -1674,7 +1686,7 @@ function pvClean(d,uid){const team=(Array.isArray(d.team)?d.team:[]).filter(c=>c
 function pvpPush(){if(!mkOn())return;const me=pvGet();fbLoad().then(fbUser).then(u=>{if(u)return firebase.firestore().collection('arena').doc(USER.sub).set({name:S.me.name,look:S.me.look,team:myDef(),st:me.st,pts:me.st,w:me.w,l:me.l,at:Date.now()})}).catch(()=>{})}
 function pvpFetch(){if(!mkOn()){pv.state='guest';if(document.querySelector('.arenav'))arena();return}pv.state='load';if(document.querySelector('.arenav'))arena();pvpPush();
   fbLoad().then(fbUser).then(u=>{if(!u)throw new Error('signed-out');const col=firebase.firestore().collection('arena'),st=pvGet().st;return Promise.all([col.orderBy('st','desc').limit(50).get(),col.where('st','>=',Math.max(0,st-MM_MAX)).where('st','<=',st+MM_MAX).limit(80).get()])})
-   .then(([q,n])=>{pv.list=q.docs.map(d=>pvClean(d.data(),d.id)).filter(o=>o.team.length);pv.near=n.docs.map(d=>pvClean(d.data(),d.id)).filter(o=>o.team.length);pv.state='ok'}).catch(e=>{pv.state='err';pv.err=e&&(e.code||e.message)||'?'}).then(()=>{if(document.querySelector('.arenav'))arena()})}
+   .then(([q,n])=>{pv.list=q.docs.filter(d=>!oldEra(d.data().at)).map(d=>pvClean(d.data(),d.id)).filter(o=>o.team.length);pv.near=n.docs.filter(d=>!oldEra(d.data().at)).map(d=>pvClean(d.data(),d.id)).filter(o=>o.team.length);pv.state='ok'}).catch(e=>{pv.state='err';pv.err=e&&(e.code||e.message)||'?'}).then(()=>{if(document.querySelector('.arenav'))arena()})}
 // bots fill the list so there is always someone to fight: same ranks as my team, levels around mine, fixed for the day
 const BOTN=['Kraken','Mako','Barracuda','Marlin','Tsunami','Leviathan','Coral','Riptide'];
 function pvBots(n){const me=pvGet(),own=byRank(Object.keys(S.cards).filter(id=>C[id])),mine=[...new Set([...pvTeam(),...own])].slice(0,3).map(id=>({id,lv:S.cards[id].lv,star:starOf(id)}));let x=0;for(const ch of today()+(USER&&USER.sub||'g'))x=(Math.imul(x,31)+ch.charCodeAt(0))>>>0;const R=()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296};
@@ -1870,7 +1882,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b120';
+const BUILD='b121';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
@@ -1910,7 +1922,7 @@ function signIn(u){const lang=S&&S.lang;USER=u;try{localStorage.setItem(SESSION,
   if(u.sub){loading(cloudPull().then(fin,fin))}else{fin();loading()}}
 function welcome(){
   view(`<div class="loadv" style="--bg:url(${COVER_BG})"><div class="cbg"></div>
-   <h2 style="font-size:24px">ยินดีต้อนรับ</h2><p>${S.mig!=null?'อัปเดตใหญ่: ตัวละครชุดใหม่ทั้งหมด เริ่มด่าน 1 ใหม่ · Gold เพชร และเครื่องรางยังอยู่ครบ'+(S.mig?` · <b class="nt gold">+${S.mig.toLocaleString('en')} Gold</b> ชดเชยการ์ดชุดเก่า`:'')+'<br>':''}ของขวัญล็อกอิน: การ์ดเริ่มต้น 3 ใบ</p>
+   <h2 style="font-size:24px">ยินดีต้อนรับ</h2><p>${S.wiped?`<span class="nt">${T('OBT จบแล้ว ข้อมูลทั้งหมดถูกล้างเพื่อเริ่มใหม่พร้อมกัน','The OBT has ended. All progress was reset so everyone starts together')}${Object.keys(S.wiped.lt||{}).length?' · <b style="color:#6fd8ff">'+T('การ์ด Limited ของคุณยังอยู่: ','Your Limited cards were kept: ')+Object.keys(S.wiped.lt).filter(id=>C[id]).map(id=>C[id].n+(S.wiped.lt[id]>1?' ×'+S.wiped.lt[id]:'')).join(', ')+'</b>':''}</span><br>`:''}${S.mig!=null?'อัปเดตใหญ่: ตัวละครชุดใหม่ทั้งหมด เริ่มด่าน 1 ใหม่ · Gold เพชร และเครื่องรางยังอยู่ครบ'+(S.mig?` · <b class="nt gold">+${S.mig.toLocaleString('en')} Gold</b> ชดเชยการ์ดชุดเก่า`:'')+'<br>':''}ของขวัญล็อกอิน: การ์ดเริ่มต้น 3 ใบ</p>
    <div class="gift">${GIFT.map(id=>`<div>${full(id,'','glow').replace('<button','<span').replace('</button>','</span>')}</div>`).join('')}</div>
    <button class="btn go" data-act="claim">รับการ์ด</button></div>`)}
 const TIPS=['การ์ดได้ Exp เฉพาะใบที่อยู่ในทีมตอนชนะ','ด่านบอสทุก 10 ด่าน ดรอป Gold ทุกครั้ง และมีโอกาสได้เครื่องรางสูงกว่า','การ์ดแต่ละระดับมีเลเวลสูงสุดไม่เท่ากัน','ดู Lv แนะนำในหน้าเลือกด่านก่อนเข้าสู้','การเทรดคือการให้ของ ต้องยืนยันว่าเป็นผู้ส่งหรือผู้รับทุกครั้ง'];
