@@ -80,6 +80,12 @@ export default {
     const cors = { 'access-control-allow-origin': origin, 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'vary': 'origin' };
     const out = (status, o) => new Response(JSON.stringify(o), { status, headers: { ...cors, 'content-type': 'application/json' } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+    // opening the Worker address in a browser shows which secrets are present (never their values)
+    if (req.method === 'GET') {
+      const raw = String(env.FB_SA_KEY || '').trim(), sa = svc(env);
+      const k = !raw ? 'missing' : raw[0] === '{' ? (sa.key && sa.email ? 'ok (json file)' : 'json file is incomplete - paste the whole file again') : /BEGIN PRIVATE KEY/.test(raw) ? (sa.email ? 'ok (key + email)' : 'key found but FB_SA_EMAIL is missing') : 'not a key - paste the whole json file';
+      return out(200, { worker: 'pixeldeck-pay v3', THUNDER_KEY: env.THUNDER_KEY ? 'ok' : 'missing', FB_PROJECT: env.FB_PROJECT ? 'ok' : 'missing', FB_SA_KEY: k });
+    }
     if (req.method !== 'POST') return out(405, { ok: false, code: 'method' });
     if (!env.THUNDER_KEY || !env.FB_PROJECT || !svc(env).email || !svc(env).key) return out(500, { ok: false, code: 'not_configured' });
     try {
@@ -94,7 +100,7 @@ export default {
 
       const price = pack[2], dia = pack[0] + pack[1];
       const tf = new FormData(); tf.append('image', img, img.name || 'slip.jpg'); tf.append('matchAccount', 'true'); tf.append('matchAmount', String(price)); tf.append('remark', uid.slice(0, 60));
-      const tr = await fetch('https://api.thunder.in.th/v2/verify/bank', { method: 'POST', headers: { authorization: 'Bearer ' + env.THUNDER_KEY }, body: tf });
+      const tr = await fetch('https://api.thunder.in.th/v2/verify/bank', { method: 'POST', headers: { authorization: 'Bearer ' + String(env.THUNDER_KEY).trim() }, body: tf });
       let tj = null; try { tj = await tr.json(); } catch (e) {}
       if (!tr.ok || !tj || !tj.success || !tj.data) {
         const c = tj && (tj.code || (tj.error && tj.error.code)) || '';
