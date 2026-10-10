@@ -1122,7 +1122,7 @@ let dSel=null;
 // PAYINFO is empty until the owner supplies a LINE ID and a PromptPay number; while empty the screen says top-up is not open yet.
 // PAYINFO.api = URL of the top-up Worker (server/worker.js). When set, the player uploads the slip in the game and the Worker checks it with the bank
 // through Thunder Solution and writes the grant by itself; LINE is then only a help contact.
-const PAYINFO={line:'',pp:'',ppName:'',api:''};let grantAt=0,adm={log:[]},slip={busy:false,msg:'',err:0};
+const PAYINFO={line:'Toey1106',pp:'045-3-91106-3',ppName:'Venij Ngamchawee',bank:['ธนาคารกสิกรไทย','Kasikornbank (KBank)'],api:'https://pixeldeck-pay.egowenit.workers.dev'};let grantAt=0,adm={log:[]},slip={busy:false,msg:'',err:0};
 const SLIP_MSG={login:['ล็อกอินหมดอายุ ออกแล้วเข้าเกมใหม่','Your login expired. Sign in again'],bad_pack:['เลือกแพ็กเพชรก่อน','Pick a diamond pack first'],no_image:['ไม่พบรูปสลิป','No slip image'],image_too_large:['รูปใหญ่เกินไป','The image is too large'],slow_down:['รอ 15 วินาทีแล้วลองใหม่','Wait 15 seconds and try again'],pending:['สลิปธนาคารกรุงเทพต้องรอสักครู่ ลองใหม่ในอีก 5 นาที','Bangkok Bank slips need a few minutes. Try again in 5 minutes'],no_qr:['อ่าน QR บนสลิปไม่ได้ ใช้รูปสลิปต้นฉบับที่ไม่ถูกครอปหรือย่อ','The QR code could not be read. Use the original, uncropped slip'],not_verified:['ตรวจสลิปไม่ผ่าน สลิปนี้ไม่พบในระบบธนาคาร','The slip could not be verified with the bank'],wrong_account:['สลิปนี้ไม่ได้โอนเข้าบัญชีของเกม','This slip was not paid to the game account'],wrong_amount:['ยอดในสลิปไม่ตรงกับแพ็กที่เลือก','The amount does not match the pack you picked'],too_old:['สลิปเก่าเกิน 24 ชั่วโมง','The slip is more than 24 hours old'],used:['สลิปนี้ถูกใช้เติมไปแล้ว','This slip has already been used'],checker_quota:['ระบบตรวจสลิปเต็มชั่วคราว แจ้งแอดมิน','The slip checker is out of quota. Tell the admin'],checker_auth:['ระบบตรวจสลิปตั้งค่าไม่ถูกต้อง แจ้งแอดมิน','The slip checker is misconfigured. Tell the admin'],not_configured:['เซิร์ฟเวอร์ยังตั้งค่าไม่ครบ แจ้งแอดมิน','The server is not set up yet. Tell the admin'],grant_failed:['ตรวจสลิปผ่านแล้วแต่ส่งเพชรไม่สำเร็จ แจ้งแอดมินพร้อมสลิปนี้ ไม่ต้องโอนซ้ำ','The slip is valid but the diamonds could not be sent. Contact the admin with this slip; do not pay again'],store:['บันทึกรายการไม่สำเร็จ ลองใหม่อีกครั้ง ไม่ต้องโอนซ้ำ','Could not record the payment. Try again; do not pay again']};
 // phone slips are far under 4 MB; anything bigger is redrawn smaller (longest side 2000 px) so the QR stays readable
 function slipFile(f){return new Promise(ok=>{if(f.size<=3.5*1024*1024)return ok(f);const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,2000/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>ok(b||f),'image/jpeg',.92)};im.onerror=()=>ok(f);im.src=u})}
@@ -1150,7 +1150,7 @@ function topup(){const on=mkOn(),auto=!!PAYINFO.api,open=!!(PAYINFO.pp&&(auto||P
     <div class="px tustep">${!on?`<p style="color:#ffe45c">${T('ต้องล็อกอินด้วย Google ก่อนจึงเติมเพชรได้','Sign in with Google before topping up')}</p>`:!open?`<p style="color:#ffe45c">${T('ยังไม่เปิดรับเติมเพชร ช่องทางโอนและ LINE จะประกาศเร็ว ๆ นี้','Top-up is not open yet. The transfer and LINE details will be announced soon')}</p>`:`
       <b>${T('วิธีเติม','How to top up')}</b>
       <ol><li>${T('แตะแพ็กเพชรด้านบน','Tap a diamond pack above')}${pk?` → <b style="color:#ffd84a">${(pk[0]+pk[1]).toLocaleString('en')} 💎 = ฿${pk[2].toLocaleString('en')}</b>`:''}</li>
-      <li>${T('โอนพร้อมเพย์','Transfer by PromptPay to')} <b style="color:#6fd8ff">${esc(PAYINFO.pp)}</b>${PAYINFO.ppName?' ('+esc(PAYINFO.ppName)+')':''}${pk?` · ${T('ยอด','amount')} <b>฿${pk[2].toLocaleString('en')}</b>`:''}</li>
+      <li>${PAYINFO.bank?T('โอนเข้าบัญชี '+PAYINFO.bank[0],'Transfer to '+PAYINFO.bank[1]+' account'):T('โอนพร้อมเพย์','Transfer by PromptPay to')} <b style="color:#6fd8ff">${esc(PAYINFO.pp)}</b> <button class="btn alt sm" data-act="ppcopy">${T('คัดลอกเลข','Copy number')}</button>${PAYINFO.ppName?'<br>'+T('ชื่อบัญชี','Account name')+' <b>'+esc(PAYINFO.ppName)+'</b>':''}${pk?` · ${T('ยอด','amount')} <b>฿${pk[2].toLocaleString('en')}</b>`:''}</li>
 ${auto?`<li>${T('กดปุ่มด้านล่าง เลือกรูปสลิปจากเครื่อง ระบบตรวจกับธนาคารแล้วส่งเพชรให้อัตโนมัติภายในไม่กี่วินาที','Press the button below and choose the slip image. It is checked with the bank and the diamonds arrive in a few seconds')}</li>
       <li>${T('ต้องโอนยอดตรงกับแพ็กพอดี และอัปสลิปภายใน 24 ชั่วโมง · สลิปหนึ่งใบใช้ได้ครั้งเดียว','Pay the exact pack price and upload within 24 hours · a slip works once')}</li>`
       :`<li>${T('ส่งสลิปและรหัสผู้เล่นของคุณไปที่ LINE','Send the slip and your player ID on LINE to')} <b style="color:#6cf586">${esc(PAYINFO.line)}</b></li>
@@ -1550,6 +1550,7 @@ $('view').onclick=ev=>{{const w=ev.target.closest('.dk,.ibtn,.pill,.row2 .btn');
   else if(a==='tpick'){dSel=+t.dataset.i;if(!slip.busy)slip.msg='';topup()}
   else if(a==='tcancel'){dSel=null;topup()}
   else if(a==='grantref'){grantFetch(1);fx.push(['view',T('กำลังเช็ก…','Checking…'),'s']);topup()}
+  else if(a==='ppcopy'){try{navigator.clipboard.writeText(PAYINFO.pp.replace(/\D/g,''))}catch(e){}fx.push(['view',T('คัดลอกแล้ว','Copied'),'g']);topup()}
   else if(a==='pidcopy'){const v=USER&&USER.sub||'';try{navigator.clipboard.writeText(v)}catch(e){}fx.push(['view',T('คัดลอกแล้ว','Copied'),'g']);topup()}
   else if(a==='admin'){adm.msg='';adminGrant()}
   else if(a==='agset'){adm.uid=($('aguid')||{}).value||'';adm.dia=+t.dataset.n;adm.msg='';adminGrant()}
@@ -1794,7 +1795,7 @@ function guide(){
    money:[T('Gold และเพชร','Gold and diamonds'),()=>ul([
      T('ชนะด่านครั้งแรก: Gold 100–300% ของค่าฐาน (ค่าฐาน = 6 + ด่าน÷3) · เล่นซ้ำ: 40–110%','First clear: 100–300% of the base (base = 6 + stage÷3) · replays: 40–110%'),
      T('ทุกครั้งที่ชนะมีโอกาส 5% ได้ JACKPOT x4','Every win has a 5% chance of a x4 JACKPOT'),
-     T('เติมเพชร (ช่วง OBT): โอนพร้อมเพย์ตามยอดแพ็ก แล้วอัปโหลดสลิปในหน้าเติมเพชร ระบบตรวจกับธนาคารและส่งเพชรให้อัตโนมัติ (ถ้าระบบอัตโนมัติยังไม่เปิด จะเป็นการส่งสลิปทาง LINE ให้แอดมิน) · เพชรที่เติมช่วง OBT ถูกล้างพร้อมข้อมูลทั้งหมดตอนจบ OBT ไม่มีการคืน','Top-up (OBT): pay the pack price by PromptPay and upload the slip on the top-up screen; it is checked with the bank and the diamonds are sent automatically (if automatic top-up is not open yet, the slip goes to the admin on LINE) · diamonds bought during the OBT are wiped with everything else when it ends, with no refund'),
+     T('เติมเพชร (ช่วง OBT): โอนเข้าบัญชีธนาคารตามยอดแพ็ก แล้วอัปโหลดสลิปในหน้าเติมเพชร ระบบตรวจกับธนาคารและส่งเพชรให้อัตโนมัติ (ถ้าระบบอัตโนมัติยังไม่เปิด จะเป็นการส่งสลิปทาง LINE ให้แอดมิน) · เพชรที่เติมช่วง OBT ถูกล้างพร้อมข้อมูลทั้งหมดตอนจบ OBT ไม่มีการคืน','Top-up (OBT): pay the pack price by PromptPay and upload the slip on the top-up screen; it is checked with the bank and the diamonds are sent automatically (if automatic top-up is not open yet, the slip goes to the admin on LINE) · diamonds bought during the OBT are wiped with everything else when it ends, with no refund'),
      T('ชนะบอสครั้งแรก: โบนัส 100 + 5×ด่าน','First boss win: bonus of 100 + 5×stage'),
      T(`ฟาร์มออฟไลน์: ชั่วโมงละ 10×ค่าฐานของด่านสูงสุดที่ผ่าน สะสมได้ ${AFK_H} ชั่วโมง กดเก็บที่ล็อบบี้`,`Offline farm: 10×the base of your highest cleared stage per hour, stored up to ${AFK_H} hours; collect in the lobby`),
      T('ภารกิจรายวัน: ','Daily quests: ')+QUESTS.map(([,n,,g])=>`${n} (${g} Gold)`).join(' · '),
@@ -1869,7 +1870,7 @@ function titleScreen(){
    <p class="cfoot nt">Toey Seafishingclub · test build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b119';
+const BUILD='b120';
 // Live update notice. deploy.py writes version.json next to the page; every open game polls it. When the build there differs from BUILD,
 // a banner drops from the top with a countdown, the game saves and reloads onto the new build. A battle in progress is never cut: the reload waits for it to end.
 const UPD_POLL=60000,UPD_WAIT=60;let updAt=0,updNew='',updBusy=false;
