@@ -1522,9 +1522,9 @@ async function finish(won){
 
 
 /* ---------- players online ----------
-   Every signed-in player writes online/{uid} = {at: server time} every 5 minutes while the game is on screen, and asks the database how many
-   such notes are newer than 7.5 minutes. That is 1 write + about 1 read per player per 5 minutes. Shown in the lobby under the logo. */
-const ON_BEAT=5*60e3;let onl={n:0,at:0,beat:0};
+   Every signed-in player writes online/{uid} = {at: server time} every 10 minutes while the game is on screen, and asks the database how many
+   such notes are newer than 15 minutes. That is 1 write + about 1 read per player per 10 minutes. Shown in the lobby under the logo. */
+const ON_BEAT=10*60e3;let onl={n:0,at:0,beat:0};
 function onlineTick(){if(!mkOn()||document.hidden||Date.now()-onl.beat<ON_BEAT-5000)return;onl.beat=Date.now();
   fbLoad().then(fbUser).then(u=>{if(!u)return;const col=firebase.firestore().collection('online'),q=()=>col.where('at','>',new Date(Date.now()-ON_BEAT*1.5));
     return col.doc(USER.sub).set({at:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>typeof q().count==='function'?q().count().get().then(r=>r.data().count):q().get().then(r=>r.size))
@@ -1968,7 +1968,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b135';
+const BUILD='b136';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
@@ -2000,10 +2000,13 @@ const saveDoc=()=>firebase.firestore().collection('saves').doc(USER.sub);
 function cloudPull(){if(!FB_CFG||!USER||!USER.sub)return Promise.resolve();
   return fbLoad().then(fbUser).then(u=>{if(!u||u.uid!==USER.sub){USER=null;try{localStorage.removeItem(SESSION)}catch(e){}throw new Error('signed-out')}return saveDoc().get()})
    .then(d=>{if(d.exists){try{const c=JSON.parse(d.data().data);if(c&&c.cards&&(c.ts||0)>(S.ts||0)){const lang=S.lang;S=unlock(c);if(lang)S.lang=lang;try{localStorage.setItem(saveKey(),JSON.stringify(S))}catch(e){}}}catch(e){}}else cloudDirty=true;if(cloudDirty)cloudFlush()})}
-function cloudPush(){if(!FB_CFG||!USER||!USER.sub)return;cloudDirty=true;clearTimeout(cloudT);cloudT=setTimeout(cloudFlush,15000)}
-function cloudFlush(){clearTimeout(cloudT);if(!cloudDirty||!FB_CFG||!USER||!USER.sub||!window.firebase||!firebase.apps.length||!firebase.auth().currentUser)return;cloudDirty=false;
+// The cloud copy is written at most once every 2 minutes while playing (the free database plan allows 20k writes a day, and measured play was ~350 writes per player-day),
+// and at once when it matters: leaving or hiding the page, and right after spending or receiving something (CLOUD_NOW actions, market, trade, top-up). The copy on the device is always saved immediately.
+const CLOUD_GAP=120000,CLOUD_NOW=['opengold','open','openpro','openltd','vipbuy','exch','asbuy','disgo','claim','logout','reset'];
+function cloudPush(){if(!FB_CFG||!USER||!USER.sub)return;cloudDirty=true;if(!cloudT)cloudT=setTimeout(cloudFlush,CLOUD_GAP)}
+function cloudFlush(){clearTimeout(cloudT);cloudT=0;if(!cloudDirty||!FB_CFG||!USER||!USER.sub||!window.firebase||!firebase.apps.length||!firebase.auth().currentUser)return;cloudDirty=false;
   saveDoc().set({data:JSON.stringify(S),ts:S.ts||0,name:S.me?S.me.name:'',cleared:S.cleared||0,at:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{cloudDirty=true})}
-addEventListener('visibilitychange',()=>{if(document.hidden)cloudFlush()});addEventListener('pagehide',()=>cloudFlush());
+addEventListener('visibilitychange',()=>{if(document.hidden)cloudFlush()});addEventListener('pagehide',()=>cloudFlush());$('view').addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(t&&CLOUD_NOW.includes(t.dataset.act))setTimeout(cloudFlush,1200)},true);
 function gLogin(){const b=$('gbtn'),m=$('gmsg'),say=t=>{if(m)m.textContent=t+' '};if(b)b.disabled=true;say(S.lang==='en'?'Connecting…':'กำลังเชื่อมต่อ…');
   fbLoad().then(()=>firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider())).then(r=>{const u=r.user;signIn({sub:u.uid,name:(u.displayName||'Player').split(' ')[0],email:u.email,pic:u.photoURL})})
    .catch(e=>{if(b)b.disabled=false;say((S.lang==='en'?'Sign-in failed: ':'ล็อกอินไม่สำเร็จ: ')+(e&&e.code||e&&e.message||''))})}
