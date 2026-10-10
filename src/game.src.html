@@ -630,26 +630,26 @@ const C={
 const SK={
  h06:[['Bone Slash','sword','hit',1],['Skull Crusher','hammer','hit',1.6],['Grave Rush','claw','aoe',.9]],
  h20:[['Rusty Cleaver','sword','hit',1],['Dirty Trick','exec','exec',1.4],['Scrap Frenzy','buff','buff',1.4]],
- h11:[['Rock Punch','hammer','hit',1],['Stone Wall','shield','guard',.4],['Quake','claw','aoe',1]],
+ h11:[['Rock Punch','punch','hit',1],['Stone Wall','shield','guard',.4],['Quake','earth','aoe',1]],
  h17:[['Axe Chop','sword','hit',1],['Skull Splitter','hammer','hit',1.7],['Blood Rage','buff','buff',1.5]],
- h12:[['Wing Slash','sword','hit',1],['Blood Suck','drain','drain',1.2],['Bat Swarm','dark','aoe',1]],
- h01:[['Magma Fist','fire','hit',1],['Molten Armor','shield','guard',.4],['Eruption','fire','aoe',1.1]],
- h02:[['Leaf Cut','sword','hit',1],['Iaido','exec','sure',1.3],['Bamboo Storm','claw','aoe',1.1]],
- h16:[['Root Slam','hammer','hit',1],['Nature Mend','heal','heal',1.8],['Bark Ward','shield','shieldall',.25]],
- h21:[['Leaf Arrow','sword','hit',1],['Piercing Shot','exec','hit',1.8],['Arrow Rain','claw','aoe',1.2]],
- h05:[['Soul Scythe','dark','hit',1],['Death Mark','exec','exec',1.5],['Wraith Storm','dark','aoe',1.2]],
- h09:[['Lion Blade','sword','hit',1],['Lion Guard','shield','guard',.45],['Royal Roar','buff','rally',1.3]],
- h10:[['Frost Fang','ice','hit',1],['Blood Hunt','drain','drain',1.4],['Howling Blizzard','ice','aoe',1.3]],
+ h12:[['Wing Slash','claw','hit',1],['Blood Suck','drain','drain',1.2],['Bat Swarm','dark','aoe',1]],
+ h01:[['Magma Fist','fire','hit',1],['Molten Armor','shield','guard',.4],['Eruption','blast','aoe',1.1]],
+ h02:[['Leaf Cut','sword','hit',1],['Iaido','exec','sure',1.3],['Bamboo Storm','wind','aoe',1.1]],
+ h16:[['Root Slam','earth','hit',1],['Nature Mend','heal','heal',1.8],['Bark Ward','shield','shieldall',.25]],
+ h21:[['Leaf Arrow','bow','hit',1],['Piercing Shot','spear','hit',1.8],['Arrow Rain','wind','aoe',1.2]],
+ h05:[['Soul Scythe','dark','hit',1],['Death Mark','exec','exec',1.5],['Wraith Storm','poison','aoe',1.2]],
+ h09:[['Lion Blade','sword','hit',1],['Lion Guard','taunt','guard',.45],['Royal Roar','buff','rally',1.3]],
+ h10:[['Frost Fang','bite','hit',1],['Blood Hunt','drain','drain',1.4],['Howling Blizzard','ice','aoe',1.3]],
  h08:[['Shuriken','sword','hit',1],['Assassinate','exec','sure',1.4],['Shadow Kill','dark','exec',1.7]],
- h15:[['Ice Bolt','ice','hit',1],['Frost Lance','ice','hit',1.9],['Ice Dragon','ice','aoe',1.5]],
- h13:[['Crimson Lance','sword','hit',1],['Blood Pact','drain','drain',1.5],['Hell Pierce','exec','sure',1.8]],
- h14:[['Talon Strike','sword','hit',1],['War Cry','buff','buff',1.4],['Crimson Gale','claw','aoe',1.4]],
- h19:[['Fire Breath','fire','hit',1],['Lava Wave','fire','aoe',1.2],['Meltdown','exec','exec',1.8]],
+ h15:[['Ice Bolt','ice','hit',1],['Frost Lance','spear','hit',1.9],['Ice Dragon','ice','aoe',1.5]],
+ h13:[['Crimson Lance','spear','hit',1],['Blood Pact','drain','drain',1.5],['Hell Pierce','exec','sure',1.8]],
+ h14:[['Talon Strike','claw','hit',1],['War Cry','buff','buff',1.4],['Crimson Gale','wind','aoe',1.4]],
+ h19:[['Fire Breath','fire','hit',1],['Lava Wave','blast','aoe',1.2],['Meltdown','meteor','exec',1.8]],
  h04:[['Ice Shard','ice','hit',1],['Snow Blessing','healall','healall',1],['Crystal Barrier','shield','shieldall',.35]],
- h03:[['Thunderbolt','claw','hit',1],['Divine Judgment','exec','exec',1.7],['Olympus Storm','claw','aoe',1.6]],
- h22:[['Staff Strike','sword','hit',1],['Monkey King Fury','buff','buff',1.5],['Flame Cyclone','fire','aoe',1.5]],
- h07:[['Holy Ray','claw','hit',1],['Angel Grace','healall','healall',1.3],['Divine Aegis','shield','shieldall',.4]],
- h18:[['Triple Bite','sword','hit',1],['Devour','drain','drain',1.6],['Golden Breath','fire','aoe',1.7]]
+ h03:[['Thunderbolt','bolt','hit',1],['Divine Judgment','holy','exec',1.7],['Olympus Storm','bolt','aoe',1.6]],
+ h22:[['Staff Strike','punch','hit',1],['Monkey King Fury','buff','buff',1.5],['Flame Cyclone','fire','aoe',1.5]],
+ h07:[['Holy Ray','holy','hit',1],['Angel Grace','healall','healall',1.3],['Divine Aegis','shield','shieldall',.4]],
+ h18:[['Triple Bite','bite','hit',1],['Devour','drain','drain',1.6],['Golden Breath','fire','aoe',1.7]]
 };
 const CD=[0,2,4],pc=v=>Math.round(v*100)+'%';
 const skDesc=([,,t,v])=>({hit:`โจมตีศัตรู 1 ตัว ${pc(v)} ของ ATK`,aoe:`โจมตีศัตรูทุกตัว ${pc(v)} ของ ATK`,exec:`โจมตี ${pc(v)} ของ ATK แรงเป็น 2 เท่าถ้าเป้าหมาย HP เหลือไม่ถึงครึ่ง`,
@@ -682,7 +682,7 @@ const ICON={
  orb:icon(["...www","..w...",".w....","w.....","w....y","w...yy","w...yy","w....y","w.....",".w....","..w...","...www"]),
  drop:icon([".....w",".....w","....ww","....ww","...www","..wwww",".wwwww",".wwwww",".wwwww",".wwwww","..wwww","......"])
 };
-['sword','hammer','claw','exec','shield','heal','healall','drain','buff','fire','ice','dark'].forEach(k=>ICON['k_'+k]='ic/'+k+'.webp');
+['sword','hammer','claw','exec','shield','heal','healall','drain','buff','fire','ice','dark','bolt','holy','wind','earth','poison','bow','spear','bite','punch','blast','meteor','taunt'].forEach(k=>ICON['k_'+k]='ic/'+k+'.webp');
 const skBtn=(id,k,o={})=>{const sk=SK[id][k];return `<${o.tag||'button'} class="sk t-${sk[2]} ${k===2?'ult':''} ${o.cls||''}" ${o.attr||''} title="${sk[0]}"><img src="${ICON['k_'+sk[1]]}" alt="${sk[0]}">${o.cd?`<span class="cd">${o.cd}</span>`:''}</${o.tag||'button'}>`};
 const STAR='<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.3 6.8.8-5 4.7 1.3 6.8-6-3.4-6 3.4 1.3-6.8-5-4.7 6.8-.8z"/></svg>';
 const sprite=(id,cls='',st='',pre='',post='')=>`<span class="spr ${cls}" style="${st}">${pre}<i><img src="spr/${id}.webp${C[id]&&C[id].mon?'?2':''}" alt="" style="animation-delay:-${(id.charCodeAt(1)*7+id.charCodeAt(2)*3)%8/10}s"></i>${post}</span>`;
@@ -2140,7 +2140,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b151';
+const BUILD='b152';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
