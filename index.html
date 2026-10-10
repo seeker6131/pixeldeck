@@ -616,7 +616,7 @@ const $=id=>document.getElementById(id);
 // rarity tiers in the order the game ranks them; g = stat growth per level
 // keys are the tier slots from lowest to highest: Starter, Common, Uncommon, Rare, Legend, SuperLegend, and Limited (event-only, never in packs)
 // cap = highest level a card of that rank can reach; with the stage curve it walls Starter near stage 7, Common 25, Uncommon 47, Rare 95, Legend 250, and a SuperLegend team needs stars to finish 500 (checked by simulating battles in the page)
-const RAR={ST:{n:'การ์ดเริ่มต้น',g:.075,cap:3},C:{n:'Common',g:.08,cap:15},UC:{n:'Uncommon',g:.085,cap:25},R:{n:'Rare',g:.09,cap:38,star:1,spk:1},L:{n:'Legend',g:.095,cap:90,star:1,fire:'L',spk:1},SL:{n:'SuperLegend',g:.10,cap:190,star:1,fire:'SL',spk:1},LT:{n:'Limited',g:.105,cap:190,star:1,fire:'LT',spk:1}};
+const RAR={ST:{n:'การ์ดเริ่มต้น',g:.075,cap:8},C:{n:'Common',g:.08,cap:15},UC:{n:'Uncommon',g:.085,cap:25},R:{n:'Rare',g:.09,cap:38,star:1,spk:1},L:{n:'Legend',g:.095,cap:90,star:1,fire:'L',spk:1},SL:{n:'SuperLegend',g:.10,cap:190,star:1,fire:'SL',spk:1},LT:{n:'Limited',g:.105,cap:190,star:1,fire:'LT',spk:1}};
 const ROLE={atk:'สายโจมตี',tank:'แท้งค์',sup:'ซัพพอร์ต'};
 // a = ATK (MATK when m is set), d = DEF (the life pool), c = crit chance %, x = crit damage (1.5 unless set); a+d is budgeted by rank: Starter 85, Common 115, Uncommon 125, Rare 135, Legend 150, SuperLegend 165, Limited 172
 // h = HP (life), d = DEF. Damage taken = damage x attackerATK / (attackerATK + DEF), so DEF matters more against weak hitters and less against strong ones.
@@ -1032,14 +1032,15 @@ const full=(id,attr='',cls='')=>`<button class="cf r-${C[id].r} ${cls} ${fr(id)}
 const LNAT=[1];{let lv=1,ex=0;for(let n=1;n<=MAXST;n++){LNAT[n]=lv;ex+=10+2*n;while(ex>=20+10*lv){ex-=20+10*lv;lv++}}}
 let DIFF=2.6,EA=.3,EH=1.3,E0=.42;
 function stageDef(n){
-  const ease=Math.min(1,E0+(1-E0)*(n-1)/14),bud=135*(1+.09*(LNAT[n]-1))*DIFF*ease,cnt=n<=3?1:n<=10?2:3,EP=MSM,size=Math.min(EP.length,3+Math.floor(n/5)),boss=n%10===0;
+  const ease=Math.min(1,E0+(1-E0)*(n-1)/29),bud=135*(1+.09*(LNAT[n]-1))*DIFF*ease,cnt=n<=3?1:n<=10?2:3,EP=MSM,size=Math.min(EP.length,3+Math.floor(n/5)),boss=n%10===0;
   return Array.from({length:cnt},(_,i)=>{const b=boss&&i===(cnt>1?1:0),id=b&&MBS.length?MBS[(n/10-1)%MBS.length]:EP[(n*7+i*5+(n>>2))%size],sh=.35+.3*C[id].a/(C[id].a+C[id].h+C[id].d);
     return{id,boss:b,atk:Math.round(bud*sh*EA*(b?1.2:1)),hp:Math.round(bud*(1-sh)*EH*(b?2.2:1)),crit:C[id].c/200,cx:1.5,sh:0}});
 }
 const expOf=n=>10+2*n,goldBase=n=>6+Math.floor(n/3);
 // Gold drops from every win: a first clear rolls 150-450% of the stage's base, a replay a little less (60-165%) - both x GOLD_UP (b146: +50%, stage drops only; the offline farm still uses the plain base), with a 5% jackpot of x4; the first win over a boss adds a fixed bonus
 const GOLD_UP=1.5,goldRange=n=>{const b=goldBase(n)*GOLD_UP;return n>S.cleared?[Math.round(b),Math.round(b*3)]:[Math.max(1,Math.round(b*.4)),Math.round(b*1.1)]};
-const bossBonus=n=>n%10===0&&n>S.cleared?100+5*n:0;
+// b155: the first two bosses pay for a Gold Pack each, so a new free player gets real cards on day one instead of grinding the starter team
+const BOSS_GIFT={10:5000,20:5000},bossBonus=n=>n%10===0&&n>S.cleared?(BOSS_GIFT[n]||100+5*n):0;
 function rollGold(n){const jp=Math.random()<.05,[lo,hi]=goldRange(n);return{g:(lo+Math.floor(Math.random()*(hi-lo+1)))*(jp?4:1),jp}}
 
 /* ---------- screens ---------- */
@@ -2096,7 +2097,7 @@ function guide(){
      T('ชนะด่านครั้งแรก: Gold 150–450% ของค่าฐาน (ค่าฐาน = 6 + ด่าน÷3) · เล่นซ้ำ: 60–165%','First clear: 150–450% of the base (base = 6 + stage÷3) · replays: 60–165%'),
      T('ทุกครั้งที่ชนะมีโอกาส 5% ได้ JACKPOT x4','Every win has a 5% chance of a x4 JACKPOT'),
      T('เติมเพชร (ช่วง CBT): โอนเข้าบัญชีธนาคารตามยอดแพ็ก แล้วอัปโหลดสลิปในหน้าเติมเพชร ระบบตรวจกับธนาคารและส่งเพชรให้อัตโนมัติ (ถ้าระบบอัตโนมัติยังไม่เปิด จะเป็นการส่งสลิปทาง LINE ให้แอดมิน) · เพชรที่เติมช่วง CBT ถูกล้างพร้อมข้อมูลทั้งหมดตอนจบ CBT ไม่มีการคืน · เติมได้ทุกวัน 17:00–00:00 น. เวลาไทย (ช่วงที่แอดมินออนไลน์ช่วยแก้ปัญหาได้ทันที) โอนนอกเวลาได้แล้วมาอัปสลิปตอนเปิด · ติดปัญหาหรือเจอบั๊ก แจ้งได้ที่ Discord (ปุ่มในล็อบบี้และหน้าตั้งค่า)','Top-up (CBT): pay the pack price by bank transfer and upload the slip on the top-up screen; it is checked with the bank and the diamonds are sent automatically (if automatic top-up is not open yet, the slip goes to the admin on LINE) · diamonds bought during the CBT are wiped with everything else when it ends, with no refund · top-up is open daily 17:00–00:00 Thai time (when the admin is online to fix problems at once); you can pay earlier and upload the slip when it opens · for problems or bugs use Discord (button in the lobby and in Settings)'),
-     T('ชนะบอสครั้งแรก: โบนัส 100 + 5×ด่าน','First boss win: bonus of 100 + 5×stage'),
+     T('ชนะบอสครั้งแรก: โบนัส 100 + 5×ด่าน · บอสด่าน 10 และด่าน 20 ให้ 5,000 Gold (พอเปิด Gold Pack 1 แพ็ค) · 30 ด่านแรกความยากค่อยๆ ไต่ขึ้น ทีมการ์ดเริ่มต้นผ่านได้ถึงราวด่าน 15','First boss win: bonus of 100 + 5×stage · the bosses of stages 10 and 20 give 5,000 Gold (one Gold Pack) · the first 30 stages ramp up gently; the starter team can reach about stage 15'),
      T(`ฟาร์มออฟไลน์: ชั่วโมงละ 10×ค่าฐานของด่านสูงสุดที่ผ่าน สะสมได้ ${AFK_H} ชั่วโมง กดเก็บที่ล็อบบี้`,`Offline farm: 10×the base of your highest cleared stage per hour, stored up to ${AFK_H} hours; collect in the lobby`),
      T('ภารกิจรายวัน: ','Daily quests: ')+QUESTS.map(([,n,,g])=>`${n} (${g} Gold)`).join(' · '),
      T(`แลก ${N(EX_GOLD)} Gold เป็น ${EX_DIA} เพชร ได้ไม่จำกัด`,`Exchange ${N(EX_GOLD)} Gold for ${EX_DIA} diamonds, no limit`),
@@ -2178,7 +2179,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b154';
+const BUILD='b155';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
