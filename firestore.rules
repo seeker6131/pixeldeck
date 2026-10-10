@@ -43,6 +43,16 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
+    // invite a friend: a new account writes one note naming its inviter (doc id = its own id, never changed by it afterwards);
+    // the inviter reads the notes addressed to it and may only flip 'claimed'
+    match /refs/{uid} {
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.to is string && request.resource.data.to != uid
+        && request.resource.data.claimed == false;
+      allow read: if request.auth != null && (request.auth.uid == uid || resource.data.to == request.auth.uid || owner());
+      allow update: if request.auth != null && resource.data.to == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['claimed']);
+    }
     // live game settings (maintenance, notice, top-up hours, end of CBT, suspended accounts): everyone reads, only the owner writes
     match /config/{id} {
       allow read: if true;

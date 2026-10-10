@@ -2,7 +2,7 @@
 (function(){const DEL={__del:1},ST={__st:1},D=window.__DB=window.__DB||{};const col=n=>D[n]=D[n]||{};
 const fix=o=>{const r={};for(const k in o){const v=o[k];if(v===ST)r[k]=new Date();else if(v&&typeof v==='object'&&!(v instanceof Date)&&!Array.isArray(v)&&v!==DEL)r[k]=fix(v);else r[k]=v}return r};
 const merge=(a,b)=>{for(const k in b){if(b[k]&&typeof b[k]==='object'&&!(b[k] instanceof Date)&&!Array.isArray(b[k])){a[k]=merge(a[k]&&typeof a[k]==='object'?a[k]:{},b[k])}else a[k]=b[k]}return a};
-const snap=(n,id)=>({id,exists:id in col(n),data:()=>col(n)[id],ref:{delete:()=>{delete col(n)[id];return Promise.resolve()}}});
+const snap=(n,id)=>({id,exists:id in col(n),data:()=>col(n)[id],ref:{delete:()=>{delete col(n)[id];return Promise.resolve()},update:o=>{Object.assign(col(n)[id],o);return Promise.resolve()}}});
 const Q=(n,fs=[],lim=1e9,ord=null)=>({where:(k,op,v)=>Q(n,[...fs,[k,op,v]],lim,ord),orderBy:(k,d)=>Q(n,fs,lim,[k,d]),limit:l=>Q(n,fs,l,ord),
  _run(){const val=x=>x instanceof Date?x.getTime():x;let ids=Object.keys(col(n)).filter(id=>fs.every(([k,op,v])=>{const a=val(col(n)[id][k]),b=val(v);return op==='=='?a===b:op==='>'?a>b:op==='>='?a>=b:op==='<='?a<=b:a<b}));
   if(ord)ids.sort((x,y)=>(val(col(n)[x][ord[0]])-val(col(n)[y][ord[0]]))*(ord[1]==='desc'?-1:1));return ids.slice(0,lim)},
