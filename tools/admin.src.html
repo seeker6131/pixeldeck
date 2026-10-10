@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Pixeldeck Admin</title>
+<style>
+:root{--bg:#0d1226;--pn:#161d3c;--ln:#2c3768;--tx:#e9edff;--mu:#9aa6d6;--gd:#ffd84a;--gr:#5fe36a;--rd:#ff7a6b;--bl:#6fd8ff}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;font-family:system-ui,"Noto Sans Thai","Loma",sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.5}
+header{position:sticky;top:0;z-index:5;background:#0a0e20;border-bottom:1px solid var(--ln);padding:8px 12px;display:flex;align-items:center;gap:8px}
+header b{font-size:17px;color:var(--gd)}header small{color:var(--mu);margin-left:auto;font-size:12px;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px 12px;position:sticky;top:44px;z-index:4;background:var(--bg)}
+nav button{padding:9px 2px;border-radius:9px;border:1px solid var(--ln);background:var(--pn);color:var(--mu);font-weight:700;font-size:14px}
+nav button.on{background:#2b3a8c;color:#fff;border-color:var(--gd)}
+main{padding:4px 12px 60px;max-width:900px;margin:0 auto}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:12px;margin:10px 0}
+.card h3{margin:0 0 8px;font-size:16px;color:var(--gd)}
+.kp{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.kp div{background:#0f1530;border-radius:10px;padding:10px;text-align:center}.kp b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kp small{color:var(--mu)}
+button,.btn{font:inherit;cursor:pointer}.b{padding:9px 14px;border-radius:9px;border:0;background:#3556d8;color:#fff;font-weight:700}.b.g{background:#1f8a3b}.b.r{background:#b3261e}.b.s{background:#2a3566}.b:disabled{opacity:.45}
+input,textarea,select{font:inherit;width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--ln);background:#0f1530;color:var(--tx)}textarea{min-height:64px}
+label{display:block;margin:8px 0 3px;color:var(--mu);font-size:13px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row>.fx{flex:none}
+.sw{display:flex;align-items:center;gap:10px;justify-content:space-between}.tg{flex:none;width:58px;height:32px;border-radius:16px;border:0;background:#39406a;position:relative}.tg i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:left .15s}.tg.on{background:#1f8a3b}.tg.on i{left:29px}.tg.red.on{background:#b3261e}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 5px;border-bottom:1px solid var(--ln);text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600;white-space:nowrap}td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw{overflow-x:auto}.mu{color:var(--mu)}.ok{color:var(--gr)}.er{color:var(--rd)}.gd{color:var(--gd)}.bl{color:var(--bl)}
+.chip{display:inline-block;padding:1px 7px;border-radius:9px;font-size:11.5px;font-weight:700;background:#5a1d1d;color:#ffc9c2;margin:1px 2px 1px 0;white-space:nowrap}.chip.b2{background:#1d3a5a;color:#bfe6ff}.chip.g2{background:#4a3d0f;color:#ffe9a0}
+.fl{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0}.fl button{padding:5px 10px;border-radius:14px;border:1px solid var(--ln);background:#0f1530;color:var(--mu);font-size:13px}.fl button.on{background:#2b3a8c;color:#fff}
+tr.pl{cursor:pointer}tr.pl:active{background:#202a58}.msg{margin:8px 0;font-weight:700}code{background:#0f1530;padding:1px 5px;border-radius:5px;font-size:12px;word-break:break-all}
+#login{display:grid;place-content:center;justify-items:center;gap:14px;min-height:70vh;text-align:center;padding:20px}
+a{color:var(--bl)}
+</style></head><body>
+<header><b>Pixeldeck Admin</b><small id="who"></small><button class="b s" id="out" style="padding:5px 10px;font-size:12px" hidden>ออก</button></header>
+<div id="login"><h2 style="margin:0">หลังบ้าน Pixeldeck Battle</h2><p class="mu" style="margin:0">เข้าได้เฉพาะบัญชีเจ้าของเกม</p><button class="b" id="gin">ล็อกอินด้วย Google</button><p id="lmsg" class="er"></p></div>
+<nav id="nav" hidden><button data-t="ov" class="on">ภาพรวม</button><button data-t="sw">สวิตช์</button><button data-t="fi">การเงิน</button><button data-t="pl">ผู้เล่น</button></nav>
+<main id="main" hidden></main>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+'use strict';
+/* Pixeldeck Battle - owner's admin page. This page is public; it has no power of its own. Every read and write below is allowed or refused
+   by the Firestore rules, which let only the owner's Google account see other players' saves, the slip ledger and adminlog, and write config/main. */
+const FB_CFG=__FB_CFG__,CARDS=__CARDS__,AMS=__AMS__,BUILD='__BUILD__';
+firebase.initializeApp(FB_CFG);const db=firebase.firestore(),FV=firebase.firestore.FieldValue,$=id=>document.getElementById(id);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const N=v=>(+v||0).toLocaleString('en'),ms=v=>!v?0:v.toMillis?v.toMillis():+v||Date.parse(v)||0;
+const dt=v=>{const m=ms(v);return m?new Date(m).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'-'};
+const ago=v=>{const m=Date.now()-ms(v);if(!ms(v))return '-';const mi=Math.floor(m/6e4);return mi<1?'เมื่อกี้':mi<60?mi+' นาที':mi<1440?Math.floor(mi/60)+' ชม.':Math.floor(mi/1440)+' วัน'};
+const dayStart=(back=0)=>{const d=new Date(Date.now()+7*36e5);d.setUTCHours(0,0,0,0);return new Date(d.getTime()-7*36e5-back*864e5)};
+const cnt=q=>typeof q.count==='function'?q.count().get().then(r=>r.data().count):q.get().then(r=>r.size);
+let me=null,tab='ov',cfg={},slips=null,alog=null,players=null,pf={q:'',f:'all',s:'seen'},sel=null,busy=false;
+const say=(t,cls='ok')=>{const m=$('msg');if(m){m.className='msg '+cls;m.textContent=t}};
+const fail=e=>say('ไม่สำเร็จ: '+(e&&(e.code||e.message)||e),'er');
+
+$('gin').onclick=()=>firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>{$('lmsg').textContent='ล็อกอินไม่สำเร็จ: '+(e.code||e.message)});
+$('out').onclick=()=>firebase.auth().signOut();
+firebase.auth().onAuthStateChanged(u=>{me=u;$('who').textContent=u?u.email:'';$('out').hidden=!u;
+  if(!u){$('login').hidden=false;$('nav').hidden=$('main').hidden=true;return}
+  // the only real check is the rules: an account that is not the owner cannot read adminlog
+  db.collection('adminlog').limit(1).get().then(()=>{$('login').hidden=true;$('nav').hidden=$('main').hidden=false;go('ov')})
+   .catch(e=>{$('lmsg').textContent=e.code==='permission-denied'?'บัญชี '+u.email+' ไม่มีสิทธิ์เข้าหลังบ้าน (หรือยังไม่ได้วางกฎ Firestore ชุดใหม่)':'เชื่อมต่อไม่ได้: '+(e.code||e.message)})});
+$('nav').onclick=e=>{const t=e.target.dataset.t;if(t)go(t)};
+function go(t){tab=t;sel=null;[...$('nav').children].forEach(b=>b.classList.toggle('on',b.dataset.t===t));({ov,sw,fi,pl})[t]()}
+const put=h=>{$('main').innerHTML=h};
+const loadCfg=()=>db.collection('config').doc('main').get().then(d=>{cfg=d.exists?d.data()||{}:{};return cfg});
+const loadSlips=()=>db.collection('slips').orderBy('at','desc').limit(500).get().then(q=>slips=q.docs.map(d=>({id:d.id,...d.data()})));
+const loadLog=()=>db.collection('adminlog').orderBy('at','desc').limit(300).get().then(q=>alog=q.docs.map(d=>({id:d.id,...d.data()})));
+const logIt=o=>db.collection('adminlog').add({...o,by:me.email,at:FV.serverTimestamp()}).catch(()=>{});
+
+/* ---------- overview ---------- */
+function ov(){put('<div class="card"><h3>ภาพรวม</h3><p class="mu">กำลังโหลด…</p></div>');
+  const on=cnt(db.collection('online').where('at','>',new Date(Date.now()-15*6e4))),all=cnt(db.collection('saves')),td=cnt(db.collection('saves').where('at','>=',dayStart())),wk=cnt(db.collection('saves').where('at','>=',dayStart(6)));
+  Promise.all([on,all,td,wk,loadSlips(),loadCfg()]).then(([on,all,td,wk])=>{const sum=(from)=>slips.filter(s=>ms(s.at)>=from).reduce((a,s)=>[a[0]+(+s.thb||0),a[1]+1],[0,0]),a=sum(dayStart().getTime()),b=sum(dayStart(6).getTime()),c=sum(0);
+    put(`${cfg.maint?'<div class="card" style="border-color:var(--rd)"><b class="er">🔧 ตอนนี้เกมปิดปรับปรุงอยู่</b></div>':''}
+    <div class="card"><h3>ผู้เล่น</h3><div class="kp"><div><b class="ok">${N(on)}</b><small>ออนไลน์ตอนนี้ (15 นาที)</small></div><div><b>${N(all)}</b><small>บัญชีทั้งหมด</small></div><div><b>${N(td)}</b><small>เข้าเล่นวันนี้</small></div><div><b>${N(wk)}</b><small>เข้าเล่น 7 วัน</small></div></div></div>
+    <div class="card"><h3>ยอดเติมเงิน (จากสลิปที่ระบบตรวจผ่าน)</h3><div class="kp"><div><b class="gd">฿${N(a[0])}</b><small>วันนี้ · ${a[1]} รายการ</small></div><div><b class="gd">฿${N(b[0])}</b><small>7 วัน · ${b[1]} รายการ</small></div><div style="grid-column:1/3"><b class="gd">฿${N(c[0])}</b><small>ทั้งหมด · ${c[1]} รายการ${slips.length>=500?' (นับ 500 รายการล่าสุด)':''}</small></div></div>
+     <p class="mu" style="margin:8px 0 0;font-size:13px">ไม่รวมเพชรที่ส่งมือ · เทียบกับยอดเข้าบัญชีธนาคารจริงเสมอ</p></div>
+    <div class="card"><h3>ทางลัด</h3><p style="margin:0;line-height:2"><a href="https://console.firebase.google.com/project/${esc(FB_CFG.projectId)}/firestore/usage" target="_blank" rel="noopener">โควตาฐานข้อมูล (Firebase Usage)</a><br><a href="https://developer.thunder.in.th" target="_blank" rel="noopener">โควตาตรวจสลิป (Thunder)</a><br><a href="https://dash.cloudflare.com" target="_blank" rel="noopener">Worker เติมเพชร (Cloudflare)</a><br><a href="./" target="_blank" rel="noopener">เปิดเกม</a></p>
+     <p class="mu" style="margin:8px 0 0;font-size:12px">Admin ${esc(BUILD)} · เปิดหน้านี้ 1 ครั้งใช้การอ่านฐานข้อมูลประมาณ ${N(slips.length+6)} ครั้ง</p></div>`)}).catch(e=>put('<div class="card"><p class="er">โหลดไม่ได้: '+esc(e.code||e.message)+'</p></div>'))}
+
+/* ---------- switches ---------- */
+function sw(){put('<div class="card"><p class="mu">กำลังโหลด…</p></div>');loadCfg().then(swDraw).catch(e=>put('<div class="card"><p class="er">'+esc(e.code||e.message)+'</p></div>'))}
+function swDraw(){const p=cfg.pay||{},h=Array.isArray(p.h)?p.h:[17,24],hs=v=>Array.from({length:25},(_,i)=>`<option value="${i}" ${i===v?'selected':''}>${String(i%24).padStart(2,'0')}:00${i===24?' (เที่ยงคืน)':''}</option>`).join('');
+  put(`<p id="msg" class="msg"></p>
+  <div class="card"><h3>🔧 ปิดปรับปรุง</h3><div class="sw"><span>ผู้เล่นทุกคนเห็นหน้าปิดปรับปรุง เล่นไม่ได้<br><small class="mu">บัญชี Dev ของคุณยังเข้าเล่นได้</small></span><button class="tg red ${cfg.maint?'on':''}" id="tmt"><i></i></button></div>
+   <label>ข้อความที่ผู้เล่นเห็น (เว้นว่าง = ข้อความมาตรฐาน)</label><textarea id="mmsg" maxlength="400">${esc(cfg.maintMsg||'')}</textarea><button class="b" data-a="mt" style="margin-top:8px">บันทึกข้อความ</button></div>
+  <div class="card"><h3>📢 ประกาศในเกม</h3><label>ขึ้นแถบบนหน้าล็อบบี้ของทุกคน (เว้นว่าง = ไม่มีประกาศ) สูงสุด 160 ตัวอักษร</label><textarea id="ntc" maxlength="160">${esc(cfg.notice||'')}</textarea><button class="b" data-a="nt" style="margin-top:8px">บันทึกประกาศ</button></div>
+  <div class="card"><h3>💎 ระบบเติมเพชร</h3><div class="sw"><span>เปิดรับเติมเพชรด้วยสลิป</span><button class="tg ${p.on===false?'':'on'}" id="tpay"><i></i></button></div>
+   <label>เวลาเปิดรับ (เวลาไทย)</label><div class="row"><select id="h0">${hs(h[0])}</select><span class="fx">ถึง</span><select id="h1">${hs(h[1])}</select></div><button class="b" data-a="ph" style="margin-top:8px">บันทึกเวลา</button></div>
+  <div class="card" style="border-color:var(--rd)"><h3 class="er" style="color:var(--rd)">🧹 จบ CBT และล้างข้อมูลทั้งเกม</h3><p style="margin:0 0 6px">ตอนนี้: <b>เฟสที่ ${N(cfg.era||1)}</b>${cfg.eraAt?' · ล้างครั้งล่าสุด '+dt(cfg.eraAt):''}</p>
+   <p class="mu" style="margin:0 0 6px;font-size:13px">ทุกบัญชีจะถูกเริ่มใหม่ตอนเข้าเกมครั้งถัดไป เหลือเฉพาะการ์ด Limited (กลับเป็น Lv 1) ชื่อ และการตั้งค่า · ของในตลาด เงินขายค้างรับ อันดับอารีน่า และเพชรค้างรับก่อนเวลานี้ถูกยกเลิก · <b class="er">ย้อนกลับไม่ได้</b></p>
+   <label>พิมพ์คำว่า <b class="er">ล้าง CBT</b> เพื่อยืนยัน</label><input id="wipe" autocomplete="off"><button class="b r" data-a="wipe" style="margin-top:8px">ล้างข้อมูลทั้งเกมเดี๋ยวนี้</button></div>
+  <p class="mu" style="font-size:13px">สวิตช์มีผลกับผู้เล่นภายในประมาณ 3 นาที (เกมตรวจการตั้งค่าเป็นรอบ) คนที่เปิดเกมใหม่จะได้ค่าใหม่ทันที</p>`);
+  const setC=(o,note)=>db.collection('config').doc('main').set(o,{merge:true}).then(()=>{Object.assign(cfg,o);logIt({t:'cfg',note});say('บันทึกแล้ว: '+note);return loadCfg()}).catch(fail);
+  $('tmt').onclick=()=>{const v=!cfg.maint;if(v&&!confirm('ปิดปรับปรุงเกมเดี๋ยวนี้? ผู้เล่นทุกคนจะเล่นไม่ได้'))return;setC({maint:v,maintMsg:$('mmsg').value.trim()},v?'เปิดโหมดปิดปรับปรุง':'เปิดเกมตามปกติ').then(swDraw)};
+  $('tpay').onclick=()=>{const on=(cfg.pay||{}).on===false;setC({pay:{...(cfg.pay||{}),on}},on?'เปิดรับเติมเพชร':'ปิดรับเติมเพชร').then(swDraw)};
+  $('main').onclick=e=>{const a=e.target.dataset.a;if(!a)return;
+    if(a==='mt')setC({maintMsg:$('mmsg').value.trim()},'ข้อความปิดปรับปรุง');
+    else if(a==='nt')setC({notice:$('ntc').value.trim()},$('ntc').value.trim()?'ประกาศในเกม':'ลบประกาศ');
+    else if(a==='ph'){const a0=+$('h0').value,a1=+$('h1').value;if(a0===a1||a0===24)return say('เวลาเปิดและปิดต้องต่างกัน และเวลาเปิดต้องไม่ใช่ 24:00','er');setC({pay:{...(cfg.pay||{}),h:[a0,a1]}},'เวลาเติมเพชร '+a0+':00–'+(a1%24)+':00')}
+    else if(a==='wipe'){if($('wipe').value.trim()!=='ล้าง CBT')return say('พิมพ์คำยืนยันไม่ตรง ยังไม่ได้ล้าง','er');if(!confirm('ยืนยันครั้งสุดท้าย: ล้างข้อมูลผู้เล่นทั้งเกม เหลือเฉพาะการ์ด Limited ย้อนกลับไม่ได้'))return;
+      setC({era:(cfg.era||1)+1,eraAt:Date.now()},'ล้างข้อมูลทั้งเกม (จบเฟส '+(cfg.era||1)+')').then(swDraw)}}}
+
+/* ---------- finance ---------- */
+function fi(){put('<div class="card"><p class="mu">กำลังโหลด…</p></div>');Promise.all([loadSlips(),loadLog(),db.collection('grants').get()]).then(([s,l,g])=>fiDraw(g.docs.map(d=>({id:d.id,...d.data()})))).catch(e=>put('<div class="card"><p class="er">'+esc(e.code||e.message)+'</p></div>'))}
+function fiDraw(pend){const gl=alog.filter(x=>x.t==='grant');
+  put(`<p id="msg" class="msg"></p>
+  <div class="card"><h3>ส่งเพชรให้ผู้เล่น</h3><label>รหัสผู้เล่น (ผู้เล่นคัดลอกได้จากหน้าเติมเพชร)</label><input id="guid" autocomplete="off" autocapitalize="off" spellcheck="false">
+   <div class="row"><div><label>จำนวนเพชร</label><input id="gdia" type="number" inputmode="numeric" min="1" max="100000"></div><div><label>หมายเหตุ (เก็บในประวัติ)</label><input id="gnote" maxlength="80"></div></div>
+   <button class="b g" data-a="grant" style="margin-top:10px">ส่งเพชร</button><p class="mu" style="font-size:13px;margin:8px 0 0">เช็กยอดเงินเข้าบัญชีจริงก่อนส่งทุกครั้ง · ส่งแล้วยกเลิกไม่ได้เมื่อผู้เล่นรับไปแล้ว</p></div>
+  <div class="card"><h3>เพชรที่รอผู้เล่นมารับ (${pend.length})</h3>${pend.length?`<div class="tw"><table><tr><th>เวลา</th><th>ผู้เล่น</th><th>💎</th><th>ที่มา</th><th></th></tr>${pend.map(g=>`<tr><td>${dt(g.at)}</td><td><code>${esc(g.to)}</code></td><td class="n">${N(g.dia)}</td><td>${g.by==='auto'?'สลิป':'ส่งมือ'}</td><td><button class="b r" style="padding:3px 8px;font-size:12px" data-a="gdel" data-id="${esc(g.id)}">ยกเลิก</button></td></tr>`).join('')}</table></div>`:'<p class="mu" style="margin:0">ไม่มีรายการค้าง ผู้เล่นรับครบแล้ว</p>'}</div>
+  <div class="card"><h3>สลิปที่ตรวจผ่าน (${slips.length}${slips.length>=500?'+':''})</h3>${slips.length?`<div class="tw"><table><tr><th>ส่งสลิป</th><th>โอนเมื่อ</th><th>ผู้เล่น</th><th>฿</th><th>💎</th><th>เลขอ้างอิง</th></tr>${slips.slice(0,200).map(s=>`<tr><td>${dt(s.at)}</td><td>${dt(s.paid)}</td><td><code>${esc(String(s.to||'').slice(0,10))}…</code></td><td class="n gd">${N(s.thb)}</td><td class="n">${N(s.dia)}</td><td><code>${esc(s.id)}</code></td></tr>`).join('')}</table></div>`:'<p class="mu" style="margin:0">ยังไม่มีรายการ</p>'}</div>
+  <div class="card"><h3>ประวัติส่งเพชรมือ (${gl.length})</h3>${gl.length?`<div class="tw"><table><tr><th>เวลา</th><th>ผู้เล่น</th><th>💎</th><th>หมายเหตุ</th></tr>${gl.map(g=>`<tr><td>${dt(g.at)}</td><td><code>${esc(g.to)}</code></td><td class="n">${N(g.dia)}</td><td>${esc(g.note||'')}</td></tr>`).join('')}</table></div>`:'<p class="mu" style="margin:0">ยังไม่เคยส่ง</p>'}</div>`);
+  $('main').onclick=e=>{const a=e.target.dataset.a;if(a==='grant'){const uid=$('guid').value.trim(),dia=Math.floor(+$('gdia').value),note=$('gnote').value.trim();
+      if(!/^[A-Za-z0-9]{20,40}$/.test(uid))return say('รหัสผู้เล่นไม่ถูกต้อง','er');if(!(dia>=1&&dia<=100000))return say('จำนวนเพชรต้องอยู่ระหว่าง 1–100,000','er');if(busy||!confirm('ส่ง '+N(dia)+' เพชร ให้ '+uid+' ?'))return;busy=true;
+      db.collection('grants').add({to:uid,dia,by:me.uid,at:FV.serverTimestamp()}).then(r=>logIt({t:'grant',to:uid,dia,note,gid:r.id})).then(()=>{busy=false;fi();setTimeout(()=>say('ส่ง '+N(dia)+' เพชรแล้ว ผู้เล่นจะได้รับเมื่อเข้าล็อบบี้หรือกดเช็กเพชรที่เติม'),600)}).catch(e=>{busy=false;fail(e)})}
+    else if(a==='gdel'){if(!confirm('ยกเลิกเพชรรายการนี้? (ทำได้เฉพาะที่ผู้เล่นยังไม่ได้รับ)'))return;db.collection('grants').doc(e.target.dataset.id).delete().then(()=>{logIt({t:'grant-cancel',gid:e.target.dataset.id});fi()}).catch(fail)}}}
+
+/* ---------- players ---------- */
+const RK=['LT','SL','L','R','UC','C','ST'];
+function digest(id,d){let s={};try{s=JSON.parse(d.data||'{}')}catch(e){}const cards=s.cards||{},ev=s.ev||{},rk={};
+  Object.keys(cards).forEach(c=>{const r=(CARDS[c]||[])[1];if(r)rk[r]=(rk[r]||0)+1+(cards[c].cp||0)});const evLT=Object.keys(ev).filter(c=>(CARDS[c]||[])[1]==='LT').reduce((a,c)=>a+(+ev[c]||0),0);
+  const pay=Array.isArray(s.pay)?s.pay:[],paid=pay.reduce((a,p)=>a+(+p.d||0),0),vipOn=(+s.vip||0)>Date.now(),lv=Object.values(cards).map(c=>+c.lv||0);
+  return{id,name:(s.me&&s.me.name)||d.name||'?',gold:+s.gold||0,dia:+s.dia||0,ac:+s.ac||0,dp:+s.dp||0,cleared:+s.cleared||0,era:s.era||1,seen:ms(d.at)||+s.ts||0,nc:Object.keys(cards).length,rk,lt:(rk.LT||0)+evLT,evLT,maxLv:lv.length?Math.max(...lv):0,
+    vip:vipOn?(s.vt||1):0,vipEnd:+s.vip||0,pay,paid,pv:s.pv||{},am:s.am||{},cards,ev,team:s.team||[],lang:s.lang||'th',tut:s.tut!=null}}
+// observations for the owner to look at, never proof on their own
+function flags(p){const f=[],ids=new Set([...(slips||[]).map(s=>s.id),...(alog||[]).filter(x=>x.gid).map(x=>x.gid)]);
+  if(p.lt>=2)f.push(['Limited '+p.lt+' ใบ','การ์ด Limited ออกยากมาก ถือ 2 ใบขึ้นไปควรดู']);
+  if(p.dia>=3000&&!p.paid)f.push(['เพชรสูง ไม่เคยเติม','มีเพชร '+N(p.dia)+' แต่ไม่มีประวัติเติมในเซฟ']);
+  else if(p.dia>p.paid+6000)f.push(['เพชรเกินที่มา','มีเพชร '+N(p.dia)+' มากกว่ายอดเติม '+N(p.paid)+' เกิน 6,000']);
+  if(p.gold>=30e6)f.push(['Gold สูงผิดปกติ',N(p.gold)+' Gold']);
+  if((p.rk.SL||0)>=5&&p.cleared<60)f.push(['SL เยอะ ด่านน้อย','SL '+p.rk.SL+' ใบ แต่ผ่านแค่ด่าน '+p.cleared]);
+  const bad=p.pay.filter(x=>x.id&&!ids.has(x.id));if(bad.length)f.push(['เติมไม่ตรงบัญชี',bad.length+' รายการในเซฟ ('+N(bad.reduce((a,x)=>a+(+x.d||0),0))+' เพชร) ไม่พบในสลิปหรือประวัติส่งมือ']);
+  return f}
+function pl(){if(!players)return put(`<div class="card"><h3>ผู้เล่น</h3><p>โหลดเซฟของผู้เล่นทุกคนมาดู การโหลด 1 ครั้งใช้การอ่านฐานข้อมูลเท่ากับจำนวนบัญชี (เพดานฟรี 50,000 ครั้งต่อวัน) จึงไม่โหลดเองอัตโนมัติ</p><button class="b" id="pload">โหลดรายชื่อผู้เล่น</button><p id="msg" class="msg"></p></div>`),$('pload').onclick=plLoad;plDraw()}
+function plLoad(){say('กำลังโหลด…');Promise.all([db.collection('saves').get(),slips?0:loadSlips(),alog?0:loadLog(),loadCfg()]).then(([q])=>{players=q.docs.map(d=>digest(d.id,d.data()));players.forEach(p=>p.fl=flags(p));plDraw()}).catch(fail)}
+function plDraw(){if(sel)return plOne(sel);const bans=cfg.bans||{},q=pf.q.toLowerCase();
+  let list=players.filter(p=>(!q||p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q))&&(pf.f==='all'||(pf.f==='lt'&&p.lt>0)||(pf.f==='fl'&&p.fl.length)||(pf.f==='ban'&&bans[p.id])||(pf.f==='pay'&&p.paid>0)||(pf.f==='vip'&&p.vip)));
+  list.sort((a,b)=>pf.s==='seen'?b.seen-a.seen:(b[pf.s]||0)-(a[pf.s]||0));const F=[['all','ทั้งหมด'],['fl','มีข้อสังเกต'],['lt','ถือ Limited'],['pay','เคยเติม'],['vip','VIP'],['ban','ถูกระงับ']],So=[['seen','ล่าสุด'],['dia','เพชร'],['gold','Gold'],['cleared','ด่าน'],['lt','Limited'],['paid','ยอดเติม']];
+  put(`<div class="card"><h3>ผู้เล่น ${N(list.length)} / ${N(players.length)} บัญชี</h3><input id="pq" placeholder="ค้นหาชื่อหรือรหัสผู้เล่น" value="${esc(pf.q)}">
+   <div class="fl">${F.map(([k,t])=>`<button data-f="${k}" class="${pf.f===k?'on':''}">${t}${k==='fl'?' ('+players.filter(p=>p.fl.length).length+')':k==='lt'?' ('+players.filter(p=>p.lt>0).length+')':''}</button>`).join('')}</div>
+   <div class="fl"><span class="mu" style="align-self:center;font-size:13px">เรียง:</span>${So.map(([k,t])=>`<button data-s="${k}" class="${pf.s===k?'on':''}">${t}</button>`).join('')}<button id="prl" style="margin-left:auto">โหลดใหม่</button></div>
+   <div class="tw"><table><tr><th>ชื่อ</th><th>ด่าน</th><th>💎</th><th>Gold</th><th>LT</th><th>เติม</th><th>ล่าสุด</th></tr>
+   ${list.slice(0,300).map(p=>`<tr class="pl" data-id="${esc(p.id)}"><td><b>${esc(p.name)}</b>${bans[p.id]?' <span class="chip">ระงับ</span>':''}${p.vip?' <span class="chip g2">VIP'+p.vip+'</span>':''}<br>${p.fl.map(f=>`<span class="chip">${esc(f[0])}</span>`).join('')}</td><td class="n">${p.cleared}</td><td class="n bl">${N(p.dia)}</td><td class="n gd">${N(p.gold)}</td><td class="n">${p.lt||''}</td><td class="n">${p.paid?N(p.paid):''}</td><td class="n mu">${ago(p.seen)}</td></tr>`).join('')}</table></div>
+   ${list.length>300?'<p class="mu">แสดง 300 แถวแรก ใช้ค้นหาหรือตัวกรองเพื่อดูที่เหลือ</p>':''}<p class="mu" style="font-size:12.5px;margin:8px 0 0">"ข้อสังเกต" คือสิ่งที่ควรเปิดดูต่อ ไม่ใช่หลักฐานว่าโกง · ข้อมูลช้ากว่าจริงได้ราว 2 นาที · "เติม" คือเพชรที่ได้จากการเติมตามที่เซฟบันทึกไว้</p></div>`);
+  $('pq').oninput=e=>{pf.q=e.target.value;clearTimeout(plDraw.t);plDraw.t=setTimeout(()=>{plDraw();const i=$('pq');i.focus();i.setSelectionRange(i.value.length,i.value.length)},350)};$('prl').onclick=plLoad;
+  $('main').onclick=e=>{const b=e.target.closest('[data-f],[data-s],tr.pl');if(!b)return;if(b.dataset.f){pf.f=b.dataset.f;plDraw()}else if(b.dataset.s){pf.s=b.dataset.s;plDraw()}else{sel=b.dataset.id;plDraw();scrollTo(0,0)}}}
+function plOne(id){const p=players.find(x=>x.id===id);if(!p){sel=null;return plDraw()}const bans=cfg.bans||{},ban=bans[id],cs=Object.keys(p.cards).filter(c=>CARDS[c]).sort((a,b)=>RK.indexOf(CARDS[a][1])-RK.indexOf(CARDS[b][1])||(p.cards[b].lv||0)-(p.cards[a].lv||0));
+  put(`<p id="msg" class="msg"></p><div class="card"><button class="b s" id="back">← กลับรายชื่อ</button>
+   <h3 style="margin-top:10px">${esc(p.name)} ${ban?'<span class="chip">ถูกระงับ</span>':''}</h3><p style="margin:0">รหัสผู้เล่น <code>${esc(p.id)}</code><br><span class="mu">เข้าเล่นล่าสุด ${dt(p.seen)} (${ago(p.seen)}) · เฟส ${p.era} · ภาษา ${esc(p.lang)}${p.tut?' · ยังอยู่ในสอนเล่น':''}</span></p>
+   ${p.fl.length?`<div style="margin-top:8px">${p.fl.map(f=>`<p style="margin:3px 0"><span class="chip">${esc(f[0])}</span> ${esc(f[1])}</p>`).join('')}</div>`:'<p class="ok" style="margin:8px 0 0">ไม่มีข้อสังเกต</p>'}</div>
+  <div class="card"><h3>ทรัพยากร</h3><div class="kp"><div><b class="bl">${N(p.dia)}</b><small>เพชร</small></div><div><b class="gd">${N(p.gold)}</b><small>Gold</small></div><div><b>${N(p.ac)}</b><small>เหรียญอารีน่า</small></div><div><b>${N(p.dp)}</b><small>แต้มย่อย</small></div><div><b>${p.cleared}</b><small>ด่านที่ผ่าน</small></div><div><b>${p.vip?'ระดับ '+p.vip:'-'}</b><small>VIP${p.vip?' · หมด '+dt(p.vipEnd):''}</small></div></div>
+   <p class="mu" style="margin:8px 0 0">PvP: ดาว ${N(p.pv.st||0)} · ชนะ ${N(p.pv.w||0)} · แพ้ ${N(p.pv.l||0)}</p></div>
+  <div class="card"><h3>การ์ด ${p.nc} ชนิด</h3><p style="margin:0 0 6px">${RK.filter(r=>p.rk[r]).map(r=>`<span class="chip ${r==='LT'||r==='SL'?'':'b2'}">${r} ${p.rk[r]}</span>`).join('')}${p.evLT?` <span class="chip g2">Limited อีเวนต์ ${p.evLT}</span>`:''}</p>
+   <div class="tw"><table><tr><th>การ์ด</th><th>ระดับ</th><th>Lv</th><th>ดาว</th><th>ใบซ้ำ</th><th>ทีม</th></tr>${cs.map(c=>`<tr><td>${esc(CARDS[c][0])}</td><td>${esc(CARDS[c][1])}</td><td class="n">${N(p.cards[c].lv)}</td><td class="n">${p.cards[c].star||''}</td><td class="n">${p.cards[c].cp||''}</td><td>${p.team.includes(c)?'✓':''}</td></tr>`).join('')}</table></div>
+   ${Object.keys(p.ev).length?`<p class="mu" style="margin:8px 0 0">การ์ดอีเวนต์ (Limited Pack): ${Object.keys(p.ev).filter(c=>p.ev[c]>0).map(c=>esc((CARDS[c]||[c])[0])+' ×'+p.ev[c]).join(', ')}</p>`:''}</div>
+  <div class="card"><h3>เครื่องราง</h3><p style="margin:0">${Object.keys(p.am).filter(k=>p.am[k]>0).map(k=>`<span class="chip ${(AMS[k]||[])[1]==='L'?'g2':'b2'}">${esc((AMS[k]||[k])[0])} ×${N(p.am[k])}</span>`).join('')||'<span class="mu">ไม่มี</span>'}</p></div>
+  <div class="card"><h3>ประวัติเติมในเซฟ (${p.pay.length})</h3>${p.pay.length?`<div class="tw"><table><tr><th>เวลา</th><th>💎</th><th>อ้างอิง</th></tr>${p.pay.slice().reverse().map(x=>`<tr><td>${dt(x.t)}</td><td class="n">${N(x.d)}</td><td><code>${esc(x.id||'')}</code></td></tr>`).join('')}</table></div>`:'<p class="mu" style="margin:0">ไม่เคยเติม</p>'}</div>
+  <div class="card" style="border-color:${ban?'var(--gr)':'var(--rd)'}"><h3>${ban?'ปลดระงับบัญชี':'ระงับบัญชี'}</h3>${ban?`<p style="margin:0 0 8px">เหตุผลที่ระงับ: ${esc(ban===true?'-':ban)}</p><button class="b g" id="unban">ปลดระงับ</button>`:`<label>เหตุผล (ผู้เล่นจะเห็นข้อความนี้)</label><input id="breason" maxlength="120" placeholder="เช่น แก้ไขเซฟ / ใช้บั๊ก"><button class="b r" id="ban" style="margin-top:8px">ระงับบัญชีนี้</button>`}
+   <p class="mu" style="font-size:12.5px;margin:8px 0 0">มีผลภายในประมาณ 3 นาที · เป็นการกันฝั่งเกม ผู้เล่นทั่วไปเข้าไม่ได้ แต่ไม่ใช่กำแพงที่เจาะไม่ได้สำหรับคนที่แก้โค้ดเป็น</p></div>`);
+  $('back').onclick=()=>{sel=null;plDraw()};
+  if($('ban'))$('ban').onclick=()=>{const r=$('breason').value.trim()||'ผิดกติกา';if(!confirm('ระงับบัญชี '+p.name+' ?'))return;db.collection('config').doc('main').set({bans:{[id]:r}},{merge:true}).then(()=>{logIt({t:'ban',to:id,note:r});return loadCfg()}).then(()=>{plOne(id);say('ระงับแล้ว')}).catch(fail)};
+  if($('unban'))$('unban').onclick=()=>{db.collection('config').doc('main').update({['bans.'+id]:FV.delete()}).then(()=>{logIt({t:'unban',to:id});return loadCfg()}).then(()=>{plOne(id);say('ปลดระงับแล้ว')}).catch(fail)}}
+</script></body></html>

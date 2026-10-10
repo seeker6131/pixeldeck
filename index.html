@@ -307,6 +307,7 @@ p{margin:0}
 .imp{position:absolute;z-index:4;left:50%;top:45%;width:80%;aspect-ratio:1;background:#fff;pointer-events:none;clip-path:polygon(50% 0,60% 35%,100% 20%,70% 50%,100% 80%,60% 65%,50% 100%,40% 65%,0 80%,30% 50%,0 20%,40% 35%);animation:imp .35s steps(5) forwards}
 @keyframes imp{from{transform:translate(-50%,-50%) scale(.3) rotate(0);opacity:1}to{transform:translate(-50%,-50%) scale(1.5) rotate(25deg);opacity:0}}
 /* overlays: VS intro, START / FINISH banners, skill cut-ins */
+#gate{position:absolute;inset:0;z-index:30;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center;padding:24px;background:rgba(6,9,26,.96);color:#eef2ff}#gate[hidden]{display:none}#gate h2{font-size:26px;color:#ffd84a}#gate p{max-width:520px;font-size:15px;line-height:1.6;white-space:pre-wrap}.ntc{position:absolute;z-index:2;top:50px;left:50%;transform:translateX(-50%);max-width:62%;margin:0;padding:3px 12px;border-radius:10px;background:rgba(120,20,30,.88);border:1px solid #ffb3a8;color:#fff;font-size:12.5px;font-weight:700;text-align:center;line-height:1.35}
 #tut{position:absolute;inset:0;z-index:9;pointer-events:none}#tut:empty{display:none}#tut .th{position:absolute;border-radius:10px;box-shadow:0 0 0 3px #ffd84a,0 0 0 9999px rgba(4,8,24,.6);animation:tutp 1.1s ease-in-out infinite}@keyframes tutp{50%{box-shadow:0 0 0 6px #fff3b0,0 0 0 9999px rgba(4,8,24,.6)}}#tut .tb{position:absolute;pointer-events:auto;box-sizing:border-box;background:#141b3c;border:2px solid #f2d98a;border-radius:10px;padding:10px 12px 8px;color:#eef2ff;font-size:14px;line-height:1.5;box-shadow:0 6px 18px rgba(0,0,0,.6)}#tut .tb small{display:block;color:#9fb0e8;font-size:11px;margin-bottom:2px}#tut .tb .row{justify-content:flex-end;gap:8px;margin-top:8px}@media(prefers-reduced-motion:reduce){#tut .th{animation:none}}
 #ov{position:absolute;inset:0;z-index:8;pointer-events:none;overflow:hidden}#ov:empty{display:none}.ovon .bgl.top,.ovon .bfog,.ovon .bglow,.ovon .baur{animation-play-state:paused}
 .bn{position:absolute;left:0;right:0;top:50%;height:84px;transform:translateY(-50%);display:grid;place-items:center;background:linear-gradient(90deg,transparent,rgba(10,14,34,.92) 18% 82%,transparent);animation:bn calc(.85s/var(--sp,1)) both}
@@ -603,7 +604,7 @@ h1{color:#f2d98a;text-shadow:0 3px 0 #7a4a1c,0 6px 0 #0a1019}h2{color:#f2d98a;te
 .gbtn{border:3px solid #0a1019}
 </style>
 
-<div id="stage"><div id="view"></div><div id="ov"></div><div id="tut"></div><button id="zoom" hidden></button></div>
+<div id="stage"><div id="view"></div><div id="ov"></div><div id="tut"></div><div id="gate" hidden></div><button id="zoom" hidden></button></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -960,7 +961,13 @@ function market(){
 // Every save from an older era is then rebuilt from scratch the first time it loads, on any device, from the local copy or the cloud copy.
 // Only Limited cards survive: real LT cards and the event LT cards from the Limited Pack, which become real playable cards (Lv 1, extra copies kept).
 // Shared data older than ERA_AT (market listings, sale payouts, arena entries, unclaimed diamond grants) is ignored by every client.
-const ERA=1,ERA_AT=0;
+let ERA=1,ERA_AT=0;
+// Live settings written by the owner's admin page (Firestore config/main, readable by everyone, writable only by the owner):
+//   maint + maintMsg = maintenance screen · notice = banner in the lobby · pay {on, h:[from,to]} = top-up switch and hours ·
+//   era + eraAt = end of the CBT (replaces editing ERA above) · bans {uid: reason} = suspended accounts.
+// The last copy is kept on the device so a wipe or a ban still applies before the first fetch.
+let CFG={};try{CFG=JSON.parse(localStorage.getItem('pdb_cfg'))||{}}catch(e){}
+if(CFG.era>ERA){ERA=CFG.era;ERA_AT=CFG.eraAt||0}
 function fresh(){return{gold:0,dia:0,cleared:0,cards:{},team:[],auto:false,era:ERA}}
 const eraKeep=s=>{const lt={};Object.keys(s.cards||{}).forEach(id=>{if(C[id]&&C[id].r==='LT')lt[id]=1+(s.cards[id].cp||0)});Object.keys(s.ev||{}).forEach(id=>{if(C[id]&&C[id].r==='LT'&&s.ev[id]>0)lt[id]=(lt[id]||0)+s.ev[id]});return lt};
 function eraWipe(s){if((s.era||1)>=ERA)return s;const lt=eraKeep(s),n=fresh();
@@ -984,9 +991,9 @@ const lvTxt=id=>{const o=S.cards[id];return maxed(id)?`Lv ${o.lv} · MAX`:`Lv ${
 function addExp(id,x){const c=S.cards[id],cap=capOf(id);if(c.lv>=cap){c.lv=cap;c.exp=0;return 0}c.exp+=x;let up=0;while(c.lv<cap&&c.exp>=need(c.lv)){c.exp-=need(c.lv);c.lv++;up++}if(c.lv>=cap)c.exp=0;return up}
 // re-drawing the same screen (picking a card, equipping an amulet, opening a pack) keeps both panels scrolled where they were
 const scrKey=()=>{const h=document.querySelector('#view .rail h2');return h?h.textContent.replace(/[0-9]/g,''):''};
-function view(h){const k0=scrKey(),sc=k0?['.rail','.main'].map(q=>{const e=document.querySelector('#view '+q);return e?e.scrollTop:0}):null;$('view').innerHTML=h;
+function view(h){if(CFG.pay&&CFG.pay.h)h=h.replace(/17:00–00:00/g,payTxt()).replace(/17:00/g,hh(ph()[0]));const k0=scrKey(),sc=k0?['.rail','.main'].map(q=>{const e=document.querySelector('#view '+q);return e?e.scrollTop:0}):null;$('view').innerHTML=h;
   if(sc&&scrKey()===k0){const put=()=>['.rail','.main'].forEach((q,i)=>{const e=document.querySelector('#view '+q);if(e)e.scrollTop=sc[i]});put();requestAnimationFrame(put)}
-  fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[];tutSync()}
+  fx.forEach(([el,t,cls])=>{const n=$(el);if(!n)return;const f=document.createElement('span');f.className='fl '+cls;f.textContent=t;n.append(f);setTimeout(()=>f.remove(),720)});fx=[];tutSync();cfgGate()}
 const q=(el,t,cls)=>fx.push([el,t,cls]);
 const rib=id=>`<span class="rib">${RAR[C[id].r].n}</span>`;
 const fr=id=>RAR[C[id].r].fire?'fire f-'+RAR[C[id].r].fire:'';
@@ -1076,7 +1083,7 @@ function devGrant(){if(!isDev())return;let ch=0;
   if(!S.team.length){S.team=['h03','h22','h07'];ch=1}
   if(ch)save()}
 function home(){
-  bt=null;busy=false;devGrant();ensureMe();grantFetch();vipDaily();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
+  bt=null;busy=false;if((S.era||1)<ERA){S=unlock(S);save();cloudFlush();return welcome()}devGrant();ensureMe();grantFetch();vipDaily();if(!S.afk){S.afk=Date.now();save()}const own=Object.keys(S.cards).length,next=Math.min(MAXST,S.cleared+1);
   const ico=(src,d=0)=>`<span class="ico" style="--m:url(${src});--d:${d}s"><img src="${src}" alt=""></span>`;
   const dk=(act,ic,c,t,sub,dis,d)=>`<button class="dk ${c}" ${dis?'disabled':`data-act="${act}"`}>${ico(ic,d)}<span>${t}<small>${sub}</small></span></button>`;
   view(`<div class="lobby" style="--bg:url(${mapImg(next)})"><div class="lbg"></div>
@@ -1092,7 +1099,7 @@ function home(){
     <button class="ibtn gearb" data-act="settings" title="ตั้งค่า">${ico(UI.gear,9)}</button>
    </div>
    <div class="mid">
-    <div class="heroz"><h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1><p class="onl nt" id="onlw" hidden><i></i>${T('ออนไลน์','Online')} <b id="onl">0</b> ${T('คน','players')}</p>
+    ${CFG.notice?`<p class="ntc nt">📢 ${esc(String(CFG.notice).slice(0,160))}</p>`:''}<div class="heroz"><h1 class="logo nt">PIXELDECK<b>BATTLE</b></h1><p class="onl nt" id="onlw" hidden><i></i>${T('ออนไลน์','Online')} <b id="onl">0</b> ${T('คน','players')}</p>
      <div class="squad">${S.team.map(id=>hero(id)).join('')}</div></div>
     <div class="side">
      <div class="row2"><button class="btn sm" data-act="afk" ${afkGold()<1?'disabled':''}>${ico(UI.afk,2)}<span>ออฟไลน์</span> <i class="nt" id="afkv">+${afkGold().toLocaleString('en')}</i></button><button class="btn alt sm" data-act="quests">${ico(UI.quest,4.2)}<span>ภารกิจ</span>${qReady()?` <i class="nt badge">${qReady()}</i>`:''}</button></div>
@@ -1161,8 +1168,9 @@ const SLIP_MSG={login:['ล็อกอินหมดอายุ ออกแ�
 // phone slips are far under 4 MB; anything bigger is redrawn smaller (longest side 2000 px) so the QR stays readable
 function slipFile(f){return new Promise(ok=>{if(f.size<=3.5*1024*1024)return ok(f);const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,2000/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>ok(b||f),'image/jpeg',.92)};im.onerror=()=>ok(f);im.src=u})}
 // Top-up by slip is open 17:00-24:00 Thailand time only (the hours the admin is around to help if a payment goes wrong). Uses Thai time whatever the device is set to. Dev is exempt for testing.
-const PAY_H=[17,24],thHour=()=>{const d=new Date(Date.now()+7*36e5);return d.getUTCHours()+d.getUTCMinutes()/60},payOpen=()=>isDev()||(thHour()>=PAY_H[0]&&thHour()<PAY_H[1]);
-const payWait=()=>{const m=Math.ceil(((PAY_H[0]-thHour()+24)%24)*60),h=Math.floor(m/60);return T((h?h+' ชม. ':'')+m%60+' นาที',(h?h+' h ':'')+m%60+' min')};
+const PAY_H=[17,24],ph=()=>CFG.pay&&Array.isArray(CFG.pay.h)&&CFG.pay.h.length===2?CFG.pay.h:PAY_H,payOff=()=>!!(CFG.pay&&CFG.pay.on===false),hh=h=>String(h%24).padStart(2,'0')+':00',payTxt=()=>hh(ph()[0])+'–'+hh(ph()[1]);
+const thHour=()=>{const d=new Date(Date.now()+7*36e5);return d.getUTCHours()+d.getUTCMinutes()/60},payOpen=()=>!payOff()&&(isDev()||(ph()[0]<ph()[1]?thHour()>=ph()[0]&&thHour()<ph()[1]:thHour()>=ph()[0]||thHour()<ph()[1]%24));
+const payWait=()=>{const m=Math.ceil(((ph()[0]-thHour()+24)%24)*60),h=Math.floor(m/60);return T((h?h+' ชม. ':'')+m%60+' นาที',(h?h+' h ':'')+m%60+' min')};
 async function slipSend(file){if(!payOpen()){slip={busy:false,msg:T('ตอนนี้อยู่นอกเวลาเติมเพชร เปิด 17:00–00:00 น.','Top-up is closed right now. It is open 17:00–00:00 Thai time'),err:1};return topup()}if(slip.busy||dSel==null||!file||!PAYINFO.api||!mkOn())return;slip={busy:true,msg:T('กำลังตรวจสลิปกับธนาคาร…','Checking the slip with the bank…'),err:0};topup();
   try{await fbLoad();const u=firebase.auth().currentUser;if(!u)throw {code:'login'};const fd=new FormData();fd.append('image',await slipFile(file),'slip.jpg');fd.append('pack',String(dSel));fd.append('token',await u.getIdToken());
     const r=await fetch(PAYINFO.api,{method:'POST',body:fd}),j=await r.json().catch(()=>null);if(!j)throw {code:'server'};if(!j.ok)throw j;
@@ -1180,12 +1188,12 @@ function topup(){const on=mkOn(),auto=!!PAYINFO.api,open=!!(PAYINFO.pp&&(auto||P
     <div class="pk2 px g"><b>แลก Gold เป็นเพชร</b><small class="nt">${EX_GOLD.toLocaleString('en')} Gold → ${EX_DIA} 💎</small><small>แลกได้ไม่จำกัด · คุณมี <span class="nt">${S.gold.toLocaleString('en')}</span> Gold</small>
      <button class="btn sm" data-act="exch" ${S.gold<EX_GOLD?'disabled':''}>แลก</button></div>
     <button class="btn alt sm" data-act="grantref"><span class="nt">${T('เช็กเพชรที่เติม','Check for my top-up')}</span></button>
-    ${isDev()?`<button class="btn sm" data-act="admin"><span class="nt">ADMIN · ${T('เติมเพชรให้ผู้เล่น','Send diamonds to a player')}</span></button>`:''}
+    ${isDev()?`<button class="btn sm" data-act="admin"><span class="nt">ADMIN · ${T('เติมเพชรให้ผู้เล่น','Send diamonds to a player')}</span></button><a class="btn alt sm nt" href="admin.html" target="_blank" rel="noopener" style="text-align:center;text-decoration:none">${T('เปิดหลังบ้าน (Admin)','Open the admin page')}</a>`:''}
   </div><div class="main nt">
     <p class="sub" style="color:#ff8a7a;margin-bottom:10px">${T('ช่วง CBT: เพชรที่เติมจะถูกล้างพร้อมข้อมูลทั้งหมดเมื่อจบ CBT และไม่มีการคืนเงินหรือคืนเพชรตอน OBT โปรดอ่านก่อนโอน','CBT notice: diamonds you buy are wiped with all other progress when the CBT ends. No money or diamonds are returned in the OBT. Read this before you pay')}</p>
     <div class="dgrid">${DPACKS.map(([d,b,p],i)=>`<button class="dpk px ${dSel===i?'on':''}" data-act="tpick" data-i="${i}"><img src="${UI.gem}" alt="" style="image-rendering:auto"><b>${d.toLocaleString('en')}</b><small>${b?'+'+b+' bonus':''}</small><span class="thb">฿${p.toLocaleString('en')}</span></button>`).join('')}</div>
     <div class="px tustep">${!on?`<p style="color:#ffe45c">${T('ต้องล็อกอินด้วย Google ก่อนจึงเติมเพชรได้','Sign in with Google before topping up')}</p>`:!open?`<p style="color:#ffe45c">${T('ยังไม่เปิดรับเติมเพชร ช่องทางโอนและ LINE จะประกาศเร็ว ๆ นี้','Top-up is not open yet. The transfer and LINE details will be announced soon')}</p>`:`
-      <p class="payh ${payOpen()?'on':''}">${payOpen()?T('🟢 เปิดเติมเพชรอยู่ · ทุกวัน 17:00–00:00 น. (เวลาไทย)','🟢 Top-up is open · daily 17:00–00:00 (Thai time)'):T('🔴 ตอนนี้ปิดเติมเพชร · เปิดทุกวัน 17:00–00:00 น. (เวลาไทย) · เปิดในอีก ','🔴 Top-up is closed · open daily 17:00–00:00 (Thai time) · opens in ')+payWait()}<small>${T('เหตุผล: เป็นช่วงที่แอดมินออนไลน์ดูแลระบบ ถ้าโอนแล้วเพชรไม่เข้าจะตรวจและแก้ให้ได้ทันที ไม่ต้องรอข้ามวัน · โอนนอกเวลาได้ แล้วมาอัปสลิปตอนเปิด (สลิปใช้ได้ 24 ชม.)','Why: this is when the admin is online, so a payment that does not arrive can be checked and fixed straight away instead of the next day · you may pay outside these hours and upload the slip once it opens (a slip is good for 24 hours)')}</small></p>
+      <p class="payh ${payOpen()?'on':''}">${payOff()?T('🔴 ปิดรับเติมเพชรชั่วคราว ทีมงานกำลังตรวจสอบระบบ โปรดรอประกาศ','🔴 Top-up is paused while the team checks the system. Please wait for an announcement'):payOpen()?T('🟢 เปิดเติมเพชรอยู่ · ทุกวัน 17:00–00:00 น. (เวลาไทย)','🟢 Top-up is open · daily 17:00–00:00 (Thai time)'):T('🔴 ตอนนี้ปิดเติมเพชร · เปิดทุกวัน 17:00–00:00 น. (เวลาไทย) · เปิดในอีก ','🔴 Top-up is closed · open daily 17:00–00:00 (Thai time) · opens in ')+payWait()}<small>${T('เหตุผล: เป็นช่วงที่แอดมินออนไลน์ดูแลระบบ ถ้าโอนแล้วเพชรไม่เข้าจะตรวจและแก้ให้ได้ทันที ไม่ต้องรอข้ามวัน · โอนนอกเวลาได้ แล้วมาอัปสลิปตอนเปิด (สลิปใช้ได้ 24 ชม.)','Why: this is when the admin is online, so a payment that does not arrive can be checked and fixed straight away instead of the next day · you may pay outside these hours and upload the slip once it opens (a slip is good for 24 hours)')}</small></p>
       <b>${T('วิธีเติม','How to top up')}</b>
       <ol><li>${T('แตะแพ็กเพชรด้านบน','Tap a diamond pack above')}${pk?` → <b style="color:#ffd84a">${(pk[0]+pk[1]).toLocaleString('en')} 💎 = ฿${pk[2].toLocaleString('en')}</b>`:''}</li>
       <li>${PAYINFO.bank?T('โอนเข้าบัญชี '+PAYINFO.bank[0],'Transfer to '+PAYINFO.bank[1]+' account'):T('โอนพร้อมเพย์','Transfer by PromptPay to')} <b style="color:#6fd8ff">${esc(PAYINFO.pp)}</b> <button class="btn alt sm" data-act="ppcopy">${T('คัดลอกเลข','Copy number')}</button>${PAYINFO.ppName?'<br>'+T('ชื่อบัญชี','Account name')+' <b>'+esc(PAYINFO.ppName)+'</b>':''}${pk?` · ${T('ยอด','amount')} <b>฿${pk[2].toLocaleString('en')}</b>`:''}</li>
@@ -1193,7 +1201,7 @@ ${auto?`<li>${T('กดปุ่มด้านล่าง เลือกร�
       <li>${T('ต้องโอนยอดตรงกับแพ็กพอดี และอัปสลิปภายใน 24 ชั่วโมง · สลิปหนึ่งใบใช้ได้ครั้งเดียว','Pay the exact pack price and upload within 24 hours · a slip works once')}</li>`
       :`<li>${T('ส่งสลิปและรหัสผู้เล่นของคุณไปที่ LINE','Send the slip and your player ID on LINE to')} <b style="color:#6cf586">${esc(PAYINFO.line)}</b></li>
       <li>${T('รอแอดมินตรวจสลิป แล้วกด "เช็กเพชรที่เติม" หรือเข้าเกมใหม่ เพชรจะเข้าเอง','Wait for the admin to check the slip, then press "Check for my top-up" or reopen the game')}</li>`}</ol>
-      ${auto?`<label class="btn go slipb ${pk&&!slip.busy&&payOpen()?'':'off'}">${!payOpen()?T('เปิดเติม 17:00 น. · อีก ','Opens 17:00 · in ')+payWait():slip.busy?T('กำลังตรวจ…','Checking…'):pk?T('อัปโหลดสลิป','Upload slip')+' · ฿'+pk[2].toLocaleString('en'):T('เลือกแพ็กเพชรก่อน','Pick a pack first')}<input id="slipin" type="file" accept="image/*" ${pk&&!slip.busy&&payOpen()?'':'disabled'} hidden></label>${slip.msg?`<p style="color:${slip.err?'#ff8a7a':'#6cf586'};font-weight:700;margin-top:8px">${esc(slip.msg)}</p>`:''}${PAYINFO.line?`<p class="sub" style="margin-top:6px">${T('ติดปัญหา ติดต่อ LINE','Need help? LINE')} <b>${esc(PAYINFO.line)}</b> · <button class="btn alt sm" data-act="discord">Discord</button></p>`:''}`:''}`}
+      ${auto?`<label class="btn go slipb ${pk&&!slip.busy&&payOpen()?'':'off'}">${payOff()?T('ปิดรับเติมเพชรชั่วคราว','Top-up is paused'):!payOpen()?T('เปิดเติม 17:00 น. · อีก ','Opens 17:00 · in ')+payWait():slip.busy?T('กำลังตรวจ…','Checking…'):pk?T('อัปโหลดสลิป','Upload slip')+' · ฿'+pk[2].toLocaleString('en'):T('เลือกแพ็กเพชรก่อน','Pick a pack first')}<input id="slipin" type="file" accept="image/*" ${pk&&!slip.busy&&payOpen()?'':'disabled'} hidden></label>${slip.msg?`<p style="color:${slip.err?'#ff8a7a':'#6cf586'};font-weight:700;margin-top:8px">${esc(slip.msg)}</p>`:''}${PAYINFO.line?`<p class="sub" style="margin-top:6px">${T('ติดปัญหา ติดต่อ LINE','Need help? LINE')} <b>${esc(PAYINFO.line)}</b> · <button class="btn alt sm" data-act="discord">Discord</button></p>`:''}`:''}`}
       ${on?`<p class="pid">${T('รหัสผู้เล่นของคุณ','Your player ID')}: <code id="pidv">${esc(USER.sub)}</code> <button class="btn alt sm" data-act="pidcopy">${T('คัดลอก','Copy')}</button></p>`:''}</div>
   </div></div>`);
 }
@@ -1520,6 +1528,21 @@ async function finish(won){
   </div><div class="main">${won?`<div class="res">${rows}</div>`:''}</div></div>`);
 }
 
+
+/* ---------- live settings (admin page) ---------- */
+const CFG_POLL=180000;let cfgAt=0;
+function cfgFetch(){if(!FB_CFG||document.hidden||Date.now()-cfgAt<CFG_POLL-5000)return;cfgAt=Date.now();
+  fbLoad().then(()=>firebase.firestore().collection('config').doc('main').get()).then(d=>{const was=JSON.stringify(CFG);CFG=d.exists?d.data()||{}:{};try{localStorage.setItem('pdb_cfg',JSON.stringify(CFG))}catch(e){}if(JSON.stringify(CFG)!==was)cfgApply()}).catch(()=>{})}
+function cfgApply(){
+  if(CFG.era>ERA){ERA=CFG.era;ERA_AT=CFG.eraAt||0;if(S&&(S.era||1)<ERA&&!bt){S=unlock(S);save();cloudFlush();ov('');USER?welcome():titleScreen();return}}
+  cfgGate();if(document.querySelector('.lobby'))home();else if(document.querySelector('[data-tu]'))topup()}
+// maintenance and suspended accounts get a cover over the whole game; the owner's Dev account is let through maintenance so the game can be checked
+function cfgGate(){const g=$('gate');if(!g)return;const ban=USER&&USER.sub&&CFG.bans&&CFG.bans[USER.sub],mt=CFG.maint&&!isDev();
+  if(!ban&&!mt){if(!g.hidden){g.hidden=true;g.innerHTML=''}return}const k=ban?'b'+ban:'m'+(CFG.maintMsg||'');if(g._k===k&&!g.hidden)return;g._k=k;g.hidden=false;
+  g.innerHTML=ban?`<h2 class="nt">${T('บัญชีนี้ถูกระงับ','This account is suspended')}</h2><p class="nt">${T('เหตุผล: ','Reason: ')}${esc(String(ban===true?'-':ban).slice(0,200))}\n${T('หากคิดว่าเป็นความผิดพลาด ติดต่อทีมงานทาง Discord พร้อมรหัสผู้เล่น ','If you think this is a mistake, contact the team on Discord with your player ID ')}${esc(USER.sub)}</p><button class="btn nt" data-g="d">Discord</button>`
+   :`<h2 class="nt">🔧 ${T('ปิดปรับปรุงชั่วคราว','Down for maintenance')}</h2><p class="nt">${esc(String(CFG.maintMsg||T('ทีมงานกำลังปรับปรุงเกม อีกสักครู่กลับมาเล่นได้ ข้อมูลของคุณยังอยู่ครบ','The team is updating the game. It will be back shortly and your progress is safe')).slice(0,400))}</p><button class="btn nt" data-g="d">Discord</button><button class="btn alt sm nt" data-g="r">${T('ลองใหม่','Try again')}</button>`}
+$('gate').onclick=e=>{const a=e.target.dataset.g;if(a==='d'){const w=window.open(DISCORD,'_blank','noopener');if(!w)location.href=DISCORD}else if(a==='r'){cfgAt=0;cfgFetch()}};
+setTimeout(cfgFetch,1500);setInterval(cfgFetch,60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden)cfgFetch()});
 
 /* ---------- players online ----------
    Every signed-in player writes online/{uid} = {at: server time} every 10 minutes while the game is on screen, and asks the database how many
@@ -1968,7 +1991,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b136';
+const BUILD='b137';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';

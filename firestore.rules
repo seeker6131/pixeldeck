@@ -1,9 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // each signed-in player can read and write only their own save
+    // the owner's Google account (admin page). Replace OWNER_EMAIL in the Firebase console; the real address is not committed here.
+    function owner() { return request.auth != null && request.auth.token.email == 'OWNER_EMAIL'; }
+    // each signed-in player reads and writes only their own save; the owner may read every save (admin page)
     match /saves/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && (request.auth.uid == uid || owner());
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
     // player market: anyone signed in can browse and buy, a listing must carry the seller's own id
     match /market/{id} {
@@ -28,19 +31,30 @@ service cloud.firestore {
         && request.resource.data.gold >= 0 && request.resource.data.gold <= 5000000;
       allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
     }
+    // diamonds waiting for a player: created by the owner (or by the top-up Worker, which bypasses rules); the receiving player reads and deletes their own
+    match /grants/{id} {
+      allow create: if owner()
+        && request.resource.data.dia is int
+        && request.resource.data.dia > 0 && request.resource.data.dia <= 100000;
+      allow read, delete: if request.auth != null && (resource.data.to == request.auth.uid || owner());
+    }
     // players online: each signed-in player keeps one small note with the time it was last seen; anyone signed in may count them
     match /online/{uid} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
-    // manual top-up: only the owner's account may create a grant; the receiving player reads and deletes their own
-    // replace OWNER_EMAIL with the owner's Google address in the Firebase console (do not commit the real address here)
-    match /grants/{id} {
-      allow create: if request.auth != null
-        && request.auth.token.email == 'OWNER_EMAIL'
-        && request.resource.data.dia is int
-        && request.resource.data.dia > 0 && request.resource.data.dia <= 100000;
-      allow read, delete: if request.auth != null && resource.data.to == request.auth.uid;
+    // live game settings (maintenance, notice, top-up hours, end of CBT, suspended accounts): everyone reads, only the owner writes
+    match /config/{id} {
+      allow read: if true;
+      allow write: if owner();
+    }
+    // slip ledger written by the top-up Worker: only the owner reads it
+    match /slips/{id} {
+      allow read: if owner();
+    }
+    // what the owner did on the admin page
+    match /adminlog/{id} {
+      allow read, write: if owner();
     }
   }
 }
