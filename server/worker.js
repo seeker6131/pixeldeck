@@ -12,6 +12,7 @@
 //   FB_PROJECT    Firebase project id, e.g. pixeldeck-battle-1a625
 //   FB_SA_EMAIL   client_email from the Firebase service-account JSON
 //   FB_SA_KEY     private_key from the same JSON (the whole -----BEGIN PRIVATE KEY----- ... block)
+//                 Easier: paste the WHOLE JSON file into FB_SA_KEY and skip FB_SA_EMAIL.
 // Optional plain variable:
 //   ALLOW_ORIGIN  site allowed to call this Worker (default https://seeker6131.github.io)
 
@@ -44,12 +45,20 @@ async function verifyIdToken(token, project) {
   return body.sub;
 }
 
+// the secret may be the bare private key, or the whole service-account JSON file
+function svc(env) {
+  const raw = String(env.FB_SA_KEY || '').trim();
+  if (raw[0] === '{') { try { const j = JSON.parse(raw); return { email: j.client_email || '', key: j.private_key || '' }; } catch (e) { return { email: '', key: '' }; } }
+  return { email: String(env.FB_SA_EMAIL || '').trim().replace(/^"|"$/g, ''), key: raw };
+}
+
 async function accessToken(env) {
+  const sa = svc(env);
   if (tokCache && Date.now() < tokExp - 60000) return tokCache;
   const now = Math.floor(Date.now() / 1000);
-  const claim = { iss: env.FB_SA_EMAIL, scope: 'https://www.googleapis.com/auth/datastore', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 };
+  const claim = { iss: sa.email, scope: 'https://www.googleapis.com/auth/datastore', aud: 'https://oauth2.googleapis.com/token', iat: now, exp: now + 3600 };
   const unsigned = toB64u(enc(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))) + '.' + toB64u(enc(JSON.stringify(claim)));
-  const pem = String(env.FB_SA_KEY).replace(/\\n/g, '\n').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
+  const pem = String(sa.key).replace(/\\n/g, '\n').replace(/"/g, '').replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
   const key = await crypto.subtle.importKey('pkcs8', Uint8Array.from(atob(pem), c => c.charCodeAt(0)), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
   const jwt = unsigned + '.' + toB64u(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, enc(unsigned)));
   const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'grant_type=' + encodeURIComponent('urn:ietf:params:oauth:grant-type:jwt-bearer') + '&assertion=' + jwt });
@@ -72,7 +81,7 @@ export default {
     const out = (status, o) => new Response(JSON.stringify(o), { status, headers: { ...cors, 'content-type': 'application/json' } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (req.method !== 'POST') return out(405, { ok: false, code: 'method' });
-    if (!env.THUNDER_KEY || !env.FB_PROJECT || !env.FB_SA_EMAIL || !env.FB_SA_KEY) return out(500, { ok: false, code: 'not_configured' });
+    if (!env.THUNDER_KEY || !env.FB_PROJECT || !svc(env).email || !svc(env).key) return out(500, { ok: false, code: 'not_configured' });
     try {
       const form = await req.formData(), img = form.get('image'), pi = Number(form.get('pack'));
       const pack = Number.isInteger(pi) ? PACKS[pi] : null;
