@@ -10,11 +10,21 @@ def key(im):
     al[al<.06]=0;return np.dstack([f,al*255]).astype('uint8')
 J=[('p01-arrow','arrow','p',26),('p02-fire-arrow','farrow','p',52),('p03-fireball','fball','p',56),('p04-ice-shard','shard','p',52),('p05-light-orb','orb','p',56),
    ('h06-sword-slash','slash','h',150),('h07-claw-marks','claw','h',150),('h08-ground-smash','smash','h',150),('h09-fire-explosion','boom','h',150),('h10-ice-burst','ice','h',150),('h11-lightning','bolt','h',190),('h12-hit-impact','hit','h',130),
-   ('s13-blood-drain','drain','h',140),('s15-shield','shield','h',150)]
+   ('s13-blood-drain','drain','h',140),('s15-shield','shield','h',150),
+   ('s14-heal','heal','h',170),('s16-power-up','buff','h',170),('h17-holy-light','holy','h',160),('h18-wind-cyclone','wind','h',165)]
+import sys
 for src,name,kind,size in J:
+    if len(sys.argv)>1 and name not in sys.argv[1:]:continue
     rgba=key(Image.open(D+src+'.png'));H,W=rgba.shape[:2]
     if name in('smash','bolt'):   # their dust / halo was painted pinkish over the magenta: pull what is left of it to a neutral tan
         f=rgba[...,:3].astype(float);g=f[...,1];mm=np.minimum(f[...,0],f[...,2])-g;z=mm>12;f[...,0]=np.where(z,g+(f[...,0]-g)*.55,f[...,0]);f[...,2]=np.where(z,g+(f[...,2]-g)*.25,f[...,2]);rgba[...,:3]=f.astype('uint8')
+    if name in('heal','buff','holy','wind'):   # b160: glow painted over the magenta leaves a pink or lilac haze; turn it into the effect's own colour (green, orange, gold, mint) and thin it out
+        c=rgba[...,:3].astype(float);r,g,b=c[...,0],c[...,1],c[...,2];mm=np.minimum(r,b)-g;z=mm>6;k=np.clip(mm/60,0,1)
+        if name=='heal':nr,nb=g*.80,g*.62
+        elif name=='wind':nr,nb=g*.86,g*.96
+        else:nr,nb=np.maximum(r,g),g*.55
+        c[...,0]=np.where(z,r+(nr-r)*np.clip(k*2.2,0,1),r);c[...,2]=np.where(z,b+(nb-b)*np.clip(k*2.2,0,1),b);rgba[...,:3]=c.clip(0,255).astype('uint8')
+        al=rgba[...,3].astype(float);rgba[...,3]=np.where(z,al*(1-.45*k),al).astype('uint8')
     # the artist did not space the six frames evenly, so find them by the gaps between them: runs of used columns, the closest runs merged until six are left
     on=(rgba[...,3]>60).sum(0)>1;runs=[];st=None
     for x,v in enumerate(list(on)+[False]):
