@@ -379,7 +379,7 @@ p{margin:0}
 .res .rib{font-size:8px;letter-spacing:0;overflow:hidden;white-space:nowrap}
 #zoom{position:absolute;inset:0;z-index:9;background:rgba(18,26,54,.94);display:flex;gap:70px;align-items:center;justify-content:center;padding:16px;border:0;width:100%;text-align:left}
 #zoom .cf{width:calc((var(--H) - 110px)*.754);flex:none}
-#zoom .inf{display:grid;gap:5px;max-width:330px}
+#zoom .inf{display:grid;gap:5px;max-width:330px;max-height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-content:start;padding:2px 8px 26px 2px;scrollbar-width:thin;scrollbar-color:#5868c8 transparent}#zoom{cursor:pointer;color:inherit;font:inherit}#zoom .zx{position:absolute;right:10px;top:8px;z-index:3;width:34px;height:34px;border-radius:50%;background:rgba(8,12,34,.9);border:2px solid #5868c8;color:#fff;font:700 18px/30px sans-serif;text-align:center}#zoom .zmore{position:absolute;right:16px;bottom:6px;z-index:3;font-size:12px;color:#ffd84a;background:rgba(8,12,34,.9);padding:2px 10px;border-radius:999px;pointer-events:none}
 .stb{display:grid;gap:3px;padding:7px 9px;background:#141a33;border:2px solid #3b4a7a;box-shadow:0 0 0 2px #0a0e22,inset 0 0 0 1px rgba(255,255,255,.06)}
 .stb span{display:grid;grid-template-columns:14px 52px 62px 1fr;align-items:center;gap:6px;font-size:13px;line-height:1.25}
 .stb img{width:12px;height:12px;image-rendering:pixelated}.stb b{font-weight:700;color:var(--ink)}.stb b.k{grid-column:1/3;color:var(--dim)}
@@ -609,7 +609,7 @@ h1{color:#f2d98a;text-shadow:0 3px 0 #7a4a1c,0 6px 0 #0a1019}h2{color:#f2d98a;te
 .gbtn{border:3px solid #0a1019}
 </style>
 
-<div id="stage"><div id="view"></div><div id="ov"></div><div id="tut"></div><div id="gate" hidden></div><button id="zoom" hidden></button></div>
+<div id="stage"><div id="view"></div><div id="ov"></div><div id="tut"></div><div id="gate" hidden></div><div id="zoom" role="dialog" tabindex="-1" hidden></div></div>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -1396,7 +1396,8 @@ function zoom(id){const o=S.cards[id],v=stat(id,o?o.lv:1),mx=stat(id,capOf(id)),
    <p class="sub">เครื่องราง: ${amOf(id)?amOf(id).n+' ('+amOf(id).t+')':'ยังไม่ได้ใส่'}</p>
    <div class="skl">${[0,1,2].map(k=>`${skBtn(id,k,{tag:'span'})}<p><b>${SK[id][k][0]}</b>${CD[k]?` · พัก ${CD[k]} ตา`:''}<br>${skDesc(SK[id][k]).replace(/ATK/g,atkName(id))}</p>`).join('')}</div>
    ${C[id].ls?`<p class="sub nt" style="margin-top:8px;color:#8fe9ff"><b>★ ${T('พลังติดตัว Limited','Limited passive')}: Golden Hunger</b><br>${T(`ทุกการโจมตีฟื้น HP ตัวเอง ${Math.round(C[id].ls*100)}% ของดาเมจที่ทำได้ (สกิลดูดเลือดยังฟื้นครึ่งหนึ่งตามเดิม)`,`Every attack restores ${Math.round(C[id].ls*100)}% of the damage dealt as HP (the drain skill still restores half)`)}</p>`:''}
-   </div>`;z.hidden=false}
+   </div>`;z.hidden=false;const inf=z.querySelector('.inf');z.insertAdjacentHTML('beforeend','<span class="zx nt">✕</span>');if(inf){const y=zoomKeep===id?zoomY:0;zoomKeep=id;inf.scrollTop=y;inf.onscroll=()=>{zoomY=inf.scrollTop;const m=z.querySelector('.zmore');if(m)m.hidden=inf.scrollTop+inf.clientHeight>=inf.scrollHeight-8};if(inf.scrollHeight>inf.clientHeight+8){z.insertAdjacentHTML('beforeend',`<span class="zmore nt">▼ ${T('เลื่อนดูเพิ่ม','scroll for more')}</span>`);inf.onscroll()}}}
+let zoomKeep=null,zoomY=0;
 
 /* ---------- battle ---------- */
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -2287,7 +2288,7 @@ function titleScreen(){
    <p class="cfoot nt">PixelDeckBattle · CBT build ${BUILD}</p></div>`);
 }
 // ---------- Firebase: Google sign-in and one cloud save document per account (saves/{uid}) ----------
-const BUILD='b161';
+const BUILD='b162';
 // The game moved to its own address. Anyone opening the old address is sent on, but only once the new site answers, so a broken move cannot lock players out.
 const DISCORD='https://discord.gg/dHDzRyPG9',DC_SVG='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>';
 const NEW_HOME='https://pixeldeckbattle.github.io/';
