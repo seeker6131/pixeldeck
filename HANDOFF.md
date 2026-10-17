@@ -142,3 +142,7 @@ Live build: **b191** (15 Oct 2026 22:25: the invite-for-diamonds menu / FOUNDER 
 - loading() now preloads only the player's own cards (+ next stage monsters) — the 16-frame sheets doubled spr/ to ~54 MB.
 - Still 6-frame: 44 normal monsters, star badges st6-10, tower shield tw1, 9 animated amulets, 32 fx. Prompts sent; add as they arrive (r16sheet.py 'M' rank / ui16.py).
 - Release = `git push pdb release:main` (release branch = r16 + index.html/version.json/admin.html built by deploy.py), then update GDD.
+
+## b210 animation tempo
+- One tempo for every loop: 8 fps (16f=2s, 8f=1s, 6f=.75s) for characters idle/front, logo, chests, badges, frames, amulets, stars, world-boss items. Walk 12 fps. One-shot VFX/projectiles unchanged.
+- 16-frame attacks use @keyframes fr16a: frames 1-6 fast (40 ms), impact frame 7 held 120 ms (hit-stop), 8-16 recover; total .8s/speed, impact still at 0.24 s.
